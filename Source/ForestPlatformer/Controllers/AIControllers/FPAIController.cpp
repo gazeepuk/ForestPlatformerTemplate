@@ -1,0 +1,64 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "FPAIController.h"
+
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Navigation/CrowdFollowingComponent.h"
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISenseConfig_Sight.h"
+
+AFPAIController::AFPAIController(const FObjectInitializer& ObjectInitializer):
+Super(ObjectInitializer.SetDefaultSubobjectClass<UCrowdFollowingComponent>("PathFollowingComponent"))
+{
+	SenseConfig_Sight = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SenseConfig_Sight"));
+	SenseConfig_Sight->DetectionByAffiliation.bDetectEnemies = true;
+	SenseConfig_Sight->DetectionByAffiliation.bDetectFriendlies = false;
+	SenseConfig_Sight->DetectionByAffiliation.bDetectNeutrals = false;
+	SenseConfig_Sight->SightRadius = 2000.f;
+	SenseConfig_Sight->LoseSightRadius = 3000.f;
+	SenseConfig_Sight->PeripheralVisionAngleDegrees = 270.f;
+
+	EnemyPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("EnemyPerceptionComponent"));
+	EnemyPerceptionComponent->ConfigureSense(*SenseConfig_Sight);
+	EnemyPerceptionComponent->SetDominantSense(UAISenseConfig_Sight::StaticClass());
+	EnemyPerceptionComponent->OnTargetPerceptionUpdated.AddUniqueDynamic(this, &ThisClass::OnPerceptionUpdated);
+	
+	SetGenericTeamId(FGenericTeamId(1));
+}
+
+ETeamAttitude::Type AFPAIController::GetTeamAttitudeTowards(const AActor& Other) const
+{
+	const APawn* OtherPawn = Cast<const APawn>(&Other);
+	if(!OtherPawn)
+	{
+		return ETeamAttitude::Friendly;
+	}
+	
+	const IGenericTeamAgentInterface* OtherTeamAgent = Cast<const IGenericTeamAgentInterface>(OtherPawn->GetController());
+	if(OtherTeamAgent && OtherTeamAgent->GetGenericTeamId() != GetGenericTeamId())
+	{
+		return ETeamAttitude::Hostile;
+	}
+
+	return ETeamAttitude::Friendly;
+}
+
+void AFPAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
+{
+	if(Stimulus.Type == UAISense::GetSenseID<UAISenseConfig_Sight>())
+	{
+		HandleSightSense(Actor, Stimulus);
+	}
+}
+
+void AFPAIController::HandleSightSense_Implementation(AActor* InActor, FAIStimulus InStimulus)
+{
+	if(UBlackboardComponent* BlackboardComponent = GetBlackboardComponent())
+	{
+		BlackboardComponent->SetValueAsObject(FName("TargetActor"), InStimulus.WasSuccessfullySensed() ? InActor : nullptr);
+		BlackboardComponent->SetValueAsVector(FName("LastKnownLocation"), InStimulus.StimulusLocation);
+	}
+
+	UE_LOG(LogTemp, Type::Display, TEXT("%s: %s"), InStimulus.WasSuccessfullySensed() ? *GetNameSafe(InActor) : TEXT("Null"), *InStimulus.StimulusLocation.ToString());
+}

@@ -1,0 +1,48 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "StompBoxComponent.h"
+
+#include "Components/ArrowComponent.h"
+#include "CoreTypes/FPCustomCollisions.h"
+
+
+UStompBoxComponent::UStompBoxComponent()
+{
+	PrimaryComponentTick.bCanEverTick = false;
+	
+	UPrimitiveComponent::SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	SetCollisionObjectType(ECC_WorldStatic);
+	SetCollisionResponseToAllChannels(ECR_Ignore);
+	SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	SetCollisionResponseToChannel(ECC_FP_Player_OC, ECR_Overlap);
+
+	StompDirectionArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("StompDirectionArrow"));
+	StompDirectionArrow->SetupAttachment(this);
+	StompDirectionArrow->SetRelativeRotation(FRotator(90.f,0.f,0.f));
+
+	
+	OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnBeginOverlap);
+}
+
+
+bool UStompBoxComponent::IsActorAbove(const AActor* InActor)
+{
+	if(!InActor || InActor == GetOwner())
+	{
+		return false;
+	}
+	
+	FVector LocalActorLocation = GetComponentTransform().InverseTransformPosition(InActor->GetActorLocation());
+		
+	return LocalActorLocation.Z >= StompHeightBuffer;
+}
+
+void UStompBoxComponent::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if(IsActorAbove(OtherActor))
+	{
+		OnStompBoxOverlappedActorAbove.Broadcast(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+	}
+}

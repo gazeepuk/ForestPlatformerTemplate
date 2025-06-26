@@ -1,0 +1,199 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "FPPlayerCharacter.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "ActorComponents/PlayerCombatComponent.h"
+#include "ActorComponents/FPCharacterMovementComponent.h"
+#include "ActorComponents/FPSpringArmComponent.h"
+#include "ActorComponents/EffectComponent/FPEffectComponent.h"
+#include "ActorComponents/InteractableComponents/PlayerInteractionComponent.h"
+#include "Camera/CameraComponent.h"
+#include "CoreTypes/FPCustomCollisions.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Controllers/PlayerControllers/FPPlayerController.h"
+
+AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializer) :
+	Super(ObjectInitializer.SetDefaultSubobjectClass<UFPCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+{
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+	
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+	
+	CameraBoom = CreateDefaultSubobject<UFPSpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom->SetupAttachment(GetRootComponent());
+	CameraBoom->TargetArmLength = 500.f;
+	CameraBoom->bUsePawnControlRotation = true;
+
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+	CameraComponent->SetupAttachment(CameraBoom);
+	CameraComponent->bUsePawnControlRotation = false;
+
+	PlayerInteractionComponent = CreateDefaultSubobject<UPlayerInteractionComponent>(TEXT("PlayerInteractionComponent"));
+
+	CombatComponent = CreateDefaultSubobject<UPlayerCombatComponent>(TEXT("CombatComponent"));
+
+	EffectComponent = CreateDefaultSubobject<UFPEffectComponent>(TEXT("EffectComponent"));
+}
+
+#pragma region ICoinsWalletInterface
+void AFPPlayerCharacter::AddCoins_Implementation(int32 InCoinsNum)
+{
+	ICoinsWalletInterface::Execute_AddCoins(GetController(), InCoinsNum);
+}
+
+bool AFPPlayerCharacter::TrySpendCoins_Implementation(int32 InCoinsNum)
+{
+	return ICoinsWalletInterface::Execute_TrySpendCoins(GetController(), InCoinsNum);
+}
+
+bool AFPPlayerCharacter::HasEnoughCoins_Implementation(int32 InCoinsNumToSpend) const
+{
+	return ICoinsWalletInterface::Execute_HasEnoughCoins(GetController(), InCoinsNumToSpend);
+}
+
+void AFPPlayerCharacter::SetCurrentCoins_Implementation(int32 InNewCurrentCoins)
+{
+	ICoinsWalletInterface::Execute_SetCurrentCoins(GetController(), InNewCurrentCoins);
+}
+
+int32 AFPPlayerCharacter::GetCurrentCoins_Implementation() const
+{
+	return ICoinsWalletInterface::Execute_GetCurrentCoins(GetController());
+}
+
+void AFPPlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if(AFPPlayerController* FPPlayerController = GetController<AFPPlayerController>())
+	{
+		FPPlayerController->InitHealthBar(HealthComponent);
+	}
+}
+#pragma endregion
+
+void AFPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	check(EnhancedInputComponent);
+
+	const ULocalPlayer* LocalPlayer = GetController<APlayerController>()->GetLocalPlayer();
+
+	UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer);
+	check(EnhancedInputSubsystem);
+
+	EnhancedInputSubsystem->AddMappingContext(DefaultMappingContext, 0);
+
+	if(MoveAction)
+	{
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFPPlayerCharacter::MoveAction_Triggered);
+	}
+	if(LookAction)
+	{
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFPPlayerCharacter::LookAction_Triggered);
+	}
+	if(JumpAction)
+	{
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFPPlayerCharacter::JumpAction_Started);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AFPPlayerCharacter::JumpAction_Completed);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AFPPlayerCharacter::JumpAction_Triggered);
+	}
+	if(ZoomCameraAction)
+	{
+		EnhancedInputComponent->BindAction(ZoomCameraAction, ETriggerEvent::Started, this, &AFPPlayerCharacter::ZoomCameraAction_Started);
+	}
+}
+
+void AFPPlayerCharacter::MoveAction_Triggered(const FInputActionValue& InputActionValue)
+{
+	const FVector2D MovementVector = InputActionValue.Get<FVector2D>();
+	const FRotator MovementRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
+
+	if(MovementVector.Y != 0.f)
+	{
+		const FVector ForwardDirection = MovementRotation.RotateVector(FVector::ForwardVector);
+
+		AddMovementInput(ForwardDirection, MovementVector.Y);
+	}
+
+	if(MovementVector.X != 0.f)
+	{
+		const FVector RightDirection = MovementRotation.RotateVector(FVector::RightVector);
+
+		AddMovementInput(RightDirection, MovementVector.X);
+	}
+}
+
+void AFPPlayerCharacter::LookAction_Triggered(const FInputActionValue& InputActionValue)
+{
+	const FVector2D LookAxisVector = InputActionValue.Get<FVector2D>();
+
+	if(LookAxisVector.X != 0.f)
+	{
+		AddControllerYawInput(LookAxisVector.X);
+	}
+
+	if(LookAxisVector.Y != 0.f)
+	{
+		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void AFPPlayerCharacter::JumpAction_Started(const FInputActionValue& InputActionValue)
+{
+	Jump();
+}
+
+void AFPPlayerCharacter::JumpAction_Triggered(const FInputActionValue& InputActionValue)
+{
+	GetCharacterMovement<UFPCharacterMovementComponent>()->HandleFloating();
+}
+
+void AFPPlayerCharacter::JumpAction_Completed(const FInputActionValue& InputActionValue)
+{
+	StopJumping();
+	
+	GetCharacterMovement<UFPCharacterMovementComponent>()->StopFloating();
+}
+
+void AFPPlayerCharacter::ZoomCameraAction_Started(const FInputActionValue& InputActionValue)
+{
+	CameraBoom->AddTargetArmLength(InputActionValue.Get<float>() * CameraBoom->ZoomingStep);
+}
+
+/*void AFPPlayerCharacter::HitAction_Started(const FInputActionValue& InputActionValue)
+{
+	TArray<FHitResult> OutHits;
+
+	bool bHit = GetWorld()->SweepMultiByChannel(
+		OutHits,
+		GetActorLocation() + GetActorForwardVector() * 75.f,
+		GetActorLocation() + GetActorForwardVector() * 250.f,
+		FQuat::Identity,
+		ECC_FP_Damageable_TC,
+		FCollisionShape::MakeSphere(150.f),
+		FCollisionQueryParams(FName(TEXT("DamageSphereTrace")), false, this));
+
+	for (const FHitResult& HitResult : OutHits)
+	{
+		if(HitResult.bBlockingHit && HitResult.GetActor() && HitResult.GetActor()->Implements<UDamageableInterface>())
+		{
+			IDamageableInterface::Execute_TakeDamage(HitResult.GetActor(), this, 1.f, GetController());
+		}
+	}
+}*/
+
+void AFPPlayerCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+
+	GetCharacterMovement<UFPCharacterMovementComponent>()->StopFloating();
+}
