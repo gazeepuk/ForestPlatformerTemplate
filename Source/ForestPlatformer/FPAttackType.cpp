@@ -3,25 +3,36 @@
 
 #include "FPAttackType.h"
 
+#include "GameFramework/Character.h"
+
 bool UFPAttackType::CanAttack_Implementation(AActor* InInstigator)
 {
 	return InInstigator != nullptr;
 }
 
 void UFPAttackType::PerformAttack_Implementation(AActor* InTargetActor)
-{
-	if(!TryPlayAttackAnimation())
-	{
-		UE_LOG(LogTemp, Error, TEXT("%s OnAttackMontageEndDelegate is bound? %hs"), *GetAttackTypeID().ToString(), OnAttackMontageEndDelegate.IsBound() ? "true" : "false");
-		OnAttackMontageEndDelegate.ExecuteIfBound(nullptr, true);
-	}
-	
+{	
 	UE_LOG(LogTemp, Display, TEXT("Performing Attack %s"), *AttackTypeID.ToString());
 }
 
 UWorld* UFPAttackType::GetWorld() const
 {
 	return OwningActor ? OwningActor->GetWorld() : nullptr;
+}
+
+ACharacter* UFPAttackType::GetCharacterFromOwningActor() const
+{
+	return Cast<ACharacter>(OwningActor);
+}
+
+USkeletalMeshComponent* UFPAttackType::GetSkeletalMeshFromOwningActor() const
+{
+	return OwningActor ? OwningActor->GetComponentByClass<USkeletalMeshComponent>() : nullptr;
+}
+
+void UFPAttackType::EndAttack_Implementation()
+{
+	OnAttackEnded.Broadcast();
 }
 
 void UFPAttackType::PostInitProperties()
@@ -44,31 +55,3 @@ TArray<AActor*> UFPAttackType::FindTarget_Implementation()
 {
 	return TArray<AActor*>();
 }
-
-
-bool UFPAttackType::TryPlayAttackAnimation()
-{
-	if(!AttackMontage || !OwningActor)
-	{
-		return false;
-	}
-
-	USkeletalMeshComponent* SkeletalMesh = OwningActor->GetComponentByClass<USkeletalMeshComponent>();
-	if(!SkeletalMesh)
-	{
-		return false;
-	}
-
-	UAnimInstance* AnimInstance = SkeletalMesh->GetAnimInstance();
-	if(!AnimInstance)
-	{
-		return false;
-	}
-
-	AnimInstance->Montage_Play(AttackMontage);
-	
-	AnimInstance->Montage_SetEndDelegate(OnAttackMontageEndDelegate, AttackMontage);
-
-	return true;
-}
-

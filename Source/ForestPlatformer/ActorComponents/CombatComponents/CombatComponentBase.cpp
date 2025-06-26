@@ -3,7 +3,8 @@
 
 #include "CombatComponentBase.h"
 
-void UCombatComponentBase::OnAttackAnimationEnded(UAnimMontage* Montage, bool bInterrupted)
+
+void UCombatComponentBase::OnAttackEnded()
 {
 	bAttacking = false;
 }

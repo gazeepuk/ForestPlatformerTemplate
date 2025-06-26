@@ -35,10 +35,10 @@ void UPlayerCombatComponent::SetPrimaryAttackByClass(TSubclassOf<UFPAttackType> 
 	if(InPrimaryAttackClass)
 	{
 		CurrentPrimaryAttack = NewObject<UFPAttackType>(GetOwner(), InPrimaryAttackClass);
-		
 		if(CurrentPrimaryAttack)
 		{
-			CurrentPrimaryAttack->OnAttackMontageEndDelegate.BindUObject(this, &ThisClass::OnAttackAnimationEnded);
+			CurrentPrimaryAttack->SetOwningActor(GetOwner());
+			CurrentPrimaryAttack->OnAttackEnded.AddUniqueDynamic(this, &ThisClass::OnAttackEnded);
 		}
 	}
 }

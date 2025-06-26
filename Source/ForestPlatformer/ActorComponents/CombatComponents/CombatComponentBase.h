@@ -24,5 +24,6 @@ public:
 	bool bAttacking = false;
 	
 protected:
-	virtual void OnAttackAnimationEnded(UAnimMontage* Montage, bool bInterrupted);
+	UFUNCTION()
+	virtual void OnAttackEnded();
 };

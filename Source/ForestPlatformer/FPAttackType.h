@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 #include "FPAttackType.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackEnded);
 /**
  * 
  */
@@ -32,6 +33,12 @@ public:
 	
 	UFUNCTION(BlueprintPure)
 	virtual UWorld* GetWorld() const override;
+
+	UFUNCTION(BlueprintPure)
+	ACharacter* GetCharacterFromOwningActor() const;
+
+	UFUNCTION(BlueprintPure)
+	USkeletalMeshComponent* GetSkeletalMeshFromOwningActor() const;
 	
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void PerformAttack(AActor* InTargetActor);
@@ -39,7 +46,11 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	bool CanAttack(AActor* InInstigator);
 	
-	FOnMontageEnded OnAttackMontageEndDelegate;
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void EndAttack();
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnAttackEnded OnAttackEnded;
 	
 protected:
 	virtual void PostInitProperties() override;
@@ -61,6 +72,4 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<AActor> OwningActor;
-	
-	bool TryPlayAttackAnimation();
 };

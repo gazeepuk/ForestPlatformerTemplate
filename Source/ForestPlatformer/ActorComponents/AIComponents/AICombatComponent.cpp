@@ -68,7 +68,7 @@ void UAICombatComponent::BeginPlay()
 		if(UFPAttackType* AttackType = NewObject<UFPAttackType>(GetOwner(), AttackTypeClass))
 		{
 			AttackType->SetOwningActor(GetOwner());
-			AttackType->OnAttackMontageEndDelegate.BindUObject(this, &ThisClass::OnAttackAnimationEnded);
+			AttackType->OnAttackEnded.AddUniqueDynamic(this, &ThisClass::OnAttackEnded);
 			AttackTypes.AddUnique(AttackType);
 		}
 	}
