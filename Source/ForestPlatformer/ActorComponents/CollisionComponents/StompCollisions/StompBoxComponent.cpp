@@ -16,11 +16,6 @@ UStompBoxComponent::UStompBoxComponent()
 	SetCollisionResponseToAllChannels(ECR_Ignore);
 	SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 	SetCollisionResponseToChannel(ECC_FP_Player_OC, ECR_Overlap);
-
-	StompDirectionArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("StompDirectionArrow"));
-	StompDirectionArrow->SetupAttachment(this);
-	StompDirectionArrow->SetRelativeRotation(FRotator(90.f,0.f,0.f));
-
 	
 	OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnBeginOverlap);
 }

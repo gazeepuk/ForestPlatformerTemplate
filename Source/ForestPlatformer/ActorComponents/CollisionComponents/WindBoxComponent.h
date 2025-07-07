@@ -29,8 +29,6 @@ protected:
 	UFUNCTION()
 	void OnBoxEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	TObjectPtr<UArrowComponent> WindDirectionArrow;
-	
 private:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	

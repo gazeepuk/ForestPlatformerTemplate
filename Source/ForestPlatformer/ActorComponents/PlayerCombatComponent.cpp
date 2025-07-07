@@ -5,7 +5,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "FPAttackType.h"
+#include "AttackTypes/FPAttackType.h"
 
 UPlayerCombatComponent::UPlayerCombatComponent()
 {
@@ -32,12 +32,26 @@ bool UPlayerCombatComponent::TryCurrentAttack()
 
 void UPlayerCombatComponent::SetPrimaryAttackByClass(TSubclassOf<UFPAttackType> InPrimaryAttackClass)
 {
+	if(CurrentPrimaryAttack.GetClass() == InPrimaryAttackClass)
+	{
+		return;
+	}
+	
+	// Cleanup previous Attack
+	if(CurrentPrimaryAttack)
+	{
+		CurrentPrimaryAttack->OnAttackEnded.RemoveDynamic(this, &ThisClass::OnAttackEnded);
+		CurrentPrimaryAttack->ConditionalBeginDestroy();
+		CurrentPrimaryAttack = nullptr;
+	}
+
 	if(InPrimaryAttackClass)
 	{
-		CurrentPrimaryAttack = NewObject<UFPAttackType>(GetOwner(), InPrimaryAttackClass);
+		// Create and Init New Attack
+		CurrentPrimaryAttack = NewObject<UFPAttackType>(this, InPrimaryAttackClass);
 		if(CurrentPrimaryAttack)
 		{
-			CurrentPrimaryAttack->SetOwningActor(GetOwner());
+			CurrentPrimaryAttack->InitAttack(GetOwner(), this);
 			CurrentPrimaryAttack->OnAttackEnded.AddUniqueDynamic(this, &ThisClass::OnAttackEnded);
 		}
 	}

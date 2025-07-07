@@ -4,7 +4,7 @@
 #include "AICombatComponent.h"
 
 #include "AIController.h"
-#include "FPAttackType.h"
+#include "AttackTypes/FPAttackType.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 
@@ -67,7 +67,7 @@ void UAICombatComponent::BeginPlay()
 		
 		if(UFPAttackType* AttackType = NewObject<UFPAttackType>(GetOwner(), AttackTypeClass))
 		{
-			AttackType->SetOwningActor(GetOwner());
+			AttackType->InitAttack(GetOwner(), this);
 			AttackType->OnAttackEnded.AddUniqueDynamic(this, &ThisClass::OnAttackEnded);
 			AttackTypes.AddUnique(AttackType);
 		}

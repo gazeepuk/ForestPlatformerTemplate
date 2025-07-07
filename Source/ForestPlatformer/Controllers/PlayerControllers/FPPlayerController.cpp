@@ -13,6 +13,23 @@ FGenericTeamId AFPPlayerController::GetGenericTeamId() const
 	return PlayerTeamID;
 }
 
+ETeamAttitude::Type AFPPlayerController::GetTeamAttitudeTowards(const AActor& Other) const
+{
+	const APawn* OtherPawn = Cast<const APawn>(&Other);
+	if(!OtherPawn)
+	{
+		return ETeamAttitude::Neutral;
+	}
+	
+	const IGenericTeamAgentInterface* OtherTeamAgent = Cast<const IGenericTeamAgentInterface>(OtherPawn->GetController());
+	if(OtherTeamAgent && OtherTeamAgent->GetGenericTeamId() != GetGenericTeamId())
+	{
+		return ETeamAttitude::Hostile;
+	}
+
+	return ETeamAttitude::Friendly;
+}
+
 void AFPPlayerController::AddCoins_Implementation(int32 InCoinsNum)
 {
 	SetCurrentCoins_Implementation(InCoinsNum + CurrentCoins);

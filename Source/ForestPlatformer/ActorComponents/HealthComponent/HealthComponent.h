@@ -8,6 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnZeroHealthDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChangedDelegate, float, CurrentHealth, float, MaxHealth);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTakeDamageDelegate, float, DamageValue);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class FORESTPLATFORMER_API UHealthComponent : public UActorComponent
@@ -30,12 +31,15 @@ public:
 	void SpendCurrentHealth(float InHealthAmount);
 
 	UFUNCTION(BlueprintCallable, Category = "Health Component")
-	void TakeDamage(AActor* DamageCauser, float InDamage, AController* InstigatedBy);
+	void TakeDamage(AActor* DamageCauser, float InDamageValue, AController* InstigatedBy);
 
 	UPROPERTY(BlueprintAssignable)
 	FOnZeroHealthDelegate OnZeroHealth;
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChangedDelegate OnHealthChanged;
+	UPROPERTY(BlueprintAssignable)
+	FOnTakeDamageDelegate OnTakeDamage;
+	
 protected:
 	virtual void BeginPlay() override;
 	

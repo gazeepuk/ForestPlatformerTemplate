@@ -4,9 +4,11 @@
 #include "FPAIController.h"
 
 #include "BehaviorTree/BlackboardComponent.h"
+#include "CoreTypes/FPGameplayTags.h"
+#include "FunctionLibrary/FPFunctionLibrary.h"
 #include "Navigation/CrowdFollowingComponent.h"
 #include "Perception/AIPerceptionComponent.h"
-#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISenseConfig_Sight.h"	
 
 AFPAIController::AFPAIController(const FObjectInitializer& ObjectInitializer):
 Super(ObjectInitializer.SetDefaultSubobjectClass<UCrowdFollowingComponent>("PathFollowingComponent"))
@@ -17,7 +19,7 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UCrowdFollowingComponent>("Path
 	SenseConfig_Sight->DetectionByAffiliation.bDetectNeutrals = false;
 	SenseConfig_Sight->SightRadius = 2000.f;
 	SenseConfig_Sight->LoseSightRadius = 3000.f;
-	SenseConfig_Sight->PeripheralVisionAngleDegrees = 270.f;
+	SenseConfig_Sight->PeripheralVisionAngleDegrees = 150.f;
 
 	EnemyPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("EnemyPerceptionComponent"));
 	EnemyPerceptionComponent->ConfigureSense(*SenseConfig_Sight);
@@ -32,7 +34,7 @@ ETeamAttitude::Type AFPAIController::GetTeamAttitudeTowards(const AActor& Other)
 	const APawn* OtherPawn = Cast<const APawn>(&Other);
 	if(!OtherPawn)
 	{
-		return ETeamAttitude::Friendly;
+		return ETeamAttitude::Neutral;
 	}
 	
 	const IGenericTeamAgentInterface* OtherTeamAgent = Cast<const IGenericTeamAgentInterface>(OtherPawn->GetController());
@@ -54,9 +56,13 @@ void AFPAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 
 void AFPAIController::HandleSightSense_Implementation(AActor* InActor, FAIStimulus InStimulus)
 {
-	if(UBlackboardComponent* BlackboardComponent = GetBlackboardComponent())
+	UBlackboardComponent* BlackboardComponent = GetBlackboardComponent();
+	ETeamAttitude::Type TeamAttitudeTowardsTargetActor = GetTeamAttitudeTowards(*InActor);
+	
+	if(BlackboardComponent && TeamAttitudeTowardsTargetActor == ETeamAttitude::Type::Hostile)
 	{
-		BlackboardComponent->SetValueAsObject(FName("TargetActor"), InStimulus.WasSuccessfullySensed() ? InActor : nullptr);
+		AActor* TargetActor = UFPFunctionLibrary::NativeDoesActorHaveTag(InActor, FPGameplayTags::Shared_Status_Dead) ? nullptr : InActor;
+		BlackboardComponent->SetValueAsObject(FName("TargetActor"), InStimulus.WasSuccessfullySensed() ? TargetActor : nullptr);
 		BlackboardComponent->SetValueAsVector(FName("LastKnownLocation"), InStimulus.StimulusLocation);
 	}
 

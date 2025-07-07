@@ -4,6 +4,7 @@
 #include "StompDamageBoxCollision.h"
 
 #include "Characters/FPPlayerCharacter.h"
+#include "CoreTypes/FPCustomCollisions.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -11,7 +12,7 @@
 UStompDamageBoxCollision::UStompDamageBoxCollision()
 {
 	SetCollisionResponseToAllChannels(ECR_Ignore);
-	SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	SetCollisionResponseToChannel(ECC_FP_Player_OC, ECR_Overlap);
 }
 
 void UStompDamageBoxCollision::BeginPlay()

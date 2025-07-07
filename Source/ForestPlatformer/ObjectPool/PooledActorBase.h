@@ -14,15 +14,13 @@ class FORESTPLATFORMER_API APooledActorBase : public AActor
 public:
 	APooledActorBase();
 	
-	UFUNCTION(BlueprintCallable)
-	void SetActive(bool InActive);
+	UFUNCTION(BlueprintCallable, Category = "PooledActor")
+	void SetPooledActorActive(bool InActive);
 	
-	UFUNCTION(BlueprintPure)
+	UFUNCTION(BlueprintPure, Category = "PooledActor")
 	FORCEINLINE bool IsActive() const { return bActive; }
 	
 protected:
-	virtual void BeginPlay() override;
-	
 	UFUNCTION(BlueprintNativeEvent)
 	void ActivateActor();
 	
@@ -30,10 +28,10 @@ protected:
 	void DeactivateActor();
 
 private:
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "PooledActor")
 	float ActiveLifeTime = 10.f;
 	
-	bool bActive = false;
+	bool bActive = true;
 
 	FTimerHandle DeactivateActorTimerHandle;
 };

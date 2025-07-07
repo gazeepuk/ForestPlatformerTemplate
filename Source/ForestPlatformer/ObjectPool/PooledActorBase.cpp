@@ -9,14 +9,7 @@ APooledActorBase::APooledActorBase()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-void APooledActorBase::BeginPlay()
-{
-	Super::BeginPlay();
-
-	SetActive(false);
-}
-
-void APooledActorBase::SetActive(bool InActive)
+void APooledActorBase::SetPooledActorActive(bool InActive)
 {
 	GetWorldTimerManager().ClearTimer(DeactivateActorTimerHandle);
 
@@ -32,18 +25,20 @@ void APooledActorBase::SetActive(bool InActive)
 
 void APooledActorBase::ActivateActor_Implementation()
 {
-	SetActorHiddenInGame(true);
-	SetActorEnableCollision(false);
-
+	SetActorHiddenInGame(false);
+	SetActorEnableCollision(true);
+	bActive = true;
+	
 	PrimaryActorTick.SetTickFunctionEnable(true);
-
+	
 	GetWorldTimerManager().SetTimer(DeactivateActorTimerHandle, this, &ThisClass::DeactivateActor, ActiveLifeTime);
 }
 
 void APooledActorBase::DeactivateActor_Implementation()
 {
-	SetActorHiddenInGame(false);
-	SetActorEnableCollision(true);
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+	bActive = false;
 	
 	PrimaryActorTick.SetTickFunctionEnable(false);
 }

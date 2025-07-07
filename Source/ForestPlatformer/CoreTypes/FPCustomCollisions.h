@@ -8,3 +8,4 @@
 #define ECC_FP_Interactable_OC ECC_GameTraceChannel4
 #define ECC_FP_Interactable_TC ECC_GameTraceChannel5
 #define ECC_FP_Damageable_TC ECC_GameTraceChannel6
+#define ECC_FP_Projectile_OC ECC_GameTraceChannel7

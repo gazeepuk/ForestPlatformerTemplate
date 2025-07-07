@@ -31,4 +31,5 @@ protected:
 private:
 	UFUNCTION()
 	virtual void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	
 };

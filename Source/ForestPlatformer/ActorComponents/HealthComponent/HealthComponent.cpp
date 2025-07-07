@@ -4,7 +4,7 @@
 #include "HealthComponent.h"
 
 #include "CoreTypes/FPGameplayTags.h"
-#include "FunctionLibrary/FPFunctionLivrary.h"
+#include "FunctionLibrary/FPFunctionLibrary.h"
 
 
 void UHealthComponent::SetCurrentHealth(const float InNewCurrentHealth)
@@ -16,6 +16,7 @@ void UHealthComponent::SetCurrentHealth(const float InNewCurrentHealth)
 	
 	if(CurrentHealth == 0)
 	{
+		UFPFunctionLibrary::NativeAddGameplayTagToActor(GetOwner(), FPGameplayTags::Shared_Status_Dead);
 		OnZeroHealth.Broadcast();
 	}
 }
@@ -30,11 +31,13 @@ void UHealthComponent::SpendCurrentHealth(const float InHealthAmount)
 	SetCurrentHealth(CurrentHealth - InHealthAmount);
 }
 
-void UHealthComponent::TakeDamage(AActor* DamageCauser, float InDamage, AController* InstigatedBy)
+void UHealthComponent::TakeDamage(AActor* DamageCauser, float InDamageValue, AController* InstigatedBy)
 {
-	if(!UFPFunctionLivrary::NativeDoesActorHaveTag(GetOwner(), FPGameplayTags::Shared_Status_Invincible))
+	if(!UFPFunctionLibrary::NativeDoesActorHaveTag(GetOwner(), FPGameplayTags::Shared_Status_Invincible) &&
+		!UFPFunctionLibrary::NativeDoesActorHaveTag(GetOwner(), FPGameplayTags::Shared_Status_Dead))
 	{
-		SpendCurrentHealth(InDamage);
+		OnTakeDamage.Broadcast(InDamageValue);
+		SpendCurrentHealth(InDamageValue);
 	}
 }
 

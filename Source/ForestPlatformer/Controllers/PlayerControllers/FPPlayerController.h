@@ -22,6 +22,7 @@ public:
 	
 	// Begin IGenericTeamAgentInterface
 	virtual FGenericTeamId GetGenericTeamId() const override;
+	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
 	// End IGenericTeamAgentInterface
 	
 	// Begin ICoinsWalletInterface

@@ -6,8 +6,42 @@
 #include "Components/ActorComponent.h"
 #include "ObjectPoolComponent.generated.h"
 
-
 class APooledActorBase;
+
+UCLASS(BlueprintType, EditInlineNew)
+class UObjectPoolContainer : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	void InitializePool(UObject* InWorldContext, AActor* InOwningActor);
+
+	UFUNCTION(BlueprintPure)
+	APooledActorBase* FindFirstAvailableActor() const;
+	UFUNCTION(BlueprintCallable)
+	APooledActorBase* SpawnPoolActorFromPool(const FTransform& InActorSpawnTransform, bool bActivateActor = true);
+	
+protected:
+	APooledActorBase* SpawnPoolActor(const FTransform& InActorSpawnTransform, bool bActivateOnSpawn = false);
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<APooledActorBase> PooledActorClass;
+	
+	UPROPERTY(EditAnywhere)
+	int32 PoolSize;
+	
+	UPROPERTY(EditAnywhere)
+	bool bCanExpandPool = true;
+
+	UPROPERTY()
+	TArray<APooledActorBase*> ObjectPool;
+
+	UPROPERTY()
+	TObjectPtr<UObject> WorldContext;
+
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<AActor> OwningActor;
+};
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class FORESTPLATFORMER_API UObjectPoolComponent : public UActorComponent

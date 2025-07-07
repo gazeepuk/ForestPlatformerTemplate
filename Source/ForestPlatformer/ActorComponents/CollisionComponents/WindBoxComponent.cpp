@@ -12,10 +12,6 @@ UWindBoxComponent::UWindBoxComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
-
-	WindDirectionArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("WindDirectionArrow"));
-	WindDirectionArrow->SetupAttachment(this);
-	WindDirectionArrow->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
 	
 	OnComponentBeginOverlap.AddUniqueDynamic(this, &ThisClass::OnBoxBeginOverlap);
 	OnComponentEndOverlap.AddUniqueDynamic(this, &ThisClass::OnBoxEndOverlap);
@@ -42,8 +38,11 @@ void UWindBoxComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 			}
 			else if(UPrimitiveComponent* RootPrim = Cast<UPrimitiveComponent>(LiftingActor->GetRootComponent()))
 			{
-				const FVector WindForce = GetUpVector() * LiftSpeed;
-				RootPrim->AddForce(WindForce);
+				if(IsSimulatingPhysics())
+				{
+					const FVector WindForce = GetUpVector() * LiftSpeed;
+					RootPrim->AddForce(WindForce);
+				}
 			}
 			
 		} 
