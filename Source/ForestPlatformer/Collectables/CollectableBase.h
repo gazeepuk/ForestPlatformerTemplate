@@ -4,17 +4,27 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interfaces/SavableObjectInterface.h"
 #include "CollectableBase.generated.h"
 
 class UBoxComponent;
 
 UCLASS()
-class FORESTPLATFORMER_API ACollectableBase : public AActor
+class FORESTPLATFORMER_API ACollectableBase : public AActor, public ISavableObjectInterface
 {
 	GENERATED_BODY()
 
 public:
 	ACollectableBase();
+
+	UFUNCTION(CallInEditor, Category = "SavableObject|Helper Functions")
+	virtual void InitializeSaveID() override { ISavableObjectInterface::InitializeSaveID(); }
+	virtual FName GetSaveID_Implementation() const override { return SaveID; }
+	virtual void SetSaveID_Implementation(const FName& InSaveID) override { SaveID = InSaveID; }
+	virtual bool ShouldSave_Implementation() const override { return bSaveOnCollected; }
+	virtual FFPSavableData GetSaveData_Implementation() const override;
+	virtual void LoadFromSaveData_Implementation(const FFPSavableData& SaveData) override;
+	virtual void OnLoadedFromSaveData_Implementation() override;
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -23,16 +33,25 @@ protected:
 	UFUNCTION(BlueprintNativeEvent)
 	void OnCollectableOverlapped(AActor* InOverlappedActor);
 
-	UPROPERTY(EditDefaultsOnly, Category = "Collectable")
+	UPROPERTY(EditAnywhere, Category = "Collectable")
 	bool bDestroyOnCollect = true;
 
-	UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "!bDestroyOnCollect"), Category = "Collectable")
+	UPROPERTY(EditAnywhere, meta = (EditCondition = "!bDestroyOnCollect"), Category = "Collectable")
 	bool bEnableCollectableInTime = true;
-	UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "!bDestroyOnCollect && bEnableCollectableInTime"), Category = "Collectable")
+	UPROPERTY(EditAnywhere, meta = (EditCondition = "!bDestroyOnCollect && bEnableCollectableInTime"), Category = "Collectable")
 	float CollectableRespawnTime = 30.f;
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Collectable")
 	bool CanCollect(AActor* InInstigator);
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bActive;
+	
+	UPROPERTY(EditAnywhere, Category = "SavableObject")
+	FName SaveID;
+
+	UPROPERTY(EditAnywhere, Category = "SavableObject")
+	bool bSaveOnCollected = false;
 private:
 	UFUNCTION()
 	void OnBoxCollisionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);

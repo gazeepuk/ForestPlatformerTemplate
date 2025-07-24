@@ -16,6 +16,7 @@ class FORESTPLATFORMER_API UPooledAttackType : public UFPAttackType
 	GENERATED_BODY()
 public:
 	virtual void InitAttack(AActor* InOwningActor, UCombatComponentBase* InCombatComponent) override;
+	virtual void BeginDestroy() override;
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced)

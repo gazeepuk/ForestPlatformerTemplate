@@ -4,6 +4,29 @@
 #include "FPSpringArmComponent.h"
 
 
+UFPSpringArmComponent::UFPSpringArmComponent()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+}
+
+void UFPSpringArmComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	FinalTargetArmLength = TargetArmLength;
+}
+
+void UFPSpringArmComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	OwnerPawn = GetOwner<APawn>();
+	if(OwnerPawn.IsValid())
+	{
+		OwnerController = OwnerPawn->GetController();
+	}
+}
+
 void UFPSpringArmComponent::SetTargetArmLengthLerp(float InNewTargetArmLength, float InLerpDuration)
 {
 	GetWorld()->GetTimerManager().ClearTimer(SetTargetArmLengthLerpHandle);
@@ -20,11 +43,58 @@ void UFPSpringArmComponent::AddTargetArmLength(float InAdditiveValue)
 	SetTargetArmLengthLerp(FinalTargetArmLength + InAdditiveValue, TargetArmLengthLerpDuration);
 }
 
-void UFPSpringArmComponent::InitializeComponent()
+void UFPSpringArmComponent::TickComponent(float DeltaTime, ELevelTick TickType,
+	FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::InitializeComponent();
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FinalTargetArmLength = TargetArmLength;
+	if(bEnableMovementAlignment)
+	{
+		UpdateMovementAlignment(DeltaTime);
+	}
+}
+
+void UFPSpringArmComponent::UpdateMovementAlignment(float InDeltaTime)
+{
+	if(!OwnerController.IsValid() || !OwnerPawn.IsValid())
+	{
+		return;
+	}
+
+	FVector OwnerVelocity = OwnerPawn->GetVelocity();
+	OwnerVelocity.Z = 1.f;
+	const FVector LastMovementVelocity = OwnerPawn->GetLastMovementInputVector();
+	
+	if(OwnerVelocity.SizeSquared() < FMath::Square(VelocityAlignmentThreshold))
+	{
+		return;
+	}
+
+	const FRotator CurrentControlRotation = OwnerController->GetControlRotation();
+	const FRotator TargetControlRotation = OwnerVelocity.Rotation();
+
+	const float DeltaYaw = FMath::FindDeltaAngleDegrees(CurrentControlRotation.Yaw, TargetControlRotation.Yaw);
+	const float AbsDeltaYaw = FMath::Abs(DeltaYaw);
+	
+	if(AbsDeltaYaw > MovementAlignmentFrontAngleThreshold && AbsDeltaYaw < MovementAlignmentBackAngleThreshold)
+	{
+		const float InterpSpeed = FMath::GetMappedRangeValueClamped
+		(
+			FVector2D(MovementAlignmentFrontAngleThreshold, 180.f),
+			FVector2D(0.f, MovementAlignmentSpeed),
+			AbsDeltaYaw
+		);
+		
+		const FRotator NewRotation = FMath::RInterpTo
+		(
+			CurrentControlRotation,
+			TargetControlRotation,
+			InDeltaTime,
+			InterpSpeed
+		);
+
+		OwnerController->SetControlRotation(FRotator(CurrentControlRotation.Pitch, NewRotation.Yaw, CurrentControlRotation.Roll));
+	}
 }
 
 void UFPSpringArmComponent::UpdateTargetArmLength()

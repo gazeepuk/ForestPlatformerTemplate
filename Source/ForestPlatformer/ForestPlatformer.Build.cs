@@ -16,10 +16,9 @@ public class ForestPlatformer : ModuleRules
             "GameplayTags",
             "UMG",
             "AIModule",
-            "NavigationSystem"
+            "NavigationSystem",
+            "AnimGraphRuntime"
         });
-
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
 		
 		PublicIncludePaths.Add("ForestPlatformer/");
 

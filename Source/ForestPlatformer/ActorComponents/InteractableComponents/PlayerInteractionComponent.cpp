@@ -52,7 +52,7 @@ void UPlayerInteractionComponent::InteractAction_Started(const FInputActionValue
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(GetOwner());
 		
-		World->SweepMultiByChannel(OutResults, StartTrace, EndTrace, FQuat::Identity, ECC_FP_Interactable_OC, FCollisionShape::MakeSphere(TraceRadius), QueryParams);
+		World->SweepMultiByObjectType(OutResults, StartTrace, EndTrace, FQuat::Identity, ECC_FP_Interactable_OC, FCollisionShape::MakeSphere(TraceRadius), QueryParams);
 
 		TArray<TTuple<bool, float, AActor*>> InteractableActors;
 

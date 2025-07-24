@@ -14,3 +14,13 @@ void UPooledAttackType::InitAttack(AActor* InOwningActor, UCombatComponentBase* 
 		ObjectPoolContainer->InitializePool(InOwningActor, GetOwningActor());
 	}
 }
+
+void UPooledAttackType::BeginDestroy()
+{
+	if(ObjectPoolContainer)
+	{
+		ObjectPoolContainer->ClearPool();
+	}
+	
+	Super::BeginDestroy();
+}

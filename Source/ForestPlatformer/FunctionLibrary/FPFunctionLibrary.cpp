@@ -10,7 +10,7 @@
 
 bool UFPFunctionLibrary::NativeDoesActorHaveTag(AActor* InActor, const FGameplayTag& InGameplayTag)
 {
-	if(!InGameplayTag.IsValid())
+	if(!InGameplayTag.IsValid() || !InActor)
 	{
 		return false;
 	}

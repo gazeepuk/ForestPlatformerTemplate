@@ -8,6 +8,7 @@
 #include "ActorComponents/FPCharacterMovementComponent.h"
 #include "ActorComponents/FPSpringArmComponent.h"
 #include "ActorComponents/EffectComponent/FPEffectComponent.h"
+#include "ActorComponents/HealthComponent/HealthComponent.h"
 #include "ActorComponents/InteractableComponents/PlayerInteractionComponent.h"
 #include "Camera/CameraComponent.h"
 #include "CoreTypes/FPCustomCollisions.h"
@@ -29,16 +30,21 @@ AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	CameraBoom->SetupAttachment(GetRootComponent());
 	CameraBoom->TargetArmLength = 500.f;
 	CameraBoom->bUsePawnControlRotation = true;
-
+	
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(CameraBoom);
 	CameraComponent->bUsePawnControlRotation = false;
 
+	GetMesh()->SetCollisionObjectType(ECC_FP_Player_OC);
+	
 	PlayerInteractionComponent = CreateDefaultSubobject<UPlayerInteractionComponent>(TEXT("PlayerInteractionComponent"));
 
 	CombatComponent = CreateDefaultSubobject<UPlayerCombatComponent>(TEXT("CombatComponent"));
 
 	EffectComponent = CreateDefaultSubobject<UFPEffectComponent>(TEXT("EffectComponent"));
+
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	HealthComponent->OnZeroHealth.AddUniqueDynamic(this, &ThisClass::OnDeath);
 }
 
 #pragma region ICoinsWalletInterface
@@ -65,6 +71,14 @@ void AFPPlayerCharacter::SetCurrentCoins_Implementation(int32 InNewCurrentCoins)
 int32 AFPPlayerCharacter::GetCurrentCoins_Implementation() const
 {
 	return ICoinsWalletInterface::Execute_GetCurrentCoins(GetController());
+}
+
+void AFPPlayerCharacter::TakeDamage_Implementation(AActor* DamageCauser, float InDamage, AController* InstigatedBy)
+{
+	if(HealthComponent)
+	{
+		HealthComponent->TakeDamage(DamageCauser, InDamage, InstigatedBy);
+	}
 }
 
 void AFPPlayerCharacter::BeginPlay()
@@ -169,31 +183,14 @@ void AFPPlayerCharacter::ZoomCameraAction_Started(const FInputActionValue& Input
 	CameraBoom->AddTargetArmLength(InputActionValue.Get<float>() * CameraBoom->ZoomingStep);
 }
 
-/*void AFPPlayerCharacter::HitAction_Started(const FInputActionValue& InputActionValue)
-{
-	TArray<FHitResult> OutHits;
-
-	bool bHit = GetWorld()->SweepMultiByChannel(
-		OutHits,
-		GetActorLocation() + GetActorForwardVector() * 75.f,
-		GetActorLocation() + GetActorForwardVector() * 250.f,
-		FQuat::Identity,
-		ECC_FP_Damageable_TC,
-		FCollisionShape::MakeSphere(150.f),
-		FCollisionQueryParams(FName(TEXT("DamageSphereTrace")), false, this));
-
-	for (const FHitResult& HitResult : OutHits)
-	{
-		if(HitResult.bBlockingHit && HitResult.GetActor() && HitResult.GetActor()->Implements<UDamageableInterface>())
-		{
-			IDamageableInterface::Execute_TakeDamage(HitResult.GetActor(), this, 1.f, GetController());
-		}
-	}
-}*/
-
 void AFPPlayerCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
 
 	GetCharacterMovement<UFPCharacterMovementComponent>()->StopFloating();
+}
+
+void AFPPlayerCharacter::OnDeath_Implementation()
+{
+	
 }

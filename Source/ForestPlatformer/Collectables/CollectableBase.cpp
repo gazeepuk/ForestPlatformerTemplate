@@ -5,6 +5,7 @@
 
 #include "Components/BoxComponent.h"
 #include "CoreTypes/FPCustomCollisions.h"
+#include "GameModes/FPGameMode.h"
 
 
 ACollectableBase::ACollectableBase()
@@ -17,13 +18,56 @@ ACollectableBase::ACollectableBase()
 	SetRootComponent(BoxCollision);
 	
 	BoxCollision->OnComponentBeginOverlap.AddUniqueDynamic(this, &ThisClass::OnBoxCollisionBeginOverlap);
+
+	bActive = true;
+}
+
+FFPSavableData ACollectableBase::GetSaveData_Implementation() const
+{
+	FFPSavableData SavableData;
+	SavableData.bActive = bActive;
+	SavableData.ObjectType = "Collectable";
+	return SavableData;
+}
+
+void ACollectableBase::LoadFromSaveData_Implementation(const FFPSavableData& SaveData)
+{
+	bActive = SaveData.bActive;
+
+	Execute_OnLoadedFromSaveData(this);
+}
+
+void ACollectableBase::OnLoadedFromSaveData_Implementation()
+{
+	if(!bActive)
+	{
+		if(bDestroyOnCollect)
+		{
+			Destroy();
+		}
+		else
+		{
+			SetActorHiddenInGame(true);
+			SetActorEnableCollision(false);
+		}
+	}
 }
 
 
 void ACollectableBase::OnCollectableOverlapped_Implementation(AActor* InOverlappedActor)
 {
+	bActive = false;
+	
 	if(bDestroyOnCollect)
 	{
+		if(bSaveOnCollected)
+		{
+			if(AFPGameMode* FPGameMode = GetWorld()->GetAuthGameMode<AFPGameMode>())
+			{
+				FPGameMode->AddPendingSavableObjects(this);
+			}
+		}
+		
 		Destroy();
 	}
 	else
@@ -59,4 +103,6 @@ void ACollectableBase::RespawnCollectable()
 {
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
+
+	bActive = true;
 }

@@ -16,6 +16,7 @@ AProjectileBase::AProjectileBase()
 {
 	ProjectileCollision = CreateDefaultSubobject<USphereComponent>(TEXT("ProjectileCollision"));
 	ProjectileCollision->SetCollisionObjectType(ECC_FP_Projectile_OC);
+	ProjectileCollision->SetCollisionResponseToChannel(ECC_FP_Projectile_OC, ECR_Ignore);
 	ProjectileCollision->OnComponentBeginOverlap.AddUniqueDynamic(this, &ThisClass::OnProjectileBeginOverlap);
 	ProjectileCollision->OnComponentHit.AddUniqueDynamic(this, &ThisClass::OnProjectileHit);
 	SetRootComponent(ProjectileCollision);
@@ -115,11 +116,14 @@ bool AProjectileBase::ProjectileInteract_Implementation(AActor* InInteractingAct
 	{
 		return false;
 	}
-	
-	const bool bOtherActorHostile = UFPFunctionLibrary::IsPawnHostile(GetOwner<APawn>(), Cast<APawn>(InInteractingActor));
-	if(bDamageOnlyHostileActors && !bOtherActorHostile)
+
+	if(APawn* InteractingPawn = Cast<APawn>(InInteractingActor))
 	{
-		return false;
+		const bool bOtherPawnHostile = UFPFunctionLibrary::IsPawnHostile(GetOwner<APawn>(), InteractingPawn);
+		if(bDamageOnlyHostilePawns && !bOtherPawnHostile)
+		{
+			return false;
+		}
 	}
 
 	if(InInteractingActor->Implements<UDamageableInterface>())

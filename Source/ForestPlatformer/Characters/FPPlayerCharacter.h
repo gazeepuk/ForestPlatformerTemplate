@@ -18,7 +18,7 @@ class UInputAction;
 class UInputMappingContext;
 
 UCLASS()
-class FORESTPLATFORMER_API AFPPlayerCharacter : public AFPCharacterBase, public ICoinsWalletInterface
+class FORESTPLATFORMER_API AFPPlayerCharacter : public AFPCharacterBase, public ICoinsWalletInterface, public IDamageableInterface
 {
 	GENERATED_BODY()
 
@@ -33,10 +33,14 @@ public:
 	virtual int32 GetCurrentCoins_Implementation() const override;
 	//~End ICoinsWalletInterface
 
+	virtual void TakeDamage_Implementation(AActor* DamageCauser, float InDamage, AController* InstigatedBy) override;
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnDeath();
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UFPSpringArmComponent> CameraBoom;
 
@@ -51,6 +55,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UFPEffectComponent> EffectComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UHealthComponent> HealthComponent;
+	
 private:
 	virtual void Landed(const FHitResult& Hit) override;
 	

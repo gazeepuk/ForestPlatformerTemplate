@@ -15,7 +15,8 @@ class UObjectPoolContainer : public UObject
 
 public:
 	void InitializePool(UObject* InWorldContext, AActor* InOwningActor);
-
+	void ClearPool();
+	
 	UFUNCTION(BlueprintPure)
 	APooledActorBase* FindFirstAvailableActor() const;
 	UFUNCTION(BlueprintCallable)

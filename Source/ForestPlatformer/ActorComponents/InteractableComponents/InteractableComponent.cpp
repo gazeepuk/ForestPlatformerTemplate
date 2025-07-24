@@ -12,6 +12,8 @@ UInteractableComponent::UInteractableComponent()
 
 	SetCollisionResponseToAllChannels(ECR_Ignore);
 	SetCollisionResponseToChannel(ECC_FP_Player_OC, ECR_Overlap);
+	SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	SetCollisionObjectType(ECC_FP_Interactable_OC);
 	SetGenerateOverlapEvents(true);
 	
 	OnComponentBeginOverlap.AddUniqueDynamic(this, &ThisClass::OnInstigatorBeginOverlap);
@@ -30,8 +32,22 @@ void UInteractableComponent::BeginPlay()
 
 	if(InteractionWidgetClass)
 	{
+		InteractionWidgetComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		InteractionWidgetComponent->AttachToComponent(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		InteractionWidgetComponent->SetRelativeLocation(FVector::ZeroVector);
+		
 		InteractionWidgetComponent->SetWidgetClass(InteractionWidgetClass);
 		InteractionWidgetComponent->InitWidget();
+	}
+}
+
+void UInteractableComponent::OnRegister()
+{
+	Super::OnRegister();
+
+	if(InteractionWidgetComponent && !InteractionWidgetComponent->IsRegistered())
+	{
+		InteractionWidgetComponent->RegisterComponent();
 	}
 }
 

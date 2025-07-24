@@ -27,6 +27,21 @@ void UObjectPoolContainer::InitializePool(UObject* InWorldContext, AActor* InOwn
 	}
 }
 
+void UObjectPoolContainer::ClearPool()
+{
+	if(ObjectPool.IsEmpty())
+	{
+		return;
+	}
+	
+	for (APooledActorBase* PooledActor : ObjectPool)
+	{
+		PooledActor->Destroy();
+	}
+
+	ObjectPool.Empty();
+}
+
 APooledActorBase* UObjectPoolContainer::FindFirstAvailableActor() const
 {
 	APooledActorBase* const* FoundPoolActor = ObjectPool.FindByPredicate([](const APooledActorBase* PooledActor)

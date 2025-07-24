@@ -28,7 +28,8 @@ protected:
 	TSubclassOf<UUserWidget> InteractionWidgetClass;
 
 private:
-
+	virtual void OnRegister() override;
+	
 	UFUNCTION()
 	void OnInstigatorBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 	UFUNCTION()

@@ -12,7 +12,7 @@
 class UHealthComponent;
 
 UCLASS()
-class FORESTPLATFORMER_API AFPCharacterBase : public ACharacter, public IGameplayTagAssetInterface, public IDamageableInterface, public IGameplayTagModifierInterface
+class FORESTPLATFORMER_API AFPCharacterBase : public ACharacter, public IGameplayTagAssetInterface, public IGameplayTagModifierInterface
 {
 	GENERATED_BODY()
 
@@ -25,13 +25,6 @@ public:
 	//IGameplayTagModifierInterface
 	virtual void AddGameplayTag(const FGameplayTag& InGameplayTag) override;
 	virtual void RemoveGameplayTag(const FGameplayTag& InGameplayTag) override;
-
-	//IDamageableInterface
-	virtual void TakeDamage_Implementation(AActor* DamageCauser, float InDamage, AController* InstigatorController) override;
-protected:
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UHealthComponent> HealthComponent;
 
 private:
 	FGameplayTagContainer OwnedTags;
