@@ -4,7 +4,7 @@
 #include "FPPlayerCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "ActorComponents/PlayerCombatComponent.h"
+#include "ActorComponents/CombatComponents/PlayerCombatComponent.h"
 #include "ActorComponents/FPCharacterMovementComponent.h"
 #include "ActorComponents/FPSpringArmComponent.h"
 #include "ActorComponents/EffectComponent/FPEffectComponent.h"
@@ -13,7 +13,6 @@
 #include "Camera/CameraComponent.h"
 #include "CoreTypes/FPCustomCollisions.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Controllers/PlayerControllers/FPPlayerController.h"
 
 AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializer) :
@@ -73,6 +72,8 @@ int32 AFPPlayerCharacter::GetCurrentCoins_Implementation() const
 	return ICoinsWalletInterface::Execute_GetCurrentCoins(GetController());
 }
 
+#pragma endregion
+
 void AFPPlayerCharacter::TakeDamage_Implementation(AActor* DamageCauser, float InDamage, AController* InstigatedBy)
 {
 	if(HealthComponent)
@@ -84,13 +85,26 @@ void AFPPlayerCharacter::TakeDamage_Implementation(AActor* DamageCauser, float I
 void AFPPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	if(AFPPlayerController* FPPlayerController = GetController<AFPPlayerController>())
 	{
 		FPPlayerController->InitHealthBar(HealthComponent);
+		CombatComponent->InitCombatComponent();
+		PlayerInteractionComponent->BindInteractionAction();
 	}
 }
-#pragma endregion
+
+void AFPPlayerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if(AFPPlayerController* FPPlayerController = Cast<AFPPlayerController>(NewController))
+	{
+		FPPlayerController->InitHealthBar(HealthComponent);
+		CombatComponent->InitCombatComponent();
+		PlayerInteractionComponent->BindInteractionAction();
+	}
+}
 
 void AFPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {

@@ -19,17 +19,49 @@ bool UFPEffectComponent::TryApplyEffect(UFPEffectBase* Effect)
 	}
 
 	// Check if already applied
-	if (ActiveEffects.ContainsByPredicate([Effect](const FFPActiveEffect& Active){ return Active.Effect->GetEffectID() == Effect->GetEffectID(); }))
+	FFPActiveEffect* ExistingEffect = ActiveEffects.FindByPredicate([Effect](const FFPActiveEffect& Active)
 	{
-		return false;
-	}
+		return Active.Effect->GetEffectID() == Effect->GetEffectID();
+	});
+	
+	if (ExistingEffect && ExistingEffect->IsValid())
+	{
+		switch(ExistingEffect->Effect->GetStackingPolicy())
+		{
+		case EFPEffectStackingPolicy::NoStack:
+			return true;
+			
+		case EFPEffectStackingPolicy::RefreshDuration:
+			
+			GetWorld()->GetTimerManager().ClearTimer(ExistingEffect->TimerHandle);
 
+			GetWorld()->GetTimerManager().SetTimer(ExistingEffect->TimerHandle,
+			[this, ExistingEffect](){ OnEffectExpired(ExistingEffect->Effect); },
+			Effect->GetDuration(),
+			false);
+			
+			return true;
+			
+		case EFPEffectStackingPolicy::AddToRemainingTime:
+			const float RemainingTimerDuration = GetWorld()->GetTimerManager().GetTimerRemaining(ExistingEffect->TimerHandle);
+
+			GetWorld()->GetTimerManager().ClearTimer(ExistingEffect->TimerHandle);
+
+			GetWorld()->GetTimerManager().SetTimer(ExistingEffect->TimerHandle,
+			[this, ExistingEffect](){ OnEffectExpired(ExistingEffect->Effect); },
+			Effect->GetDuration() + RemainingTimerDuration,
+			false);
+			
+			return true;;
+		}
+	}
+	
 	FFPActiveEffect NewEffect;
 	NewEffect.Effect = Effect;
-    
+	
 	if (Effect->GetDurationType() == EFPEffectDurationType::Duration)
 	{
-		NewEffect.RemainingTime = Effect->GetDuration();
+		NewEffect.EffectDuration = Effect->GetDuration();
 		GetWorld()->GetTimerManager().SetTimer(
 			NewEffect.TimerHandle,
 			[this, Effect](){ OnEffectExpired(Effect); },
@@ -38,12 +70,13 @@ bool UFPEffectComponent::TryApplyEffect(UFPEffectBase* Effect)
 		);
 	}
 
-	Effect->OnApplied(GetOwner());
-
 	if(Effect->GetDurationType() != EFPEffectDurationType::Instant)
 	{
 		ActiveEffects.Add(NewEffect);
 	}
+	
+	Effect->SetWorldContextObject(GetOwner());
+	Effect->OnApplied(GetOwner());
 	
 	return true;
 }
@@ -81,7 +114,7 @@ void UFPEffectComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	{
 		if (ActiveEffect.Effect->GetDurationType() == EFPEffectDurationType::Duration)
 		{
-			ActiveEffect.RemainingTime -= DeltaTime;
+			ActiveEffect.EffectDuration -= DeltaTime;
 		}
 		ActiveEffect.Effect->OnTick(GetOwner(), DeltaTime);
 	}

@@ -24,9 +24,9 @@ public:
 	static bool BP_DoesActorHaveTag(AActor* InActor, FGameplayTag InGameplayTag, EFPConfirmType& OutConfirmType);
 
 	UFUNCTION(BlueprintCallable, DisplayName = "Add Gameplay Tag to Actor")
-	static void NativeAddGameplayTagToActor(AActor* InActor, const FGameplayTag& InGameplayTag); 
+	static void NativeAddGameplayTagToActor(AActor* InActor, FGameplayTag InGameplayTag); 
 	UFUNCTION(BlueprintCallable, DisplayName = "Remove Gameplay Tag from Actor")
-	static void NativeRemoveGameplayTagFromActor(AActor* InActor, const FGameplayTag& InGameplayTag); 
+	static void NativeRemoveGameplayTagFromActor(AActor* InActor, FGameplayTag InGameplayTag); 
 	
 	static bool NativeTryApplyEffectByClassToActor(AActor* InTargetActor, TSubclassOf<UFPEffectBase> InEffectClass);
 	UFUNCTION(BlueprintCallable, DisplayName = "Try Apply Effect By Class To Actor", meta = (ExpandEnumAsExecs = "OutSuccessType"))

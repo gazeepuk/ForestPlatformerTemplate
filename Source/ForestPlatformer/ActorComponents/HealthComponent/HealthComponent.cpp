@@ -36,8 +36,8 @@ void UHealthComponent::TakeDamage(AActor* DamageCauser, float InDamageValue, ACo
 	if(!UFPFunctionLibrary::NativeDoesActorHaveTag(GetOwner(), FPGameplayTags::Shared_Status_Invincible) &&
 		!UFPFunctionLibrary::NativeDoesActorHaveTag(GetOwner(), FPGameplayTags::Shared_Status_Dead))
 	{
-		OnTakeDamage.Broadcast(InDamageValue);
 		SpendCurrentHealth(InDamageValue);
+		OnTakeDamage.Broadcast(InDamageValue);
 	}
 }
 

@@ -32,7 +32,7 @@ bool UFPFunctionLibrary::BP_DoesActorHaveTag(AActor* InActor, FGameplayTag InGam
 	return bHasTag;
 }
 
-void UFPFunctionLibrary::NativeAddGameplayTagToActor(AActor* InActor, const FGameplayTag& InGameplayTag)
+void UFPFunctionLibrary::NativeAddGameplayTagToActor(AActor* InActor, FGameplayTag InGameplayTag)
 {
 	if(!InGameplayTag.IsValid())
 	{
@@ -45,7 +45,7 @@ void UFPFunctionLibrary::NativeAddGameplayTagToActor(AActor* InActor, const FGam
 	}
 }
 
-void UFPFunctionLibrary::NativeRemoveGameplayTagFromActor(AActor* InActor, const FGameplayTag& InGameplayTag)
+void UFPFunctionLibrary::NativeRemoveGameplayTagFromActor(AActor* InActor, FGameplayTag InGameplayTag)
 {
 	if(!InGameplayTag.IsValid())
 	{

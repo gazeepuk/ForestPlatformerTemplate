@@ -22,17 +22,21 @@ void UFPEffectBase::OnTick_Implementation(AActor* Target, float DeltaTime)
 {
 }
 
-void UFPEffectBase::PostInitProperties()
-{
-	UObject::PostInitProperties();
-
-	EffectIDHash = GetTypeHash(EffectID);
-    
 #if WITH_EDITOR
-	if (EffectID.IsNone())
+void UFPEffectBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	UObject::PostEditChangeProperty(PropertyChangedEvent);
+
+	if(EffectID.IsNone())
 	{
 		EffectID = *GetClass()->GetName();
 		EffectIDHash = GetTypeHash(EffectID);
 	}
-#endif
+	
+	const FName PropertyName = PropertyChangedEvent.Property ? PropertyChangedEvent.Property->GetFName() : NAME_None;
+	if(PropertyName == GET_MEMBER_NAME_CHECKED(ThisClass, EffectID))
+	{
+		EffectIDHash = GetTypeHash(EffectID);
+	}
 }
+#endif

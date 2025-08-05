@@ -10,6 +10,8 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Interfaces/DamageableInterface.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 
 
 AProjectileBase::AProjectileBase()
@@ -57,16 +59,15 @@ void AProjectileBase::ActivateActor_Implementation()
 {
 	Super::ActivateActor_Implementation();
 
+	OnProjectileActivated();
+	
 	ProjectileMovementComponent->SetActive(true);
-
-	PlayFlightSound();
 }
 
 void AProjectileBase::DeactivateActor_Implementation()
 {
-	FlightAudioComponent->Stop();
-	FlightAudioComponent->SetSound(nullptr);
-
+	OnProjectileDeactivated();
+	
 	ProjectileMovementComponent->InitialSpeed = 0.f;
 	ProjectileMovementComponent->MaxSpeed = 0.f;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.f;
@@ -77,7 +78,18 @@ void AProjectileBase::DeactivateActor_Implementation()
 	Super::DeactivateActor_Implementation();
 }
 
-void AProjectileBase::PlayFlightSound()
+void AProjectileBase::OnProjectileActivated_Implementation()
+{
+	PlayFlightSound();
+}
+
+void AProjectileBase::OnProjectileDeactivated_Implementation()
+{
+	FlightAudioComponent->Stop();
+	FlightAudioComponent->SetSound(nullptr);
+}
+
+void AProjectileBase::PlayFlightSound() const
 {
 	if(FlightAudioComponent)
 	{
@@ -103,11 +115,6 @@ void AProjectileBase::PlayImpactSound()
 	{
 		UGameplayStatics::PlaySoundAtLocation(this,ProjectileImpactSound, GetActorLocation(), GetActorRotation());
 	}
-}
-
-void AProjectileBase::OnDeactivateProjectile_Implementation()
-{
-	SetPooledActorActive(false);
 }
 
 bool AProjectileBase::ProjectileInteract_Implementation(AActor* InInteractingActor)
@@ -148,7 +155,7 @@ void AProjectileBase::OnProjectileHit_Implementation(UPrimitiveComponent* HitCom
 
 	OnProjectileImpact();
 	
-	OnDeactivateProjectile();
+	SetPooledActorActive(false);
 }
 
 void AProjectileBase::OnProjectileBeginOverlap_Implementation(UPrimitiveComponent* OverlappedComponent,
@@ -166,7 +173,7 @@ void AProjectileBase::OnProjectileBeginOverlap_Implementation(UPrimitiveComponen
 	
 	if(!bPierceActors)
 	{
-		OnDeactivateProjectile();
+		SetPooledActorActive(false);
 	}
 }
 
@@ -174,4 +181,14 @@ void AProjectileBase::OnProjectileBeginOverlap_Implementation(UPrimitiveComponen
 void AProjectileBase::OnProjectileImpact_Implementation()
 {
 	PlayImpactSound();
+
+	if(ImpactNiagaraSystem)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			this,
+			ImpactNiagaraSystem,
+			GetActorLocation(),
+			GetActorRotation()
+			);
+	}
 }

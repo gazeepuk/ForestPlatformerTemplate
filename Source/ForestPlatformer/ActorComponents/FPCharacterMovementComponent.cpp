@@ -32,3 +32,18 @@ void UFPCharacterMovementComponent::HandleFloating()
 		StopFloating();
 	}
 }
+
+float UFPCharacterMovementComponent::GetMaxSpeed() const
+{
+	return Super::GetMaxSpeed() * GetSpeedMultiplier();
+}
+
+void UFPCharacterMovementComponent::SetSpeedMultiplier(float InSpeedMultiplier)
+{
+	SpeedMultiplier = FMath::Max(0.f, InSpeedMultiplier);
+}
+
+float UFPCharacterMovementComponent::GetSpeedMultiplier() const
+{
+	return SpeedMultiplier;
+}

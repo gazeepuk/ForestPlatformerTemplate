@@ -16,9 +16,11 @@ struct FFPActiveEffect
 	UPROPERTY()
 	TObjectPtr<UFPEffectBase> Effect = nullptr;
 
-	float RemainingTime = 0.0f;
+	float EffectDuration = 0.0f;
 	
 	FTimerHandle TimerHandle;
+	
+	bool IsValid() const { return Effect != nullptr; }
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))

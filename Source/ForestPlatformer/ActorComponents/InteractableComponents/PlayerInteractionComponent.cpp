@@ -9,13 +9,6 @@
 #include "Interfaces/InteractableInterface.h"
 
 
-void UPlayerInteractionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	BindInteractionAction();
-}
-
 void UPlayerInteractionComponent::BindInteractionAction()
 {
 	APawn* OwningPawn = GetOwner<APawn>();

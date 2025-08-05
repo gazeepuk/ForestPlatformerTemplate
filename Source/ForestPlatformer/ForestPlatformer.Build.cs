@@ -8,7 +8,8 @@ public class ForestPlatformer : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core",
+		PublicDependencyModuleNames.AddRange(new string[] { 
+            "Core",
 			"CoreUObject",
             "Engine",
             "InputCore",
@@ -17,7 +18,8 @@ public class ForestPlatformer : ModuleRules
             "UMG",
             "AIModule",
             "NavigationSystem",
-            "AnimGraphRuntime"
+            "AnimGraphRuntime",
+            "Niagara"
         });
 		
 		PublicIncludePaths.Add("ForestPlatformer/");

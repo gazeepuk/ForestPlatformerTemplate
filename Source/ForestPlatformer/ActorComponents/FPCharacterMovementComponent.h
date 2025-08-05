@@ -13,6 +13,13 @@ class FORESTPLATFORMER_API UFPCharacterMovementComponent : public UCharacterMove
 	GENERATED_BODY()
 	
 public:
+	virtual float GetMaxSpeed() const override;
+
+	UFUNCTION(BlueprintCallable)
+	void SetSpeedMultiplier(float InSpeedMultiplier);
+	UFUNCTION(BlueprintPure)
+	float GetSpeedMultiplier() const;
+	
 	void StartFloating();
 	void StopFloating();
 	void HandleFloating();
@@ -22,5 +29,7 @@ protected:
 	float FloatingSpeedMultiplier = 1.f;
 
 private:
+	float SpeedMultiplier = 1.f;
+	
 	bool bFloating;
 };

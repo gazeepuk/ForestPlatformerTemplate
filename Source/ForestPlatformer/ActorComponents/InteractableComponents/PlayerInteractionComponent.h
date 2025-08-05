@@ -15,9 +15,12 @@ UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class FORESTPLATFORMER_API UPlayerInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()
+
+public:
+	UFUNCTION(BlueprintCallable)
+	void BindInteractionAction();
 	
 protected:
-	virtual void BeginPlay() override;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction|Trace")
 	float TraceLength;
@@ -34,7 +37,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction|Input")
 	int32 InteractionPriority = 1;
 private:
-	void BindInteractionAction();
 
 	UFUNCTION()
 	void InteractAction_Started(const FInputActionValue& InputActionValue);

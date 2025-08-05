@@ -7,8 +7,10 @@
 #include "ObjectPool/PooledActorBase.h"
 #include "ProjectileBase.generated.h"
 
+class UNiagaraSystem;
 class UProjectileMovementComponent;
 class USphereComponent;
+class UNiagaraComponent;
 
 UCLASS()
 class FORESTPLATFORMER_API AProjectileBase : public APooledActorBase
@@ -36,7 +38,6 @@ protected:
 	 * Set projectile's collision to ignore owner if bIgnoreOwner is true.
 	 */
 	virtual void BeginPlay() override;
-	
 	/**
 	 * Activates ProjectileMovementComponent and plays a flight sound.
 	 * @note Must call Super::ActivateActor_Implementation for proper pooling logic
@@ -47,7 +48,6 @@ protected:
 	 * @note Must call Super::DeactivateActor_Implementation for proper pooling logic. Use OnDeactivateProjectile instead for deactivating the projectile.
 	 */
 	virtual void DeactivateActor_Implementation() override;
-
 	/**
 	 * Called when the projectile overlaps other actor.
 	 */
@@ -68,12 +68,16 @@ protected:
 	bool ProjectileInteract(AActor* InInteractingActor);
 
 	/**
-	 * Calls DeactivateActor. Use for adding deactivation VFX, SFX.
-	 * @note Ensure parent function is called.
+	 * Use for VFX and SFX after projectile activation
 	 */
 	UFUNCTION(BlueprintNativeEvent)
-	void OnDeactivateProjectile();
-
+	void OnProjectileActivated();
+	/**
+	 * Use for VFX and SFX after projectile deactivation
+	 */
+	UFUNCTION(BlueprintNativeEvent)
+	void OnProjectileDeactivated();
+	
 	/**
 	 * Calls after the projectile's impact. Use for adding impact VFX, SFX and other.
 	 */
@@ -81,7 +85,7 @@ protected:
 	void OnProjectileImpact();
 
 	/** Sets ProjectileFlightSound as FlightAudioComponent's sound or fade in, if it's faded out. */
-	void PlayFlightSound();
+	void PlayFlightSound() const;
 	/** Plays ProjectileFlightSound at projectile's location. */
 	void PlayImpactSound();
 
@@ -117,8 +121,11 @@ protected:
 	TObjectPtr<USoundBase> ProjectileFlightSound;
 
 	/** Attached to the projectile for playing ProjectileFlightSound. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Sound")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Sound")
 	TObjectPtr<UAudioComponent> FlightAudioComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Projectile|VFX")
+	TObjectPtr<UNiagaraSystem> ImpactNiagaraSystem;
 private:
 
 	/** Projectile's default max speed. Used for setting ProjectileMovementComponent's MaxSpeed*/

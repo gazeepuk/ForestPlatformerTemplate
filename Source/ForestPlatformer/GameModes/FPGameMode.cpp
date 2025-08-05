@@ -42,7 +42,7 @@ void AFPGameMode::RespawnPlayer(APlayerController* InPlayerController)
 		{
 			AFPCheckpoint** LastCheckpoint = AllCheckpoints.FindByPredicate([this](const AFPCheckpoint* CP)
 			{
-				return CP->GetSaveID() == LastCheckpointID;
+				return ISavableObjectInterface::Execute_GetSaveID(CP) == LastCheckpointID;
 			});
 
 			SpawnTransform = LastCheckpoint ? (*LastCheckpoint)->GetActorTransform() : FTransform::Identity;
