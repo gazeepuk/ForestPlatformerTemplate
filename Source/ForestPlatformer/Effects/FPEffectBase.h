@@ -19,6 +19,7 @@ UENUM(BlueprintType)
 enum class EFPEffectStackingPolicy : uint8
 {
 	NoStack,
+	ApplyAsSperateEffect,
 	RefreshDuration,
 	AddToRemainingTime
 };
@@ -33,7 +34,7 @@ class FORESTPLATFORMER_API UFPEffectBase : public UObject
 public:
 	virtual UWorld* GetWorld() const override { return WorldContextObject ? WorldContextObject->GetWorld() : nullptr; }
 
-	void SetWorldContextObject(UObject* InWorldContextObject) {};
+	void SetWorldContextObject(UObject* InWorldContextObject) { WorldContextObject = InWorldContextObject; }
 	
 	UFUNCTION(BlueprintPure, Category = "Effect")
 	FORCEINLINE FName GetEffectID() const { return EffectID; }
@@ -67,10 +68,10 @@ protected:
 
 	uint32 EffectIDHash;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effect")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effect|Duration")
 	EFPEffectDurationType DurationType = EFPEffectDurationType::Duration;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effect", meta = (EditCondition = "DurationType == EFPEffectDurationType::Duration", ExposeOnSpawn = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effect|Duration", meta = (ExposeOnSpawn = "true"))
 	float Duration = 5.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effect")

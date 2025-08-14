@@ -34,6 +34,9 @@ public:
 	// End ICoinsWalletInterface
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void InitHUDWidget();
+	
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void OnCurrentCoinsChanged(int32 NewCurrentCoins);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)

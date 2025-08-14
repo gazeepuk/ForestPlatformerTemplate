@@ -33,6 +33,9 @@ public:
 	static bool BP_TryApplyEffectByClassToActor(AActor* InTargetActor, TSubclassOf<UFPEffectBase> InEffectClass,
 	                                            EFPSuccessType& OutSuccessType);
 
+	UFUNCTION(BlueprintCallable)
+	static void RemoveEffectByClassFromActor(AActor* InActor, TSubclassOf<UFPEffectBase> InEffectClass);
+	
 	UFUNCTION(BlueprintPure)
 	static bool IsPawnHostile(const APawn* InInstigator, const APawn* InTarget);
 };

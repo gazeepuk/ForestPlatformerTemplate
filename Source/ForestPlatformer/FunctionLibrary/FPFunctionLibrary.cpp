@@ -85,6 +85,19 @@ bool UFPFunctionLibrary::BP_TryApplyEffectByClassToActor(AActor* InTargetActor,
 	return bAppliedSuccessfully;
 }
 
+void UFPFunctionLibrary::RemoveEffectByClassFromActor(AActor* InActor, TSubclassOf<UFPEffectBase> InEffectClass)
+{
+	if(!InActor || !InEffectClass)
+	{
+		return;
+	}
+
+	if(UFPEffectComponent* EffectComponent = InActor->GetComponentByClass<UFPEffectComponent>())
+	{
+		EffectComponent->RemoveEffectByClass(InEffectClass);
+	}
+}
+
 bool UFPFunctionLibrary::IsPawnHostile(const APawn* InInstigator, const APawn* InTarget)
 {
 	if(!InInstigator || !InTarget)

@@ -7,6 +7,8 @@
 #include "Interfaces/SavableObjectInterface.h"
 #include "FPEnemyCharacter.generated.h"
 
+class UFPEffectComponent;
+
 UCLASS()
 class FORESTPLATFORMER_API AFPEnemyCharacter : public AFPCharacterBase, public IDamageableInterface, public ISavableObjectInterface
 {
@@ -35,6 +37,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UHealthComponent> HealthComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UFPEffectComponent> EffectComponent;
+	
 	UPROPERTY(BlueprintReadWrite)
 	bool bDefeated;
 	

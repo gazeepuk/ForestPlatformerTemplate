@@ -10,13 +10,24 @@
 void UHealthComponent::SetCurrentHealth(const float InNewCurrentHealth)
 {
 	const float NewCurrentHealth = FMath::Clamp(InNewCurrentHealth, 0, MaxHealth);
+	const float OldCurrentHealth = CurrentHealth;
 	CurrentHealth = NewCurrentHealth;
 
-	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
-	
-	if(CurrentHealth == 0)
+	if(CurrentHealth == 0.f)
 	{
 		UFPFunctionLibrary::NativeAddGameplayTagToActor(GetOwner(), FPGameplayTags::Shared_Status_Dead);
+	}
+	
+	if(NewCurrentHealth != OldCurrentHealth)
+	{
+		OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+	}
+	if(NewCurrentHealth < OldCurrentHealth)
+	{
+		OnTakeDamage.Broadcast(OldCurrentHealth - CurrentHealth);
+	}
+	if(NewCurrentHealth == 0.f && OldCurrentHealth != 0.f)
+	{
 		OnZeroHealth.Broadcast();
 	}
 }
@@ -37,13 +48,13 @@ void UHealthComponent::TakeDamage(AActor* DamageCauser, float InDamageValue, ACo
 		!UFPFunctionLibrary::NativeDoesActorHaveTag(GetOwner(), FPGameplayTags::Shared_Status_Dead))
 	{
 		SpendCurrentHealth(InDamageValue);
-		OnTakeDamage.Broadcast(InDamageValue);
 	}
 }
 
-void UHealthComponent::BeginPlay()
+void UHealthComponent::PostInitProperties()
 {
-	Super::BeginPlay();
+	Super::PostInitProperties();
 
 	CurrentHealth = MaxHealth;
 }
+

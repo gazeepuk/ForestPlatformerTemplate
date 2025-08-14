@@ -6,6 +6,7 @@
 #include "Components/BoxComponent.h"
 #include "CoreTypes/FPCustomCollisions.h"
 #include "GameModes/FPGameMode.h"
+#include "Subsystems/SaveGameSubsystem.h"
 
 
 ACollectableBase::ACollectableBase()
@@ -62,9 +63,9 @@ void ACollectableBase::OnCollectableOverlapped_Implementation(AActor* InOverlapp
 	{
 		if(bSaveOnCollected)
 		{
-			if(AFPGameMode* FPGameMode = GetWorld()->GetAuthGameMode<AFPGameMode>())
+			if(USaveGameSubsystem* SaveGameSubsystem = GetGameInstance()->GetSubsystem<USaveGameSubsystem>())
 			{
-				FPGameMode->AddPendingSavableObjects(this);
+				SaveGameSubsystem->AddPendingSavableObjects(this);
 			}
 		}
 		

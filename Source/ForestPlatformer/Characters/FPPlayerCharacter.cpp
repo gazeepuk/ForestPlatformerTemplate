@@ -82,17 +82,6 @@ void AFPPlayerCharacter::TakeDamage_Implementation(AActor* DamageCauser, float I
 	}
 }
 
-void AFPPlayerCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	if(AFPPlayerController* FPPlayerController = GetController<AFPPlayerController>())
-	{
-		FPPlayerController->InitHealthBar(HealthComponent);
-		CombatComponent->InitCombatComponent();
-		PlayerInteractionComponent->BindInteractionAction();
-	}
-}
 
 void AFPPlayerCharacter::PossessedBy(AController* NewController)
 {
@@ -100,6 +89,7 @@ void AFPPlayerCharacter::PossessedBy(AController* NewController)
 
 	if(AFPPlayerController* FPPlayerController = Cast<AFPPlayerController>(NewController))
 	{
+		FPPlayerController->InitHUDWidget();
 		FPPlayerController->InitHealthBar(HealthComponent);
 		CombatComponent->InitCombatComponent();
 		PlayerInteractionComponent->BindInteractionAction();

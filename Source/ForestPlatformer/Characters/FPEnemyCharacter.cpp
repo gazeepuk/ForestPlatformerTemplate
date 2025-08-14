@@ -5,16 +5,19 @@
 
 #include "AIController.h"
 #include "BrainComponent.h"
+#include "ActorComponents/EffectComponent/FPEffectComponent.h"
 #include "ActorComponents/HealthComponent/HealthComponent.h"
 #include "CoreTypes/FPGameplayTags.h"
 #include "FunctionLibrary/FPFunctionLibrary.h"
 #include "GameModes/FPGameMode.h"
 #include "Perception/AIPerceptionComponent.h"
+#include "Subsystems/SaveGameSubsystem.h"
 
 
 AFPEnemyCharacter::AFPEnemyCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	EffectComponent = CreateDefaultSubobject<UFPEffectComponent>(TEXT("EffectComponent"));
 	
 	bDefeated = false;
 }
@@ -84,9 +87,9 @@ void AFPEnemyCharacter::Destroyed()
 {
 	if(bSaveAfterDefeating)
 	{
-		if(AFPGameMode* FPGameMode = GetWorld()->GetAuthGameMode<AFPGameMode>())
+		if(USaveGameSubsystem* SaveGameSubsystem = GetGameInstance()->GetSubsystem<USaveGameSubsystem>())
 		{
-			FPGameMode->AddPendingSavableObjects(this);
+			SaveGameSubsystem->AddPendingSavableObjects(this);
 		}
 	}
 	

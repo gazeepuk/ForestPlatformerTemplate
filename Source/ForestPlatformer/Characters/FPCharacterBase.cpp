@@ -10,6 +10,7 @@
 AFPCharacterBase::AFPCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	GetMesh()->SetCollisionResponseToChannel(ECC_FP_Projectile_OC, ECR_Ignore);
+	GetMesh()->bReceivesDecals = false;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_FP_Projectile_OC, ECR_Overlap);
 }
 

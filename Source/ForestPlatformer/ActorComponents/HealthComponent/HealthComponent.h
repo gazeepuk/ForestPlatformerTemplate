@@ -41,7 +41,7 @@ public:
 	FOnTakeDamageDelegate OnTakeDamage;
 	
 protected:
-	virtual void BeginPlay() override;
+	virtual void PostInitProperties() override;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float MaxHealth = 3.f;

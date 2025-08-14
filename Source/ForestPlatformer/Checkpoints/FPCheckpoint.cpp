@@ -28,9 +28,28 @@ AFPCheckpoint::AFPCheckpoint()
 	SpawnDirectionArrow->SetupAttachment(SpawnPoint);
 }
 
-void AFPCheckpoint::SetCheckpointActivated(bool bActivate)
+void AFPCheckpoint::SetCheckpointActivated(bool bNewActivated)
 {
-	bActivated = bActivate;
+	if(bActivated == bNewActivated)
+	{
+		return;
+	}
+	
+	bActivated = bNewActivated;
+
+	if(bActivated)
+	{
+		OnCheckpointActivated();
+	}
+}
+
+FTransform AFPCheckpoint::GetSpawnPointTransform() const
+{
+	if(SpawnPoint)
+	{
+		return SpawnPoint->GetComponentTransform();
+	}
+	return FTransform::Identity;
 }
 
 FName AFPCheckpoint::GetSaveID_Implementation() const
@@ -62,15 +81,8 @@ void AFPCheckpoint::LoadFromSaveData_Implementation(const FFPSavableData& SaveDa
 void AFPCheckpoint::OnPlayerOverlappedBoundaries(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if(bActivated)
-	{
-		return;
-	}
-	
 	if(AFPGameMode* FPGameMode = GetWorld()->GetAuthGameMode<AFPGameMode>())
 	{
 		FPGameMode->RegisterCheckpoint(this);
 	}
-	
-	OnCheckpointActivated();
 }

@@ -22,7 +22,7 @@ struct FFPSavableData
 	FName ObjectType;
 
 	UPROPERTY()
-	bool bActive;
+	bool bActive; 
 
 	// JSON string
 	UPROPERTY()
@@ -92,7 +92,7 @@ class FORESTPLATFORMER_API UFPSaveGame : public USaveGame
 public:
 	
 	UPROPERTY()
-	TMap<FString, FFPLevelData> LevelData;
+	TMap<FString, FFPLevelData> LevelDataMap;
 
 	UPROPERTY()
 	FString CurrentLevelName;

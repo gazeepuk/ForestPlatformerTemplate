@@ -25,15 +25,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void RegisterCheckpoint(AFPCheckpoint* InCheckpoint);
-	
-	UFUNCTION(BlueprintCallable)
-	void SaveGame();
 
 	UFUNCTION(BlueprintCallable)
-	void LoadGame();
+	void InitGameFromSave();
 
-	UFUNCTION(BlueprintCallable)
-	void AddPendingSavableObjects(AActor* InSavableActor);
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE FName GetLastCheckpointID() const { return LastCheckpointID; }
 protected:
 	virtual void BeginPlay() override;
 	

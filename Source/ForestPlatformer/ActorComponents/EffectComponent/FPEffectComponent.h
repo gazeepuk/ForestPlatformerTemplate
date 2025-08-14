@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Effects/FPEffectBase.h"
 #include "FPEffectComponent.generated.h"
 
 class UFPEffectBase;
@@ -16,11 +17,11 @@ struct FFPActiveEffect
 	UPROPERTY()
 	TObjectPtr<UFPEffectBase> Effect = nullptr;
 
-	float EffectDuration = 0.0f;
+	float RemainingTime = 0.0f;
 	
 	FTimerHandle TimerHandle;
 	
-	bool IsValid() const { return Effect != nullptr; }
+	bool IsValid() const { return Effect && !Effect->GetEffectID().IsNone(); }
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -37,6 +38,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Effects")
 	void RemoveEffect(const UFPEffectBase* Effect);
 
+	UFUNCTION(BlueprintCallable, Category = "Effects")
+	void RemoveEffectByClass(const TSubclassOf<UFPEffectBase> InEffectClass);
+
 protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
@@ -45,4 +49,5 @@ protected:
 
 private:
 	void OnEffectExpired(const UFPEffectBase* Effect);
+	void HandleStacking(const UFPEffectBase* InEffect, bool& bOutShouldApplyEffect);
 };

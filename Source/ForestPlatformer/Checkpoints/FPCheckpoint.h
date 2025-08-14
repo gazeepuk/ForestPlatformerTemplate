@@ -16,7 +16,10 @@ class FORESTPLATFORMER_API AFPCheckpoint : public AActor, public ISavableObjectI
 
 public:
 	AFPCheckpoint();
-	void SetCheckpointActivated(bool bActivate);
+	UFUNCTION(BlueprintCallable)
+	void SetCheckpointActivated(bool bNewActivated);
+	UFUNCTION(BlueprintPure)
+	FTransform GetSpawnPointTransform() const;
 	
 	//~Begin ISavableObjectInterface
 	UFUNCTION(CallInEditor, Category = "SavableObject | HelperFunctions")
