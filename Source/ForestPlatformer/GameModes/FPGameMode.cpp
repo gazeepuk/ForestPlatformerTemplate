@@ -6,8 +6,7 @@
 #include "EngineUtils.h"
 #include "Checkpoints/FPCheckpoint.h"
 #include "GameFramework/PlayerStart.h"
-#include "Interfaces/SavableObjectInterface.h"
-#include "SaveGame/FPSaveGame.h"
+#include "Interfaces/SavableActorInterface.h"
 #include "Subsystems/SaveGameSubsystem.h"
 
 void AFPGameMode::BeginPlay()
@@ -43,7 +42,7 @@ void AFPGameMode::RespawnPlayer(APlayerController* InPlayerController)
 		{
 			AFPCheckpoint** LastCheckpoint = AllCheckpoints.FindByPredicate([this](const AFPCheckpoint* CP)
 			{
-				return ISavableObjectInterface::Execute_GetSaveID(CP) == LastCheckpointID;
+				return ISavableActorInterface::Execute_GetSaveID(CP) == LastCheckpointID;
 			});
 
 			SpawnTransform = LastCheckpoint ? (*LastCheckpoint)->GetSpawnPointTransform() : FTransform::Identity;
@@ -74,24 +73,19 @@ void AFPGameMode::RegisterCheckpoint(AFPCheckpoint* InCheckpoint)
 		LastCheckpointTransform = InCheckpoint->GetActorTransform();
 		LastCheckpointID = InCheckpoint->GetSaveID_Implementation();
 
-		GetGameInstance()->GetSubsystem<USaveGameSubsystem>()->SaveGameSlot();
+		if(USaveGameSubsystem* SaveGameSubsystem = GetGameInstance()->GetSubsystem<USaveGameSubsystem>())
+		{
+			SaveGameSubsystem->SaveGameSlot(SaveGameSubsystem->GetCurrentSlotName());
+		}
 	}
 }
 
 void AFPGameMode::InitGameFromSave()
 {
-	if(!GetWorld())
+	if(const USaveGameSubsystem* SaveSubsystem = GetGameInstance()->GetSubsystem<USaveGameSubsystem>())
 	{
-		return;
-	}
-
-	if(USaveGameSubsystem* SaveSubsystem = GetGameInstance()->GetSubsystem<USaveGameSubsystem>())
-	{
+		LastCheckpointID = SaveSubsystem->GetCurrentLastCheckpointID();
 		SaveSubsystem->LoadCurrentLevelFromSave();
-		if(FFPLevelData* CurrentLevelData = SaveSubsystem->GetCurrentLevelData())
-		{
-			LastCheckpointID = CurrentLevelData->LastActiveCheckpointID;
-		}
 	}
 }
 

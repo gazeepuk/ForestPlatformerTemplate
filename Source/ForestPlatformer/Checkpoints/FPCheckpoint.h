@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Interfaces/SavableObjectInterface.h"
+#include "Interfaces/SavableActorInterface.h"
 #include "FPCheckpoint.generated.h"
 
 class UArrowComponent;
 class UBoxComponent;
 UCLASS()
-class FORESTPLATFORMER_API AFPCheckpoint : public AActor, public ISavableObjectInterface
+class FORESTPLATFORMER_API AFPCheckpoint : public AActor, public ISavableActorInterface
 {
 	GENERATED_BODY()
 
@@ -23,7 +23,7 @@ public:
 	
 	//~Begin ISavableObjectInterface
 	UFUNCTION(CallInEditor, Category = "SavableObject | HelperFunctions")
-	virtual void InitializeSaveID() override { ISavableObjectInterface::InitializeSaveID(); }
+	virtual void InitializeSaveID() override { ISavableActorInterface::InitializeSaveID(); }
 	virtual FName GetSaveID_Implementation() const override;
 	virtual void SetSaveID_Implementation(const FName& InSaveID) override { SaveID = InSaveID; }
 	virtual bool ShouldSave_Implementation() const override;

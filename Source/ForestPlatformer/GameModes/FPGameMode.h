@@ -6,9 +6,10 @@
 #include "GameFramework/GameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "SaveGame/FPSaveGame.h"
+#include "Subsystems/SaveGameSubsystem.h"
 #include "FPGameMode.generated.h"
 
-class ISavableObjectInterface;
+class ISavableActorInterface;
 class AFPCheckpoint;
 class UFPSaveGame;
 /**
@@ -34,39 +35,16 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	template<std::derived_from<UFPSaveGame> T>
-	T* GetOrCreateSaveData()
-	{
-		T* SaveData = nullptr;
-
-		if(UGameplayStatics::DoesSaveGameExist("SaveSlot", 0))
-		{
-			SaveData = Cast<T>(UGameplayStatics::LoadGameFromSlot("SaveSlot", 0));
-
-			if(!SaveData)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Failed to load existing save. Creating a new save"));
-			}
-		}
-
-		if(!SaveData)
-		{
-			SaveData = Cast<T>(UGameplayStatics::CreateSaveGameObject(T::StaticClass()));
-			if(!SaveData)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Failed to create a new save data"));
-				return nullptr;
-			}
-		}
-		
-		return SaveData;
-	}
-
 	UPROPERTY()
 	TArray<AFPCheckpoint*> AllCheckpoints;
+
+	UPROPERTY(BlueprintReadOnly)
 	FName LastCheckpointID;
+	
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<AActor> LastActiveCheckpoint;
+
+	UPROPERTY(BlueprintReadOnly)
 	FTransform LastCheckpointTransform;
 
 	TMap<FName, FFPSavableData> PendingSavableData;

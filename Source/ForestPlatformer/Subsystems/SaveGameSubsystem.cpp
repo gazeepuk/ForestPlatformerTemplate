@@ -4,14 +4,23 @@
 #include "SaveGameSubsystem.h"
 
 #include "GameModes/FPGameMode.h"
-#include "Interfaces/SavableObjectInterface.h"
+#include "Interfaces/SavableActorInterface.h"
 #include "SaveGame/FPSaveGame.h"
 
 void USaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	LoadGameSlot("SaveSlot", 0, false);
+	if(CurrentSlotName.IsEmpty())
+	{
+		CurrentSlotName = DEFAULT_SAVE_SLOT_NAME;
+	}
+	LoadGameSlot(CurrentSlotName, 0, false);
+}
+
+void USaveGameSubsystem::SetCurrentSlotName(const FString& NewSlotName)
+{
+	CurrentSlotName = NewSlotName.IsEmpty() ? DEFAULT_SAVE_SLOT_NAME : NewSlotName;
 }
 
 FString USaveGameSubsystem::GetCleanLevelName() const
@@ -19,6 +28,21 @@ FString USaveGameSubsystem::GetCleanLevelName() const
 	FString LevelName = GetWorld()->GetMapName();
 	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
 	return LevelName;
+}
+
+FFPLevelData* USaveGameSubsystem::GetCurrentLevelData() const
+{
+	const FString LevelName = GetCleanLevelName();
+	return SaveGame->LevelDataMap.Find(LevelName);
+}
+
+FName USaveGameSubsystem::GetCurrentLastCheckpointID() const
+{
+	if(const FFPLevelData* CurrentLevelData = GetCurrentLevelData())
+	{
+		return CurrentLevelData->LastActiveCheckpointID;
+	}
+	return FName();
 }
 
 void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserIndex, const bool bAsync)
@@ -61,39 +85,6 @@ void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserI
 	}
 }
 
-void USaveGameSubsystem::WriteSaveData()
-{
-	FString LevelName = GetCleanLevelName();
-
-	FFPLevelData& CurrentLevelData = SaveGame->LevelDataMap.FindOrAdd(LevelName);
-	
-	if(AFPGameMode* FPGameMode = GetWorld()->GetAuthGameMode<AFPGameMode>())
-	{
-		SaveGame->LevelDataMap[LevelName].LastActiveCheckpointID = FPGameMode->GetLastCheckpointID();
-		SaveGame->CurrentLevelName = LevelName;
-	}
-	
-	TArray<AActor*> AllSavableActors;
-	UGameplayStatics::GetAllActorsWithInterface(this, USavableObjectInterface::StaticClass(), AllSavableActors);
-	for (AActor* SavableActor : AllSavableActors)
-	{
-		if(CurrentLevelData.TrySaveActor(SavableActor))
-		{
-			UE_LOG(LogTemp, Display, TEXT("Saved Object: %s"), *ISavableObjectInterface::Execute_GetSaveID(SavableActor).ToString());
-		}
-	}
-	
-	for (TPair<FName, FFPSavableData> Data : PendingSavableData)
-	{
-		FFPSavableData& ExistingSaveData = CurrentLevelData.SavedObjects.FindOrAdd(Data.Key);
-		ExistingSaveData = Data.Value;
-		UE_LOG(LogTemp, Display, TEXT("Saved Object: %s"), *Data.Key.ToString());
-	}
-	PendingSavableData.Empty();
-
-	UE_LOG(LogTemp, Display, TEXT("Successfly saved game"));
-}
-
 void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserIndex, const bool bAsyncSave)
 {
 	if(!SaveGame || !GetWorld())
@@ -108,20 +99,72 @@ void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserI
 		UGameplayStatics::AsyncSaveGameToSlot(SaveGame, SlotName, UserIndex,
 		FAsyncSaveGameToSlotDelegate::CreateLambda([&](const FString& SavedSlotName, const int32 SavedUserIndex, bool bSavedSuccessfully)
 		{
-			if(IsValid(this))
+			if(IsValid(this) && bSavedSuccessfully)
 			{
+				UE_LOG(LogTemp, Display, TEXT("Successfly saved game"));
 				OnSaveGameSaved.Broadcast(SavedSlotName, SavedUserIndex, bSavedSuccessfully);
 			}
 		}));
 	}
 	else
 	{
-		UGameplayStatics::SaveGameToSlot(SaveGame, SlotName, UserIndex);
+		if(UGameplayStatics::SaveGameToSlot(SaveGame, SlotName, UserIndex))
+		{
+			UE_LOG(LogTemp, Display, TEXT("Successfly saved game"));
+		}
 	}
 
 }
 
-void USaveGameSubsystem::LoadCurrentLevelFromSave()
+void USaveGameSubsystem::WriteSaveData()
+{
+	FString LevelName = GetCleanLevelName();
+
+	FFPLevelData& CurrentLevelData = SaveGame->LevelDataMap.FindOrAdd(LevelName);
+	
+	if(const AFPGameMode* FPGameMode = GetWorld()->GetAuthGameMode<AFPGameMode>())
+	{
+		SaveGame->LevelDataMap[LevelName].LastActiveCheckpointID = FPGameMode->GetLastCheckpointID();
+		SaveGame->CurrentLevelName = LevelName;
+	}
+	
+	TArray<AActor*> AllSavableActors;
+	UGameplayStatics::GetAllActorsWithInterface(this, USavableActorInterface::StaticClass(), AllSavableActors);
+	for (AActor* SavableActor : AllSavableActors)
+	{
+		if(CurrentLevelData.TrySaveActor(SavableActor))
+		{
+			UE_LOG(LogTemp, Display, TEXT("Saved Object: %s"), *ISavableActorInterface::Execute_GetSaveID(SavableActor).ToString());
+		}
+	}
+	
+	for (TPair<FName, FFPSavableData> Data : PendingSavableData)
+	{
+		FFPSavableData& ExistingSaveData = CurrentLevelData.SavedObjects.FindOrAdd(Data.Key);
+		ExistingSaveData = Data.Value;
+		UE_LOG(LogTemp, Display, TEXT("Saved Object: %s"), *Data.Key.ToString());
+	}
+	PendingSavableData.Empty();
+}
+
+void USaveGameSubsystem::AddPendingSavableObjects(const AActor* InSavableActor)
+{
+	if(!InSavableActor || !InSavableActor->Implements<USavableActorInterface>())
+	{
+		return;
+	}
+
+	FName SaveID = ISavableActorInterface::Execute_GetSaveID(InSavableActor);
+	if(SaveID.IsNone())
+	{
+		return;
+	}
+	
+	FFPSavableData DataToSave = ISavableActorInterface::Execute_GetSaveData(InSavableActor);
+	PendingSavableData.FindOrAdd(SaveID) = DataToSave;
+}
+
+void USaveGameSubsystem::LoadCurrentLevelFromSave() const
 {
 	if(!SaveGame)
 	{
@@ -133,38 +176,16 @@ void USaveGameSubsystem::LoadCurrentLevelFromSave()
 	if(FFPLevelData* LevelData = GetCurrentLevelData())
 	{
 		TArray<AActor*> AllSavableActors;
-		UGameplayStatics::GetAllActorsWithInterface(this, USavableObjectInterface::StaticClass(), AllSavableActors);
+		UGameplayStatics::GetAllActorsWithInterface(this, USavableActorInterface::StaticClass(), AllSavableActors);
 
 		for (AActor* SavableActor : AllSavableActors)
 		{
-			const FName SaveID = ISavableObjectInterface::Execute_GetSaveID(SavableActor);
+			const FName SaveID = ISavableActorInterface::Execute_GetSaveID(SavableActor);
 			if(SaveID != NAME_None && LevelData->SavedObjects.Contains(SaveID))
 			{
-				ISavableObjectInterface::Execute_LoadFromSaveData(SavableActor, LevelData->SavedObjects[ISavableObjectInterface::Execute_GetSaveID(SavableActor)]);
+				ISavableActorInterface::Execute_LoadFromSaveData(SavableActor, LevelData->SavedObjects[ISavableActorInterface::Execute_GetSaveID(SavableActor)]);
 			}
 		}
-	}
-}
 
-FFPLevelData* USaveGameSubsystem::GetCurrentLevelData() const
-{
-	const FString LevelName = GetCleanLevelName();
-	return SaveGame->LevelDataMap.Find(LevelName);
-}
-
-void USaveGameSubsystem::AddPendingSavableObjects(const AActor* InSavableActor)
-{
-	if(!InSavableActor || !InSavableActor->Implements<USavableObjectInterface>())
-	{
-		return;
 	}
-
-	FName SaveID = ISavableObjectInterface::Execute_GetSaveID(InSavableActor);
-	if(SaveID.IsNone())
-	{
-		return;
-	}
-	
-	FFPSavableData DataToSave = ISavableObjectInterface::Execute_GetSaveData(InSavableActor);
-	PendingSavableData.FindOrAdd(SaveID) = DataToSave;
 }

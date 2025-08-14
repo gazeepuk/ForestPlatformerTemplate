@@ -75,7 +75,7 @@ void AFPCheckpoint::LoadFromSaveData_Implementation(const FFPSavableData& SaveDa
 {
 	bActivated = SaveData.bActive;
 
-	ISavableObjectInterface::Execute_OnLoadedFromSaveData(this);
+	ISavableActorInterface::Execute_OnLoadedFromSaveData(this);
 }
 
 void AFPCheckpoint::OnPlayerOverlappedBoundaries(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Interfaces/SavableObjectInterface.h"
+#include "Interfaces/SavableActorInterface.h"
 #include "CollectableBase.generated.h"
 
 class UBoxComponent;
 
 UCLASS()
-class FORESTPLATFORMER_API ACollectableBase : public AActor, public ISavableObjectInterface
+class FORESTPLATFORMER_API ACollectableBase : public AActor, public ISavableActorInterface
 {
 	GENERATED_BODY()
 
@@ -18,7 +18,7 @@ public:
 	ACollectableBase();
 
 	UFUNCTION(CallInEditor, Category = "SavableObject|Helper Functions")
-	virtual void InitializeSaveID() override { ISavableObjectInterface::InitializeSaveID(); }
+	virtual void InitializeSaveID() override { ISavableActorInterface::InitializeSaveID(); }
 	virtual FName GetSaveID_Implementation() const override { return SaveID; }
 	virtual void SetSaveID_Implementation(const FName& InSaveID) override { SaveID = InSaveID; }
 	virtual bool ShouldSave_Implementation() const override { return bSaveOnCollected; }

@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "FPCharacterBase.h"
-#include "Interfaces/SavableObjectInterface.h"
+#include "Interfaces/SavableActorInterface.h"
 #include "FPEnemyCharacter.generated.h"
 
 class UFPEffectComponent;
 
 UCLASS()
-class FORESTPLATFORMER_API AFPEnemyCharacter : public AFPCharacterBase, public IDamageableInterface, public ISavableObjectInterface
+class FORESTPLATFORMER_API AFPEnemyCharacter : public AFPCharacterBase, public IDamageableInterface, public ISavableActorInterface
 {
 	GENERATED_BODY()
 
@@ -20,7 +20,7 @@ public:
 	virtual void TakeDamage_Implementation(AActor* DamageCauser, float InDamage, AController* InstigatedBy) override;
 
 	UFUNCTION(CallInEditor, Category = "SavableObject|Helper Functions")
-	virtual void InitializeSaveID() override { ISavableObjectInterface::InitializeSaveID(); }
+	virtual void InitializeSaveID() override { ISavableActorInterface::InitializeSaveID(); }
 	virtual FName GetSaveID_Implementation() const override { return SaveID; }
 	virtual void SetSaveID_Implementation(const FName& InSaveID) override { SaveID = InSaveID; }
 	virtual bool ShouldSave_Implementation() const override { return bDefeated && bSaveAfterDefeating; }

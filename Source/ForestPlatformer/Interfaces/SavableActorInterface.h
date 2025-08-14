@@ -5,11 +5,11 @@
 #include "CoreMinimal.h"
 #include "SaveGame/FPSaveGame.h"
 #include "UObject/Interface.h"
-#include "SavableObjectInterface.generated.h"
+#include "SavableActorInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE()
-class USavableObjectInterface : public UInterface
+class USavableActorInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -17,7 +17,7 @@ class USavableObjectInterface : public UInterface
 /**
  * 
  */
-class FORESTPLATFORMER_API ISavableObjectInterface
+class FORESTPLATFORMER_API ISavableActorInterface
 {
 	GENERATED_BODY()
 
