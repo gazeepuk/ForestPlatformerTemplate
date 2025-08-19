@@ -7,6 +7,13 @@
 #include "FunctionLibrary/FPFunctionLibrary.h"
 
 
+void UHealthComponent::SetMaxHealth(float InNewMaxHealth)
+{
+	const float NewMaxHealth = FMath::Max(InNewMaxHealth, 1.f);
+	MaxHealth = NewMaxHealth;
+	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+}
+
 void UHealthComponent::SetCurrentHealth(const float InNewCurrentHealth)
 {
 	const float NewCurrentHealth = FMath::Clamp(InNewCurrentHealth, 0, MaxHealth);

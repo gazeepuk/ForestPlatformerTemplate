@@ -3,6 +3,8 @@
 
 #include "SavableActorInterface.h"
 
+#include "FunctionLibrary/FPFunctionLibrary.h"
+
 
 // Add default functionality here for any ISavableObjectInterface functions that are not pure virtual.
 void ISavableActorInterface::InitializeSaveID()
@@ -12,15 +14,9 @@ void ISavableActorInterface::InitializeSaveID()
 		return;
 	}
 
-	if(AActor* Actor = Cast<AActor>(this))
+	if(const AActor* Actor = Cast<AActor>(this))
 	{
-		const FVector Location = Actor->GetActorLocation();
-		const FName AutoSaveID = FName(FString::Printf(
-			TEXT("%s_%d_%d_%d"),
-			*Actor->GetClass()->GetName(),
-			FMath::RoundToInt32(Location.X),
-			FMath::RoundToInt32(Location.Y),
-			FMath::RoundToInt32(Location.Z)));
+		const FName AutoSaveID = UFPFunctionLibrary::GenerateSaveIDByActorLocation(Actor);
 
 		SetSaveID_Implementation(AutoSaveID);
 	}

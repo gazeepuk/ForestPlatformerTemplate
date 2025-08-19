@@ -36,6 +36,9 @@ public:
 	
 	UFUNCTION(BlueprintPure)
 	FName GetCurrentLastCheckpointID() const;
+
+	UFUNCTION(BlueprintPure)
+	FTransform GetCurrentLastCheckpointSpawnPoint() const;
 	
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE UFPSaveGame* GetSaveGame() const { return SaveGame; }

@@ -21,6 +21,8 @@ class FORESTPLATFORMER_API AFPGameMode : public AGameModeBase
 	GENERATED_BODY()
 
 public:
+	virtual APawn* SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot) override;
+	
 	UFUNCTION(BlueprintCallable)
 	void RespawnPlayer(APlayerController* InPlayerController);
 
@@ -32,20 +34,26 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE FName GetLastCheckpointID() const { return LastCheckpointID; }
+
+	UFUNCTION(BlueprintPure)
+	FTransform GetLastCheckpointSpawnPoint() const;
+	
 protected:
 	virtual void BeginPlay() override;
 	
+	AFPCheckpoint* FindCheckpointByID(const FName& InCheckpointID) const;
+	
 	UPROPERTY()
-	TArray<AFPCheckpoint*> AllCheckpoints;
-
+	TMap<FName, AFPCheckpoint*> CheckpointsMap;
+	
 	UPROPERTY(BlueprintReadOnly)
 	FName LastCheckpointID;
 	
 	UPROPERTY(BlueprintReadOnly)
-	TObjectPtr<AActor> LastActiveCheckpoint;
+	TObjectPtr<AFPCheckpoint> LastActiveCheckpoint;
 
 	UPROPERTY(BlueprintReadOnly)
-	FTransform LastCheckpointTransform;
-
+	FTransform LastCheckpointSpawnPoint;
+	
 	TMap<FName, FFPSavableData> PendingSavableData;
 };

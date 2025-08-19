@@ -115,3 +115,19 @@ bool UFPFunctionLibrary::IsPawnHostile(const APawn* InInstigator, const APawn* I
 	
 	return InstigatorTeamAgentInterface->GetTeamAttitudeTowards(*InTarget) == ETeamAttitude::Hostile;
 }
+
+FName UFPFunctionLibrary::GenerateSaveIDByActorLocation(const AActor* InActor)
+{
+	FName AutoSaveID;
+	if(InActor)
+	{
+		const FVector Location = InActor->GetActorLocation();
+		AutoSaveID = FName(FString::Printf(
+			TEXT("%s_%.3f_%.3f_%.3f"),
+			*InActor->GetClass()->GetName(),
+			Location.X,
+			Location.Y,
+			Location.Z));
+	}
+	return AutoSaveID;
+}

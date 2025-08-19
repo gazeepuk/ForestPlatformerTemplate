@@ -9,19 +9,64 @@
 #include "Interfaces/SavableActorInterface.h"
 #include "Subsystems/SaveGameSubsystem.h"
 
+
+FTransform AFPGameMode::GetLastCheckpointSpawnPoint() const
+{
+	const AFPCheckpoint* LastCheckpoint = FindCheckpointByID(LastCheckpointID);
+	return LastCheckpoint ? LastCheckpoint->GetSpawnPointTransform() : FTransform::Identity;
+}
+
 void AFPGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	for(TActorIterator<AFPCheckpoint> It(GetWorld()); It; ++It)
 	{
-		if(*It)
+		if(AFPCheckpoint* Checkpoint = *It)
 		{
-			AllCheckpoints.AddUnique(*It);
+			const FName CheckpointID = ISavableActorInterface::Execute_GetSaveID(Checkpoint);
+			if(!CheckpointID.IsNone())
+			{
+				CheckpointsMap.Add(CheckpointID, Checkpoint);
+			}
+		}
+	}
+	InitGameFromSave();
+}
+
+AFPCheckpoint* AFPGameMode::FindCheckpointByID(const FName& InCheckpointID) const
+{
+	if(InCheckpointID.IsNone())
+	{
+		return nullptr;
+	}
+
+	if(AFPCheckpoint* const* FoundedCheckpoint = CheckpointsMap.Find(InCheckpointID))
+	{
+		return *FoundedCheckpoint;
+	}
+	
+	return nullptr;
+}
+
+APawn* AFPGameMode::SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot)
+{
+	if (LastActiveCheckpoint)
+	{
+		const FTransform SpawnTransform = LastActiveCheckpoint->GetSpawnPointTransform();
+		return SpawnDefaultPawnAtTransform(NewPlayer, SpawnTransform);
+	}
+	
+	if (const FFPLevelData* CurrentLevelData = GetGameInstance()->GetSubsystem<USaveGameSubsystem>()->GetCurrentLevelData())
+	{
+		if (!CurrentLevelData->LastActiveCheckpointID.IsNone() &&
+			!CurrentLevelData->LastCheckpointSpawnPoint.Equals(FTransform::Identity))
+		{
+			return SpawnDefaultPawnAtTransform(NewPlayer, CurrentLevelData->LastCheckpointSpawnPoint);
 		}
 	}
 	
-	InitGameFromSave();
+	return Super::SpawnDefaultPawnFor_Implementation(NewPlayer, StartSpot);
 }
 
 void AFPGameMode::RespawnPlayer(APlayerController* InPlayerController)
@@ -38,18 +83,19 @@ void AFPGameMode::RespawnPlayer(APlayerController* InPlayerController)
 		PlayerPawn->Destroy();
 		
 		FTransform SpawnTransform;
-		if(LastCheckpointID != NAME_None)
+		
+		if(!LastActiveCheckpoint)
 		{
-			AFPCheckpoint** LastCheckpoint = AllCheckpoints.FindByPredicate([this](const AFPCheckpoint* CP)
-			{
-				return ISavableActorInterface::Execute_GetSaveID(CP) == LastCheckpointID;
-			});
-
-			SpawnTransform = LastCheckpoint ? (*LastCheckpoint)->GetSpawnPointTransform() : FTransform::Identity;
+			LastActiveCheckpoint = FindCheckpointByID(LastCheckpointID);
+		}
+		
+		if(LastActiveCheckpoint)
+		{
+			SpawnTransform = LastActiveCheckpoint->GetSpawnPointTransform();
 		}
 		else
 		{
-			AActor* PlayerStartActor = UGameplayStatics::GetActorOfClass(this, APlayerStart::StaticClass());
+			const AActor* PlayerStartActor = UGameplayStatics::GetActorOfClass(this, APlayerStart::StaticClass());
 			SpawnTransform = PlayerStartActor ? PlayerStartActor->GetActorTransform() : FTransform::Identity;
 		}
 		
@@ -70,7 +116,6 @@ void AFPGameMode::RegisterCheckpoint(AFPCheckpoint* InCheckpoint)
 		InCheckpoint->SetCheckpointActivated(true);
 		
 		LastActiveCheckpoint = InCheckpoint;
-		LastCheckpointTransform = InCheckpoint->GetActorTransform();
 		LastCheckpointID = InCheckpoint->GetSaveID_Implementation();
 
 		if(USaveGameSubsystem* SaveGameSubsystem = GetGameInstance()->GetSubsystem<USaveGameSubsystem>())
@@ -85,6 +130,8 @@ void AFPGameMode::InitGameFromSave()
 	if(const USaveGameSubsystem* SaveSubsystem = GetGameInstance()->GetSubsystem<USaveGameSubsystem>())
 	{
 		LastCheckpointID = SaveSubsystem->GetCurrentLastCheckpointID();
+		LastCheckpointSpawnPoint = SaveSubsystem->GetCurrentLastCheckpointSpawnPoint();
+		LastActiveCheckpoint = FindCheckpointByID(LastCheckpointID);
 		SaveSubsystem->LoadCurrentLevelFromSave();
 	}
 }

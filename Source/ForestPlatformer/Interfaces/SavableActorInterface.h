@@ -40,6 +40,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "SavableObject")
 	void LoadFromSaveData(const FFPSavableData& SaveData);
 
-	UFUNCTION(BlueprintNativeEvent, Category = "SavableObject")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "SavableObject")
 	void OnLoadedFromSaveData();
 };

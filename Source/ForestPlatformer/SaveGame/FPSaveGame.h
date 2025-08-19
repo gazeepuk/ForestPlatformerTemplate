@@ -18,14 +18,14 @@ struct FFPSavableData
 
 	FFPSavableData() : ObjectType(NAME_None), bActive(true) {}
 	
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName ObjectType;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bActive; 
 
 	// JSON string
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FString CustomData;
 
 	FString ToJsonString() const
@@ -65,12 +65,26 @@ struct FFPSavableData
 	}
 };
 
+USTRUCT()
+struct FFPPlayerProgressData
+{
+	GENERATED_BODY()
+
+	FFPPlayerProgressData() : MaxHealth(3.f), CoinsValue(0) {}
+
+	UPROPERTY()
+	float MaxHealth;
+
+	UPROPERTY()
+	int32 CoinsValue;
+};
+
 USTRUCT(BlueprintType)
 struct FFPLevelData
 {
 	GENERATED_BODY()
 
-	FFPLevelData() : LastActiveCheckpointID(NAME_None), bLevelCompleted(false){}
+	FFPLevelData() : LastActiveCheckpointID(NAME_None), LastCheckpointSpawnPoint(FTransform::Identity), PlayersCurrentHealth(0.f), bLevelCompleted(false){}
 
 	bool TrySaveActor(const AActor* InActor);
 	
@@ -78,8 +92,14 @@ struct FFPLevelData
 	FName LastActiveCheckpointID;
 
 	UPROPERTY()
+	FTransform LastCheckpointSpawnPoint;
+	
+	UPROPERTY()
 	TMap<FName, FFPSavableData> SavedObjects;
 
+	UPROPERTY()
+	float PlayersCurrentHealth;
+	
 	UPROPERTY()
 	bool bLevelCompleted;
 };
@@ -90,10 +110,12 @@ class FORESTPLATFORMER_API UFPSaveGame : public USaveGame
 	GENERATED_BODY()
 
 public:
-	
 	UPROPERTY()
 	TMap<FString, FFPLevelData> LevelDataMap;
 
 	UPROPERTY()
 	FString CurrentLevelName;
+
+	UPROPERTY()
+	FFPPlayerProgressData PlayerProgressData;
 };

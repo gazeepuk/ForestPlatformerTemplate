@@ -38,4 +38,7 @@ public:
 	
 	UFUNCTION(BlueprintPure)
 	static bool IsPawnHostile(const APawn* InInstigator, const APawn* InTarget);
+
+	UFUNCTION(BlueprintCallable)
+	static FName GenerateSaveIDByActorLocation(const AActor* InActor);
 };

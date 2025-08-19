@@ -3,7 +3,9 @@
 
 #include "SaveGameSubsystem.h"
 
+#include "ActorComponents/HealthComponent/HealthComponent.h"
 #include "GameModes/FPGameMode.h"
+#include "Interfaces/CoinsWalletInterface.h"
 #include "Interfaces/SavableActorInterface.h"
 #include "SaveGame/FPSaveGame.h"
 
@@ -43,6 +45,15 @@ FName USaveGameSubsystem::GetCurrentLastCheckpointID() const
 		return CurrentLevelData->LastActiveCheckpointID;
 	}
 	return FName();
+}
+
+FTransform USaveGameSubsystem::GetCurrentLastCheckpointSpawnPoint() const
+{
+	if(const FFPLevelData* CurrentLevelData = GetCurrentLevelData())
+	{
+		return CurrentLevelData->LastCheckpointSpawnPoint;
+	}
+	return FTransform::Identity;
 }
 
 void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserIndex, const bool bAsync)
@@ -125,6 +136,7 @@ void USaveGameSubsystem::WriteSaveData()
 	if(const AFPGameMode* FPGameMode = GetWorld()->GetAuthGameMode<AFPGameMode>())
 	{
 		SaveGame->LevelDataMap[LevelName].LastActiveCheckpointID = FPGameMode->GetLastCheckpointID();
+		SaveGame->LevelDataMap[LevelName].LastCheckpointSpawnPoint = FPGameMode->GetLastCheckpointSpawnPoint();
 		SaveGame->CurrentLevelName = LevelName;
 	}
 	
@@ -145,6 +157,24 @@ void USaveGameSubsystem::WriteSaveData()
 		UE_LOG(LogTemp, Display, TEXT("Saved Object: %s"), *Data.Key.ToString());
 	}
 	PendingSavableData.Empty();
+
+	// Save Player Data
+	if(APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		if(PlayerController->Implements<UCoinsWalletInterface>())
+		{
+			SaveGame->PlayerProgressData.CoinsValue = ICoinsWalletInterface::Execute_GetCurrentCoins(PlayerController);
+		}
+		
+		if(const APawn* ControlledPawn = PlayerController ? PlayerController->GetPawn() : nullptr)
+		{
+			if(const UHealthComponent* HealthComponent = ControlledPawn->GetComponentByClass<UHealthComponent>())
+			{
+				SaveGame->PlayerProgressData.MaxHealth = HealthComponent->GetMaxHealth();
+				CurrentLevelData.PlayersCurrentHealth = HealthComponent->GetCurrentHealth();
+			}
+		}
+	}
 }
 
 void USaveGameSubsystem::AddPendingSavableObjects(const AActor* InSavableActor)
@@ -171,6 +201,15 @@ void USaveGameSubsystem::LoadCurrentLevelFromSave() const
 		return;
 	}
 	
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if(PlayerController)
+	{
+		if(PlayerController->Implements<UCoinsWalletInterface>())
+		{
+			ICoinsWalletInterface::Execute_SetCurrentCoins(PlayerController, SaveGame->PlayerProgressData.CoinsValue);
+		}
+	}
+	
 	FString LevelName = GetCleanLevelName();
 
 	if(FFPLevelData* LevelData = GetCurrentLevelData())
@@ -183,9 +222,19 @@ void USaveGameSubsystem::LoadCurrentLevelFromSave() const
 			const FName SaveID = ISavableActorInterface::Execute_GetSaveID(SavableActor);
 			if(SaveID != NAME_None && LevelData->SavedObjects.Contains(SaveID))
 			{
-				ISavableActorInterface::Execute_LoadFromSaveData(SavableActor, LevelData->SavedObjects[ISavableActorInterface::Execute_GetSaveID(SavableActor)]);
+				ISavableActorInterface::Execute_LoadFromSaveData(SavableActor, LevelData->SavedObjects[SaveID]);
 			}
 		}
 
+		if(const APawn* ControlledPawn = PlayerController ? PlayerController->GetPawn() : nullptr)
+		{
+			if(UHealthComponent* HealthComponent = ControlledPawn->GetComponentByClass<UHealthComponent>())
+			{
+				const float PlayerMaxHealth = SaveGame->PlayerProgressData.MaxHealth;
+				HealthComponent->SetMaxHealth(PlayerMaxHealth);
+				const float PlayerCurrentHealth = LevelData->PlayersCurrentHealth > 0 ? LevelData->PlayersCurrentHealth : PlayerMaxHealth;
+				HealthComponent->SetCurrentHealth(PlayerCurrentHealth);
+			}
+		}
 	}
 }

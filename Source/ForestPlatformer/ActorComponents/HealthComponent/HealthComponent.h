@@ -22,7 +22,9 @@ public:
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	UFUNCTION(BlueprintPure, Category = "Health Component")
 	FORCEINLINE bool IsHealthFull() const { return CurrentHealth >= MaxHealth; }
-	
+
+	UFUNCTION(BlueprintCallable, Category = "Health Component")
+	void SetMaxHealth(float InNewMaxHealth);
 	UFUNCTION(BlueprintCallable, Category = "Health Component")
 	void SetCurrentHealth(float InNewCurrentHealth);
 	UFUNCTION(BlueprintCallable, Category = "Health Component")
