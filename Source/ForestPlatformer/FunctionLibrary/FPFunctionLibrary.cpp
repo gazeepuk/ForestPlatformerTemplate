@@ -131,3 +131,110 @@ FName UFPFunctionLibrary::GenerateSaveIDByActorLocation(const AActor* InActor)
 	}
 	return AutoSaveID;
 }
+
+bool UFPFunctionLibrary::SerializeStruct(const FGenericStruct& Struct, TArray<uint8>& OutBytes)
+{
+	return false;
+}
+
+DEFINE_FUNCTION(UFPFunctionLibrary::execSerializeStruct)
+{
+	bool& bSuccess = *(bool*)RESULT_PARAM;
+	bSuccess = false;
+	
+	Stack.MostRecentProperty = nullptr;
+	Stack.Step(Stack.Object, nullptr);
+	
+	FStructProperty* StructProperty = CastField<FStructProperty>(Stack.MostRecentProperty);
+	void* StructData = Stack.MostRecentPropertyAddress;
+	if(!StructProperty || !StructData)
+	{
+		P_FINISH;
+		return;
+	}
+	
+	UScriptStruct* StructType = StructProperty->Struct;
+	if(!StructType)
+	{
+		P_FINISH;
+		return;
+	}
+	
+	Stack.Step(Stack.Object, nullptr);
+	
+	FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
+	void* ArrayPtr = Stack.MostRecentPropertyAddress;
+	if(!ArrayProperty || !ArrayPtr)
+	{
+		P_FINISH;
+		return;
+	}
+	
+	TArray<uint8>* OutBytesPtr = (TArray<uint8>*)ArrayPtr;
+	OutBytesPtr->Empty();
+	
+	FMemoryWriter MemoryWriter(*OutBytesPtr, true);
+	StructType->SerializeBin(MemoryWriter, StructData);
+
+	FString DebugStructString = FString::Printf(TEXT("SerializeStruct: Serializing struct %s size %d"), *StructType->GetName(), StructType->GetStructureSize());
+	FString DebugOutBytesString = FString::Printf(TEXT("OutBytesPtr: Serialized %d bytes"), OutBytesPtr->Num()); 
+	
+	bSuccess = true;
+	P_FINISH;
+}
+
+bool UFPFunctionLibrary::DeserializeStruct(UPARAM(ref) FGenericStruct& Struct, const TArray<uint8>& InBytes)
+{
+	return false;
+}
+
+DEFINE_FUNCTION(UFPFunctionLibrary::execDeserializeStruct)
+{
+	bool& bSuccess = *(bool*)RESULT_PARAM;
+	bSuccess = false;
+
+	Stack.MostRecentProperty = nullptr;
+	Stack.Step(Stack.Object, nullptr);
+
+	FStructProperty* StructProperty = CastField<FStructProperty>(Stack.MostRecentProperty);
+	void* StructData = Stack.MostRecentPropertyAddress;
+	if(!StructProperty || !StructData)
+	{
+		P_FINISH;
+		return;
+	}
+
+	UScriptStruct* StructType = StructProperty->Struct;
+	if(!StructType)
+	{
+		P_FINISH;
+		return;
+	}
+	
+	Stack.Step(Stack.Object, nullptr);
+	
+	FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
+	void* ArrayPtr = Stack.MostRecentPropertyAddress;
+	if(!ArrayProperty || !ArrayPtr)
+	{
+		P_FINISH;
+		return;
+	}
+	
+	TArray<uint8>* InBytesPtr = (TArray<uint8>*)ArrayPtr;
+	FString DebugInBytesString = FString::Printf(TEXT("InBytes: num %d bytes"), InBytesPtr->Num());
+	if(!InBytesPtr || InBytesPtr->IsEmpty())
+	{
+		P_FINISH;
+		return;
+	}
+
+	StructType->InitializeStruct(StructData);
+	FMemoryReader MemoryReader(*InBytesPtr, true);
+	StructType->SerializeBin(MemoryReader, StructData);
+	
+	FString DebugDeserializeString = FString::Printf(TEXT("Deserialized struct %s from %d bytes"), *StructType->GetName(), InBytesPtr->Num());
+	bSuccess = true;
+
+	P_FINISH;
+}

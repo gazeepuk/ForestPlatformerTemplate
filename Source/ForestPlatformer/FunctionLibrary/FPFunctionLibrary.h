@@ -6,6 +6,8 @@
 #include "GameplayTagContainer.h"
 #include "CoreTypes/FPEnumTypes.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Engine/EngineTypes.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "FPFunctionLibrary.generated.h"
 
 class UFPEffectBase;
@@ -41,4 +43,14 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	static FName GenerateSaveIDByActorLocation(const AActor* InActor);
+
+	UFUNCTION(BlueprintCallable, CustomThunk, Category="Serialization", meta=(CustomStructureParam = "Struct"))
+	static bool SerializeStruct(const FGenericStruct& Struct, TArray<uint8>& OutBytes);
+
+	DECLARE_FUNCTION(execSerializeStruct);
+
+	UFUNCTION(BlueprintCallable, CustomThunk, Category="Serialization", meta=(CustomStructureParam = "Struct"))
+	static bool DeserializeStruct(UPARAM(ref) FGenericStruct& Struct, const TArray<uint8>& InBytes);
+
+	DECLARE_FUNCTION(execDeserializeStruct);
 };
