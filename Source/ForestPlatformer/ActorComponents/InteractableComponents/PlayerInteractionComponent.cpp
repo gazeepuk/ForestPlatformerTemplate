@@ -5,9 +5,14 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "CoreTypes/FPCustomCollisions.h"
-#include "Interfaces/InteractableInterface.h"
+#include "InteractableComponent.h"
+#include "Interfaces/InteractorInterface.h"
 
+
+UPlayerInteractionComponent::UPlayerInteractionComponent()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+}
 
 void UPlayerInteractionComponent::BindInteractionAction()
 {
@@ -33,52 +38,98 @@ void UPlayerInteractionComponent::BindInteractionAction()
 	}
 }
 
-void UPlayerInteractionComponent::InteractAction_Started(const FInputActionValue& InputActionValue)
+void UPlayerInteractionComponent::AddInteractable(UInteractableComponent* InInteractableComponent)
 {
-	if(UWorld* World = GetWorld())
+	AvailableInteractables.AddUnique(InInteractableComponent);
+	UpdateFocusedInteractable();
+
+	if(AvailableInteractables.Num() > 1 && GetWorld())
 	{
-		TArray<FHitResult> OutResults;
-		
-		FVector StartTrace = GetOwner()->GetActorLocation();
-		FVector EndTrace = StartTrace + GetOwner()->GetActorForwardVector() * TraceLength;
+		GetWorld()->GetTimerManager().ClearTimer(UpdateInteractableTimerHandle);
+		GetWorld()->GetTimerManager().SetTimer(UpdateInteractableTimerHandle, this, &ThisClass::UpdateFocusedInteractable, 0.1f, true);
+	}
+}
 
-		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(GetOwner());
-		
-		World->SweepMultiByObjectType(OutResults, StartTrace, EndTrace, FQuat::Identity, ECC_FP_Interactable_OC, FCollisionShape::MakeSphere(TraceRadius), QueryParams);
+void UPlayerInteractionComponent::RemoveInteractable(UInteractableComponent* InInteractableComponent)
+{
+	AvailableInteractables.Remove(InInteractableComponent);
+	UpdateFocusedInteractable();
 
-		TArray<TTuple<bool, float, AActor*>> InteractableActors;
+	if(AvailableInteractables.Num() <= 1 && GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(UpdateInteractableTimerHandle);
+	}
+}
 
-		for (const FHitResult& OutResult : OutResults)
+bool UPlayerInteractionComponent::CanInteract() const
+{
+	if(GetOwner()->Implements<UInteractorInterface>())
+	{
+		return IInteractorInterface::Execute_CanInteract(GetOwner());
+	}
+	
+	return true;
+}
+
+UInteractableComponent* UPlayerInteractionComponent::GetClosestInteractable() const
+{
+	if(AvailableInteractables.IsEmpty())
+	{
+		return nullptr;
+	}
+
+	float ClosestDistance = FLT_MAX;
+	UInteractableComponent* ClosestInteractable = AvailableInteractables[0];
+	
+	for (UInteractableComponent* Interactable : AvailableInteractables)
+	{
+		if(!IsValid(Interactable))
 		{
-			AActor* InteractableActor = OutResult.GetActor();
-			if(InteractableActor && InteractableActor->Implements<UInteractableInterface>())
-			{
-				InteractableActors.Emplace(
-					IInteractableInterface::Execute_CanInteract(InteractableActor, GetOwner()),
-					FVector::DistSquared(InteractableActor->GetActorLocation(),GetOwner()->GetActorLocation()),
-					InteractableActor);
-			}
+			continue;
 		}
-
-		if(InteractableActors.IsEmpty())
-		{
-			return;
-		}
 		
-		InteractableActors.Sort([](const TTuple<bool, float, AActor*>& A, const TTuple<bool, float, AActor*>& B)
-		{
-			if(A.Get<0>() != B.Get<0>())
-			{
-				return A.Get<0>();
-			}
-			
-			return A.Get<1>() < B.Get<1>();
-		});
+		AActor* InteractableOwner = Interactable->GetOwner();
 
-		if(InteractableActors[0].Get<0>())
+		const float DistanceToInteractable = FVector::Distance(GetOwner()->GetActorLocation(), InteractableOwner->GetActorLocation());
+		if(DistanceToInteractable < ClosestDistance)
 		{
-			IInteractableInterface::Execute_Interact(InteractableActors[0].Get<2>(), GetOwner()); 
+			ClosestDistance = DistanceToInteractable;
+			ClosestInteractable = Interactable;
 		}
 	}
+
+	return ClosestInteractable;
+}
+
+void UPlayerInteractionComponent::UpdateFocusedInteractable()
+{
+	UInteractableComponent* ClosestInteractable = GetClosestInteractable();
+	if(ClosestInteractable != FocusedInteractable)
+	{
+		if(FocusedInteractable)
+		{
+			FocusedInteractable->SetIsFocused(false);
+		}
+
+		FocusedInteractable = ClosestInteractable;
+		if(FocusedInteractable)
+		{
+			FocusedInteractable->SetIsFocused(true);
+		}
+	}
+}
+
+void UPlayerInteractionComponent::PerformInteraction() const
+{
+	if(!FocusedInteractable || !CanInteract())
+	{
+		return;
+	}
+
+	FocusedInteractable->Interact(GetOwner());
+}
+
+void UPlayerInteractionComponent::InteractAction_Started(const FInputActionValue& InputActionValue)
+{
+	PerformInteraction();
 }

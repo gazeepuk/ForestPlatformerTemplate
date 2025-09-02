@@ -6,16 +6,17 @@
 #include "AIController.h"
 #include "AttackTypes/FPAttackType.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "CoreTypes/FPGameplayTags.h"
+#include "FunctionLibrary/FPFunctionLibrary.h"
 #include "GameFramework/Character.h"
 
-
-bool UAICombatComponent::TryAttackByTag(const FGameplayTag& InAttackTag)
+bool UAICombatComponent::TryAttackByTag_Implementation(const FGameplayTag& InAttackTypeTag)
 {
-	if(CanAttack())
+	if(UFPAttackType* AttackType = FindAttackTypeByTag(InAttackTypeTag))
 	{
-		if(UFPAttackType* AttackType = FindAttackTypeByTag(InAttackTag))
+		if(CanAttack() && AttackType->CanAttack())
 		{
-			bAttacking = true;
+			UFPFunctionLibrary::NativeAddGameplayTagToActor(GetOwner(), FPGameplayTags::Shared_Status_Attacking);
 			AttackType->PerformAttack(GetTargetActorFromBlackboard());
 			return true;
 		}

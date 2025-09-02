@@ -16,16 +16,19 @@
 
 AProjectileBase::AProjectileBase()
 {
+	// Create Projectile Collision
 	ProjectileCollision = CreateDefaultSubobject<USphereComponent>(TEXT("ProjectileCollision"));
 	ProjectileCollision->SetCollisionObjectType(ECC_FP_Projectile_OC);
 	ProjectileCollision->SetCollisionResponseToChannel(ECC_FP_Projectile_OC, ECR_Ignore);
 	ProjectileCollision->OnComponentBeginOverlap.AddUniqueDynamic(this, &ThisClass::OnProjectileBeginOverlap);
 	ProjectileCollision->OnComponentHit.AddUniqueDynamic(this, &ThisClass::OnProjectileHit);
 	SetRootComponent(ProjectileCollision);
-	
+
+	// Create ProjectileMovementComponent
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComponent->SetActive(false);
 
+	// Create FlightAudioComponent 
 	FlightAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("FlightAudioComponent"));
 	FlightAudioComponent->SetupAttachment(GetRootComponent());
 	FlightAudioComponent->bAutoActivate = false;
@@ -38,6 +41,7 @@ void AProjectileBase::LaunchProjectile(FVector InLocation, FVector InDirection, 
 
 	SetActorLocationAndRotation(InLocation, InDirection.Rotation());
 
+	// Set projectile movement properties
 	ProjectileMovementComponent->InitialSpeed = InInitialSpeed > 0.f ? InInitialSpeed : DefaultInitialSpeed;
 	ProjectileMovementComponent->MaxSpeed = InMaxSpeed > 0.f ? InMaxSpeed : DefaultMaxSpeed;
 	ProjectileMovementComponent->ProjectileGravityScale = InGravityScale > 0.f ? InGravityScale: DefaultGravityScale;
@@ -67,7 +71,8 @@ void AProjectileBase::ActivateActor_Implementation()
 void AProjectileBase::DeactivateActor_Implementation()
 {
 	OnProjectileDeactivated();
-	
+
+	// Disable movement
 	ProjectileMovementComponent->InitialSpeed = 0.f;
 	ProjectileMovementComponent->MaxSpeed = 0.f;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.f;
@@ -124,6 +129,7 @@ bool AProjectileBase::ProjectileInteract_Implementation(AActor* InInteractingAct
 		return false;
 	}
 
+	// Ignore any friendly pawn if bDamageOnlyHostilePawns is true
 	if(APawn* InteractingPawn = Cast<APawn>(InInteractingActor))
 	{
 		const bool bOtherPawnHostile = UFPFunctionLibrary::IsPawnHostile(GetOwner<APawn>(), InteractingPawn);
@@ -133,6 +139,7 @@ bool AProjectileBase::ProjectileInteract_Implementation(AActor* InInteractingAct
 		}
 	}
 
+	// Apply damage to the actor if it implements IDamageableInterface  
 	if(InInteractingActor->Implements<UDamageableInterface>())
 	{
 		AController* OwningController = GetOwner<APawn>() ? GetOwner<APawn>()->GetController() : nullptr;
@@ -154,7 +161,8 @@ void AProjectileBase::OnProjectileHit_Implementation(UPrimitiveComponent* HitCom
 	ProjectileInteract(OtherActor);
 
 	OnProjectileImpact();
-	
+
+	// Return the projectile to its pool
 	SetPooledActorActive(false);
 }
 
@@ -170,7 +178,8 @@ void AProjectileBase::OnProjectileBeginOverlap_Implementation(UPrimitiveComponen
 	ProjectileInteract(OtherActor);
 
 	OnProjectileImpact();
-	
+
+	// Return the projectile to its pool if it can't pierce actors 
 	if(!bPierceActors)
 	{
 		SetPooledActorActive(false);

@@ -19,12 +19,14 @@ class FORESTPLATFORMER_API AFPCharacterBase : public ACharacter, public IGamepla
 public:
 	AFPCharacterBase(const FObjectInitializer& ObjectInitializer);
 
-	// IGameplayTagAssetInterface
+	//~Begin IGameplayTagAssetInterface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
+	//~End IGameplayTagAssetInterface
 
-	//IGameplayTagModifierInterface
+	//~Begin IGameplayTagModifierInterface
 	virtual void AddGameplayTag(const FGameplayTag& InGameplayTag) override;
 	virtual void RemoveGameplayTag(const FGameplayTag& InGameplayTag) override;
+	//~End IGameplayTagModifierInterface
 
 private:
 	FGameplayTagContainer OwnedTags;

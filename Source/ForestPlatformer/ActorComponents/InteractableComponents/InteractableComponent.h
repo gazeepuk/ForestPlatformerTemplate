@@ -1,40 +1,66 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Components/SphereComponent.h"
 #include "InteractableComponent.generated.h"
 
-class UWidgetComponent;
-class USphereComponent;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionDelegate, AActor*, Instigator);
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class FORESTPLATFORMER_API UInteractableComponent : public USphereComponent
+class UWidgetComponent;
+
+/**
+ * Component that makes an actor interactable
+ */
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+class FORESTPLATFORMER_API UInteractableComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	UInteractableComponent();
 
+	/** Sets the collision that will detect when players enter interaction range */
+	UFUNCTION(BlueprintCallable)
+	void SetInteractableCollision(UShapeComponent* InCollision);
+
+	/** Sets the widget component that will display if the interactable is focused */
+	UFUNCTION(BlueprintCallable)
+	void SetInteractionWidgetComponent(UWidgetComponent* InWidgetComponent);
+
+	/** Sets the focus state of this interactable */
+	void SetIsFocused(bool bIsFocused);
+
+	/** Triggers the interaction with this object from the specified instigator */
+	UFUNCTION(BlueprintCallable)
+	void Interact(AActor* InInstigator);
+
+	/** Delegate that broadcasts when this interactable is interacted */
+	UPROPERTY(BlueprintAssignable)
+	FOnInteractionDelegate OnInteraction;
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	/** Collision component used to detect when the player enters itneraction range */
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UShapeComponent> InteractionCollision;
+
+	/** Widget component that displays interaction widget */
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UWidgetComponent> InteractionWidgetComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	TSubclassOf<UUserWidget> InteractionWidgetClass;
+	/** Text of this interactable */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FText InteractableText;
 
 private:
-	virtual void OnRegister() override;
-	
+	/** Callback function triggered when an actor enters the interaction collision area */
 	UFUNCTION()
 	void OnInstigatorBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	/** Callback function triggered when an actor enters the interaction collision area */
 	UFUNCTION()
 	void OnInstigatorEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	void ShowInteractionWidget();
-	void HideInteractionWidget();
+	/** Indicates whether this interactable is currently focused by the player */
+	bool bFocused;
 };

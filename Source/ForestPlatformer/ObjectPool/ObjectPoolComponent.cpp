@@ -5,7 +5,7 @@
 
 #include "PooledActorBase.h"
 
-
+#pragma region ObjectPoolContainer
 void UObjectPoolContainer::InitializePool(UObject* InWorldContext, AActor* InOwningActor)
 {
 	WorldContext = InWorldContext;
@@ -58,6 +58,7 @@ APooledActorBase* UObjectPoolContainer::SpawnPoolActorFromPool(const FTransform&
 	if(!SpawnedPoolActor && bCanExpandPool)
 	{
 		SpawnedPoolActor = SpawnPoolActor(InActorSpawnTransform, bActivateActor);
+		PoolSize++;
 	}
 	
 	if(SpawnedPoolActor)
@@ -90,66 +91,7 @@ APooledActorBase* UObjectPoolContainer::SpawnPoolActor(const FTransform& InActor
 
 	return nullptr;
 }
+#pragma endregion
 
-
-// UObjectPoolComponent
-APooledActorBase* UObjectPoolComponent::FindFirstAvailableActor() const
-{
-	APooledActorBase* const* FoundPoolActor = ObjectPool.FindByPredicate([](const APooledActorBase* PooledActor)
-	{
-		return PooledActor && !PooledActor->IsActive();
-	});
-	
-	return *FoundPoolActor;
-}
-
-APooledActorBase* UObjectPoolComponent::SpawnPoolActorFromPool(const FTransform& InActorSpawnTransform)
-{
-	APooledActorBase* SpawnedPoolActor = FindFirstAvailableActor();
-	if(!SpawnedPoolActor && bCanExpandPool)
-	{
-		SpawnedPoolActor = SpawnPoolActor(InActorSpawnTransform, true);
-	}
-	
-	if(SpawnedPoolActor)
-	{
-		SpawnedPoolActor->SetActorTransform(InActorSpawnTransform);
-		SpawnedPoolActor->SetPooledActorActive(true);
-		return SpawnedPoolActor;
-	}
-	
-	return nullptr;
-}
-
-void UObjectPoolComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	InitializePool();
-}
-
-APooledActorBase* UObjectPoolComponent::SpawnPoolActor(const FTransform& InActorSpawnTransform, bool bActivateOnSpawn)
-{
-	if(UWorld* World = GetWorld())
-	{
-		FVector SpawnLocation = InActorSpawnTransform.GetLocation();
-		FRotator SpawnRotation = InActorSpawnTransform.GetRotation().Rotator();
-		
-		if(APooledActorBase* SpawnedPooledActor = World->SpawnActor<APooledActorBase>(PooledActorClass, SpawnLocation, SpawnRotation))
-		{
-			SpawnedPooledActor->SetPooledActorActive(bActivateOnSpawn);
-			ObjectPool.AddUnique(SpawnedPooledActor);
-			return SpawnedPooledActor;
-		}
-	}
-
-	return nullptr;
-}
-
-void UObjectPoolComponent::InitializePool()
-{
-	for (int32 i = 0; i < PoolSize; ++i)
-	{
-		SpawnPoolActor(FTransform::Identity);
-	}
-}
+#pragma region ObjectPoolComponent
+#pragma endregion

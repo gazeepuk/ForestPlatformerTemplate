@@ -8,14 +8,15 @@
 #include "Effects/FPEffectBase.h"
 #include "Interfaces/GameplayTagModifierInterface.h"
 
-bool UFPFunctionLibrary::NativeDoesActorHaveTag(AActor* InActor, const FGameplayTag& InGameplayTag)
+
+bool UFPFunctionLibrary::NativeDoesActorHaveTag(const AActor* InActor, const FGameplayTag& InGameplayTag)
 {
 	if(!InGameplayTag.IsValid() || !InActor)
 	{
 		return false;
 	}
 	
-	if(IGameplayTagAssetInterface* GameplayTagAssetInterface = Cast<IGameplayTagAssetInterface>(InActor))
+	if(const IGameplayTagAssetInterface* GameplayTagAssetInterface = Cast<IGameplayTagAssetInterface>(InActor))
 	{
 		FGameplayTagContainer OwnedGameplayTags;
 		GameplayTagAssetInterface->GetOwnedGameplayTags(OwnedGameplayTags);
@@ -24,8 +25,7 @@ bool UFPFunctionLibrary::NativeDoesActorHaveTag(AActor* InActor, const FGameplay
 	return false;
 }
 
-bool UFPFunctionLibrary::BP_DoesActorHaveTag(AActor* InActor, FGameplayTag InGameplayTag,
-                                             EFPConfirmType& OutConfirmType)
+bool UFPFunctionLibrary::BP_DoesActorHaveTag(AActor* InActor, FGameplayTag InGameplayTag, EFPConfirmType& OutConfirmType)
 {
 	const bool bHasTag = NativeDoesActorHaveTag(InActor, InGameplayTag);
 	OutConfirmType = bHasTag ? EFPConfirmType::Yes : EFPConfirmType::No;
@@ -76,9 +76,7 @@ bool UFPFunctionLibrary::NativeTryApplyEffectByClassToActor(AActor* InTargetActo
 	return false;
 }
 
-bool UFPFunctionLibrary::BP_TryApplyEffectByClassToActor(AActor* InTargetActor,
-                                                         TSubclassOf<UFPEffectBase> InEffectClass,
-                                                         EFPSuccessType& OutSuccessType)
+bool UFPFunctionLibrary::BP_TryApplyEffectByClassToActor(AActor* InTargetActor, TSubclassOf<UFPEffectBase> InEffectClass, EFPSuccessType& OutSuccessType)
 {
 	const bool bAppliedSuccessfully = NativeTryApplyEffectByClassToActor(InTargetActor, InEffectClass);
 	OutSuccessType = bAppliedSuccessfully ? EFPSuccessType::Successful : EFPSuccessType::Failed;
@@ -141,7 +139,8 @@ DEFINE_FUNCTION(UFPFunctionLibrary::execSerializeStruct)
 {
 	bool& bSuccess = *(bool*)RESULT_PARAM;
 	bSuccess = false;
-	
+
+	// Step to take a struct
 	Stack.MostRecentProperty = nullptr;
 	Stack.Step(Stack.Object, nullptr);
 	
@@ -159,7 +158,8 @@ DEFINE_FUNCTION(UFPFunctionLibrary::execSerializeStruct)
 		P_FINISH;
 		return;
 	}
-	
+
+	// Step to take an array
 	Stack.Step(Stack.Object, nullptr);
 	
 	FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
@@ -172,12 +172,13 @@ DEFINE_FUNCTION(UFPFunctionLibrary::execSerializeStruct)
 	
 	TArray<uint8>* OutBytesPtr = (TArray<uint8>*)ArrayPtr;
 	OutBytesPtr->Empty();
-	
+
+	// Serialize the struct
 	FMemoryWriter MemoryWriter(*OutBytesPtr, true);
 	StructType->SerializeBin(MemoryWriter, StructData);
 
-	FString DebugStructString = FString::Printf(TEXT("SerializeStruct: Serializing struct %s size %d"), *StructType->GetName(), StructType->GetStructureSize());
-	FString DebugOutBytesString = FString::Printf(TEXT("OutBytesPtr: Serialized %d bytes"), OutBytesPtr->Num()); 
+	UE_LOG(LogTemp, Warning, TEXT("SerializeStruct: Serializing struct %s size %d"), *StructType->GetName(), StructType->GetStructureSize());
+	UE_LOG(LogTemp, Warning, TEXT("OutBytesPtr: Serialized %d bytes"), OutBytesPtr->Num()); 
 	
 	bSuccess = true;
 	P_FINISH;
@@ -193,6 +194,7 @@ DEFINE_FUNCTION(UFPFunctionLibrary::execDeserializeStruct)
 	bool& bSuccess = *(bool*)RESULT_PARAM;
 	bSuccess = false;
 
+	// Step to take a struct
 	Stack.MostRecentProperty = nullptr;
 	Stack.Step(Stack.Object, nullptr);
 
@@ -210,7 +212,8 @@ DEFINE_FUNCTION(UFPFunctionLibrary::execDeserializeStruct)
 		P_FINISH;
 		return;
 	}
-	
+
+	// Step to take an array
 	Stack.Step(Stack.Object, nullptr);
 	
 	FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Stack.MostRecentProperty);
@@ -222,18 +225,20 @@ DEFINE_FUNCTION(UFPFunctionLibrary::execDeserializeStruct)
 	}
 	
 	TArray<uint8>* InBytesPtr = (TArray<uint8>*)ArrayPtr;
-	FString DebugInBytesString = FString::Printf(TEXT("InBytes: num %d bytes"), InBytesPtr->Num());
 	if(!InBytesPtr || InBytesPtr->IsEmpty())
 	{
 		P_FINISH;
 		return;
 	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("InBytes: num %d bytes"), InBytesPtr->Num());
 
+	// Deserialize the array
 	StructType->InitializeStruct(StructData);
 	FMemoryReader MemoryReader(*InBytesPtr, true);
 	StructType->SerializeBin(MemoryReader, StructData);
 	
-	FString DebugDeserializeString = FString::Printf(TEXT("Deserialized struct %s from %d bytes"), *StructType->GetName(), InBytesPtr->Num());
+	UE_LOG(LogTemp, Warning, TEXT("Deserialized struct %s from %d bytes"), *StructType->GetName(), InBytesPtr->Num());
 	bSuccess = true;
 
 	P_FINISH;

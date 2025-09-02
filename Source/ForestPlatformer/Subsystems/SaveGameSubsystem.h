@@ -24,50 +24,82 @@ class FORESTPLATFORMER_API USaveGameSubsystem : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
+	/* Returns the name of the current active save slot */
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE FString GetCurrentSlotName() const { return CurrentSlotName; }
+	/* Sets the name of the current save slot */
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentSlotName(const FString& NewSlotName);
-	
+
+	/* Returns the clean name of the current level */
 	UFUNCTION(BlueprintPure)
 	FString GetCleanLevelName() const;
-	
+
+	/* Returns the save data for the current level data from loaded save game */
 	FFPLevelData* GetCurrentLevelData() const;
-	
+
+	/* Returns the ID of the last activated checkpoint in the current level */
 	UFUNCTION(BlueprintPure)
 	FName GetCurrentLastCheckpointID() const;
 
+	/* Returns the spawn point of the last activated checkpoint in the current level */
 	UFUNCTION(BlueprintPure)
 	FTransform GetCurrentLastCheckpointSpawnPoint() const;
-	
+
+	/* Returns the currently loaded save game */
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE UFPSaveGame* GetSaveGame() const { return SaveGame; }
-	
+
+	/**
+	 * Loads a game save from the specified slot if it exists, or creates a new one 
+	 *
+	 * @param SlotName		Name of slot
+	 * @param UserIndex		User index
+	 * @param bAsyncLoad	Either Load asynchronously or synchronously
+	 */
 	UFUNCTION(BlueprintCallable)
 	void LoadGameSlot(const FString& SlotName = "SaveSlot", const int32 UserIndex = 0, const bool bAsyncLoad = false);
+	/**
+	 * Save a game save to the specified slot
+	 *
+	 * @param SlotName		Name of slot
+	 * @param UserIndex		User index
+	 * @param bAsyncSave	Either save asynchronously or synchronously
+	 */
 	UFUNCTION(BlueprintCallable)
 	void SaveGameSlot(const FString& SlotName = "SaveSlot", const int32 UserIndex = 0, const bool bAsyncSave = false);
 
+	/* Writes the current level's data to the save game */
 	void WriteSaveData();
 
+	/*
+	 * Adds a savable actor to be processed during the next save.
+	 * Useful for actors that may be destroyed before the save occurs saving
+	 */
 	UFUNCTION(BlueprintCallable)
-	void AddPendingSavableObjects(const AActor* InSavableActor);
+	void AddPendingSavableActor(const AActor* InSavableActor);
 
+	/* Loads saved data of the current level and applies it to all savable actors */
 	UFUNCTION(BlueprintCallable)
 	void LoadCurrentLevelFromSave() const;
-	
+
+	/* Delegate that broadcasts after a save game has been loaded asynchronously*/
 	UPROPERTY(BlueprintAssignable)
 	FOnSaveGameLoaded OnSaveGameLoaded;
+	/* Delegate that broadcasts after a save game has been saved asynchronously*/
 	UPROPERTY(BlueprintAssignable)
 	FOnSaveGameSaved OnSaveGameSaved;
 
 protected:
+	/** the current loaded game save */
 	UPROPERTY()
 	TObjectPtr<UFPSaveGame> SaveGame;
 
+	/** Temporary storage for savable data that will be written during the next save operation */
 	UPROPERTY()
 	TMap<FName, FFPSavableData> PendingSavableData;
 
+	/** The name of the current active save slot */
 	UPROPERTY(BlueprintReadOnly)
 	FString CurrentSlotName;
 };

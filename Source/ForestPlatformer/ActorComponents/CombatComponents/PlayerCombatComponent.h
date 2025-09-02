@@ -13,45 +13,68 @@ class UInputMappingContext;
 class UInputAction;
 class UFPAttackType;
 
+/**
+ * Player-specific combat component that handles input binding, attack management for player-controlled characters
+ */
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class FORESTPLATFORMER_API UPlayerCombatComponent : public UCombatComponentBase
 {
 	GENERATED_BODY()
 
 public:
-	UPlayerCombatComponent();
-	
-	virtual bool CanAttack() const override;
-	bool TryCurrentAttack();
 
+	/** Checks if the player can currently perform an attack */
+	virtual bool CanAttack_Implementation() const override;
+
+	/** Attempts to perform the currently set primary attack */
+	bool TryPerformCurrentAttack();
+
+	/** Sets the primary attack type of the specified class */
 	UFUNCTION(BlueprintCallable)
 	void SetPrimaryAttackByClass(TSubclassOf<UFPAttackType> InPrimaryAttackClass);
 
+	/** Resets the primary attack back to the default attack type */
 	UFUNCTION(BlueprintCallable)
 	void ResetPrimaryAttack();
+	/** Initialize combat component, binding inputs, setting the default attack */
 	UFUNCTION(BlueprintCallable)
 	void InitCombatComponent();
 
-protected:
+	UFUNCTION(BlueprintCallable)
+	void UnbindCombatInput();
 	
+protected:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
+	/** Input mapping context containing combat-related input bindings */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Input")
 	TObjectPtr<UInputMappingContext> CombatMappingContext;
-	
+
+	/** Input action that triggers the primary attack */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Input")
 	TObjectPtr<UInputAction> AttackAction;
 
+	/** Priority level of the combat input mapping context */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Input")
 	int32 CombatInputPriority = 2;
-	
+
+	/** Callback function triggered when the attack input action is started */
 	UFUNCTION()
 	void AttackAction_Started(const FInputActionValue& ActionValue);
 
+	/** Executes the attack */
+	UFUNCTION(BlueprintNativeEvent)
+	void ExecuteAttack();
+	
+	/** Default attack type class used when no custom attack is set */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UFPAttackType> DefaultAttackType;
 
+	/** Currently set primary attack instance */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UFPAttackType> CurrentPrimaryAttack;
 
 private:
-	void BindCombatAction();
+	/** Binds combat input actions to the player's input component */
+	void BindCombatInput();
 };

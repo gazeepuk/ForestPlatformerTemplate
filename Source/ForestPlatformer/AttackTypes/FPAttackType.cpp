@@ -5,9 +5,9 @@
 
 #include "GameFramework/Character.h"
 
-bool UFPAttackType::CanAttack_Implementation(AActor* InInstigator)
+bool UFPAttackType::CanAttack_Implementation()
 {
-	return InInstigator != nullptr;
+	return true;
 }
 
 void UFPAttackType::PerformAttack_Implementation(AActor* InTargetActor)

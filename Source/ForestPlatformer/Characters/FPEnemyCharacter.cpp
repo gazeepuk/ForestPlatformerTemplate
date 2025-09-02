@@ -89,7 +89,7 @@ void AFPEnemyCharacter::Destroyed()
 	{
 		if(USaveGameSubsystem* SaveGameSubsystem = GetGameInstance()->GetSubsystem<USaveGameSubsystem>())
 		{
-			SaveGameSubsystem->AddPendingSavableObjects(this);
+			SaveGameSubsystem->AddPendingSavableActor(this);
 		}
 	}
 	

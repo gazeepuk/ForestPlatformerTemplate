@@ -8,7 +8,7 @@
 
 bool UPatrolComponent::IsCurrentPatrolIndexValid() const
 {
-	return CurrentPatrolPointIndex >=0 && CurrentPatrolPointIndex < PatrolPoints.Num() && PatrolPoints[CurrentPatrolPointIndex] != nullptr;
+	return CurrentPatrolPointIndex >= 0 && CurrentPatrolPointIndex < PatrolPoints.Num() && PatrolPoints[CurrentPatrolPointIndex] != nullptr;
 }
 
 FVector UPatrolComponent::GetPatrolPointLocationByIndex(int32 InPatrolPointIndex) const

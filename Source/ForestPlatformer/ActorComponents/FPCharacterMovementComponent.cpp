@@ -3,25 +3,25 @@
 
 #include "FPCharacterMovementComponent.h"
 
-void UFPCharacterMovementComponent::StartFloating()
+void UFPCharacterMovementComponent::StartFloating_Implementation()
 {
 	if(!bFloating)
 	{
-		GravityScale *= FloatingSpeedMultiplier;
+		GravityScale *= FloatingGravityMultiplier;
 		bFloating = true;
 	}
 }
 
-void UFPCharacterMovementComponent::StopFloating()
+void UFPCharacterMovementComponent::StopFloating_Implementation()
 {
 	if(bFloating)
 	{
-		GravityScale /= FloatingSpeedMultiplier;
+		GravityScale /= FloatingGravityMultiplier;
 		bFloating = false;
 	}
 }
 
-void UFPCharacterMovementComponent::HandleFloating()
+void UFPCharacterMovementComponent::HandleFloating_Implementation()
 {
 	if(GetOwner()->GetVelocity().Z < 0.f)
 	{

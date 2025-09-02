@@ -17,38 +17,62 @@ class FORESTPLATFORMER_API AFPEnemyCharacter : public AFPCharacterBase, public I
 public:
 	AFPEnemyCharacter(const FObjectInitializer& ObjectInitializer);
 
+	//~Begin IDamageableInterface
+	/**
+	 * Applies damage to the enemy character
+	 * @param DamageCauser The actor that caused the damage
+	 * @param InDamage The amount of damage to apply
+	 * @param InstigatedBy The controller responsible for the damage
+	 */
 	virtual void TakeDamage_Implementation(AActor* DamageCauser, float InDamage, AController* InstigatedBy) override;
+	//~End IDamageableInterface
 
-	UFUNCTION(CallInEditor, Category = "SavableObject|Helper Functions")
+	//~Begin ISavableActorInterface
+	/** Initializes the Save ID for this actor */
+	UFUNCTION(CallInEditor, Category = "SavableObject | HelperFunctions")
 	virtual void InitializeSaveID() override { ISavableActorInterface::InitializeSaveID(); }
+	/** Returns the unique save identifier of this actor */
 	virtual FName GetSaveID_Implementation() const override { return SaveID; }
+	/** Sets the unique save identifier for this actor */
 	virtual void SetSaveID_Implementation(const FName& InSaveID) override { SaveID = InSaveID; }
+	/** Determines whether the actor should be saved */
 	virtual bool ShouldSave_Implementation() const override { return bDefeated && bSaveAfterDefeating; }
+	/** Generates save data containing the current state of this actor */
 	virtual FFPSavableData GetSaveData_Implementation() const override;
+	/** Loads the actor's state from save data */
 	virtual void LoadFromSaveData_Implementation(const FFPSavableData& SaveData) override;
+	/** Called after the enemy has been loaded from save data */
 	virtual void OnLoadedFromSaveData_Implementation() override;
-
+	//~End ISavableActorInterface
+	
+	/** Disable the enemy, typically called after defeat */
 	UFUNCTION(BlueprintCallable)
 	void DisableEnemy();
 	
 protected:
 	virtual void Destroyed() override;
-	
+
+	/** Component responsible for managing enemy's health */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UHealthComponent> HealthComponent;
 
+	/** Component responsible for managing effects on the enemy */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UFPEffectComponent> EffectComponent;
-	
+
+	/** Indicates whether the enemy is defeated */
 	UPROPERTY(BlueprintReadWrite)
 	bool bDefeated;
-	
+
+	/** Unique identifier of the enemy for saving and loading */
 	UPROPERTY(EditAnywhere, Category = "SavableObject")
 	FName SaveID;
 
+	/** If true, the enemy will be saved after being destroyed */
 	UPROPERTY(EditAnywhere, Category = "SavableObject")
 	bool bSaveAfterDefeating = false;
 
+	/** If true, the enemy will be destroyed after being defeated */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bDestroyAfterDefeating = true;
 };

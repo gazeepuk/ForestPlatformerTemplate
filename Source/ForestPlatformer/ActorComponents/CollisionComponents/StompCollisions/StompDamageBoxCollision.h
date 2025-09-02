@@ -7,6 +7,10 @@
 #include "StompDamageBoxCollision.generated.h"
 
 
+/**
+ * Specific stomp collision component that applies damage to its owning actor
+ * when overlapped by character from above
+ */
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class FORESTPLATFORMER_API UStompDamageBoxCollision : public UStompLaunchBoxComponent
 {
@@ -17,7 +21,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	virtual bool IsActorAbove(const AActor* InActor) override;
+	/** Amount of damage to apply to the owner when stomped */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float DamageAmount = 1.f;
 	
 private:
 	virtual void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;

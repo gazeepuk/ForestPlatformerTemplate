@@ -4,9 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "Kismet/GameplayStatics.h"
-#include "SaveGame/FPSaveGame.h"
-#include "Subsystems/SaveGameSubsystem.h"
 #include "FPGameMode.generated.h"
 
 class ISavableActorInterface;
@@ -21,26 +18,32 @@ class FORESTPLATFORMER_API AFPGameMode : public AGameModeBase
 	GENERATED_BODY()
 
 public:
+	
 	virtual APawn* SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot) override;
 	
 	UFUNCTION(BlueprintCallable)
 	void RespawnPlayer(APlayerController* InPlayerController);
 
+	/* Register a checkpoint and save data */
 	UFUNCTION(BlueprintCallable)
 	void RegisterCheckpoint(AFPCheckpoint* InCheckpoint);
 
+	/* Load game data from save */ 
 	UFUNCTION(BlueprintCallable)
 	void InitGameFromSave();
 
+	/* Return LastCheckpointID */
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE FName GetLastCheckpointID() const { return LastCheckpointID; }
 
+	/* Return last activated checkpoint's spawn point transform*/
 	UFUNCTION(BlueprintPure)
 	FTransform GetLastCheckpointSpawnPoint() const;
 	
 protected:
 	virtual void BeginPlay() override;
-	
+
+	// Find a checkpoint by ID
 	AFPCheckpoint* FindCheckpointByID(const FName& InCheckpointID) const;
 	
 	UPROPERTY()
@@ -54,6 +57,4 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	FTransform LastCheckpointSpawnPoint;
-	
-	TMap<FName, FFPSavableData> PendingSavableData;
 };

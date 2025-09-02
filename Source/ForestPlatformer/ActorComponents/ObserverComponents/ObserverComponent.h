@@ -9,6 +9,10 @@
 class UObservableComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAllObservablesTriggered);
 
+/**
+ * Component that observes multiple observable actors and triggers event
+ * when all observed actors have been triggered
+ */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class FORESTPLATFORMER_API UObserverComponent : public UActorComponent
 {
@@ -16,20 +20,25 @@ class FORESTPLATFORMER_API UObserverComponent : public UActorComponent
 
 public:
 	UObserverComponent();
-	
+
+	/** Delegate that broadcasts when all observables have been triggered */
 	UPROPERTY(BlueprintAssignable)
 	FOnAllObservablesTriggered OnAllObservablesTriggered;
 
 protected:
 	virtual void BeginPlay() override;
 
+	/** Subscribes to observable delegates and initialize the tracking count */
 	void InitObservables();
-	
+
+	/** Array of actors containing observable component to monitor */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Observer")
 	TArray<AActor*> ObservableActors;
 
+	/** Callback function triggered when an observable component is triggered */
 	UFUNCTION()
 	void OnObservableTriggered(UObservableComponent* InObservable);
 
+	/** Count of observables that have not been triggered yet */
 	int32 RemainingObservables = 0;
 };

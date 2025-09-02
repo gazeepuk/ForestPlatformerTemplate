@@ -36,6 +36,11 @@ void UFPEffectBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 	const FName PropertyName = PropertyChangedEvent.Property ? PropertyChangedEvent.Property->GetFName() : NAME_None;
 	if(PropertyName == GET_MEMBER_NAME_CHECKED(ThisClass, EffectID))
 	{
+		if(EffectID.IsNone())
+		{
+			EffectID = *GetClass()->GetName();
+		}
+		
 		EffectIDHash = GetTypeHash(EffectID);
 	}
 }

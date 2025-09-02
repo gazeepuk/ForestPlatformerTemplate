@@ -101,7 +101,7 @@ void UFPEffectComponent::HandleStacking(const UFPEffectBase* Effect, bool& bOutS
 	case EFPEffectStackingPolicy::NoStack:
 		bOutShouldApplyEffect = false;
 		break;
-	case EFPEffectStackingPolicy::ApplyAsSperateEffect:
+	case EFPEffectStackingPolicy::ApplyAsSeparatedEffect:
 		bOutShouldApplyEffect = true;
 		break;
 	case EFPEffectStackingPolicy::RefreshDuration:

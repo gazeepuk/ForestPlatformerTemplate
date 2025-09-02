@@ -7,6 +7,11 @@
 #include "FunctionLibrary/FPFunctionLibrary.h"
 
 
+bool UHealthComponent::IsAlive() const
+{
+	return !UFPFunctionLibrary::NativeDoesActorHaveTag(GetOwner(), FPGameplayTags::Shared_Status_Dead) && CurrentHealth > 0.f;
+}
+
 void UHealthComponent::SetMaxHealth(float InNewMaxHealth)
 {
 	const float NewMaxHealth = FMath::Max(InNewMaxHealth, 1.f);
@@ -49,7 +54,7 @@ void UHealthComponent::SpendCurrentHealth(const float InHealthAmount)
 	SetCurrentHealth(CurrentHealth - InHealthAmount);
 }
 
-void UHealthComponent::TakeDamage(AActor* DamageCauser, float InDamageValue, AController* InstigatedBy)
+void UHealthComponent::TakeDamage_Implementation(AActor* DamageCauser, float InDamageValue, AController* InstigatedBy)
 {
 	if(!UFPFunctionLibrary::NativeDoesActorHaveTag(GetOwner(), FPGameplayTags::Shared_Status_Invincible) &&
 		!UFPFunctionLibrary::NativeDoesActorHaveTag(GetOwner(), FPGameplayTags::Shared_Status_Dead))

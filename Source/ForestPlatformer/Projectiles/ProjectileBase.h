@@ -18,11 +18,11 @@ class FORESTPLATFORMER_API AProjectileBase : public APooledActorBase
 	GENERATED_BODY()
 
 public:
-	/** Default constructor for APooledActorBase*/
+	/** Default constructor for AProjectileBase*/
 	AProjectileBase();
 
 	/**
-	 * Launch a projectile with input movement parameters.
+	 * Launches a projectile with input movement parameters.
 	 *
 	 * @param InLocation		World space spawn location of the projectile
 	 * @param InDirection		Direction vector
@@ -35,7 +35,7 @@ public:
 	
 protected:
 	/**
-	 * Set projectile's collision to ignore owner if bIgnoreOwner is true.
+	 * Sets projectile's collision to ignore owner if bIgnoreOwner is true.
 	 */
 	virtual void BeginPlay() override;
 	/**

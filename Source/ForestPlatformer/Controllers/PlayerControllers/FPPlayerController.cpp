@@ -53,7 +53,6 @@ bool AFPPlayerController::HasEnoughCoins_Implementation(int32 InCoinsNumToSpend)
 void AFPPlayerController::SetCurrentCoins_Implementation(int32 InNewCurrentCoins)
 {
 	CurrentCoins = FMath::Clamp(InNewCurrentCoins, 0, MaxCoins);
-	OnCurrentCoinsChanged(CurrentCoins);
 	OnCurrentCoinsChangedDelegate.Broadcast(CurrentCoins);;
 }
 

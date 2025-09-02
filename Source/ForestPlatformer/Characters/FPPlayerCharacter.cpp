@@ -14,6 +14,8 @@
 #include "CoreTypes/FPCustomCollisions.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Controllers/PlayerControllers/FPPlayerController.h"
+#include "CoreTypes/FPGameplayTags.h"
+#include "FunctionLibrary/FPFunctionLibrary.h"
 
 AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer.SetDefaultSubobjectClass<UFPCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -36,7 +38,7 @@ AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializ
 
 	GetMesh()->SetCollisionObjectType(ECC_FP_Player_OC);
 	
-	PlayerInteractionComponent = CreateDefaultSubobject<UPlayerInteractionComponent>(TEXT("PlayerInteractionComponent"));
+	PlayerInteractionComponentV2 = CreateDefaultSubobject<UPlayerInteractionComponent>(TEXT("PlayerInteractionComponentV2"));
 
 	CombatComponent = CreateDefaultSubobject<UPlayerCombatComponent>(TEXT("CombatComponent"));
 
@@ -82,6 +84,11 @@ void AFPPlayerCharacter::TakeDamage_Implementation(AActor* DamageCauser, float I
 	}
 }
 
+bool AFPPlayerCharacter::CanInteract_Implementation() const
+{
+	return HealthComponent && HealthComponent->IsAlive();
+}
+
 
 void AFPPlayerCharacter::PossessedBy(AController* NewController)
 {
@@ -92,7 +99,7 @@ void AFPPlayerCharacter::PossessedBy(AController* NewController)
 		FPPlayerController->InitHUDWidget();
 		FPPlayerController->InitHealthBar(HealthComponent);
 		CombatComponent->InitCombatComponent();
-		PlayerInteractionComponent->BindInteractionAction();
+		PlayerInteractionComponentV2->BindInteractionAction();
 	}
 }
 

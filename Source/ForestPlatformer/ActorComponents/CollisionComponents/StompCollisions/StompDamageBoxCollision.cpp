@@ -35,21 +35,9 @@ void UStompDamageBoxCollision::OnBeginOverlap(UPrimitiveComponent* OverlappedCom
 
 		if(GetOwner()->Implements<UDamageableInterface>())
 		{
-			IDamageableInterface::Execute_TakeDamage(GetOwner(), PlayerCharacter, 1.f, PlayerCharacter->GetController());
+			IDamageableInterface::Execute_TakeDamage(GetOwner(), PlayerCharacter, DamageAmount, PlayerCharacter->GetController());
 		}
 		
 		PlayerCharacter->GetCharacterMovement()->Launch(GetComponentRotation().RotateVector(FVector::UpVector) * LaunchActorForce);
 	}
-}
-
-bool UStompDamageBoxCollision::IsActorAbove(const AActor* InActor)
-{
-	if(const AFPPlayerCharacter* PlayerCharacter = Cast<AFPPlayerCharacter>(InActor))
-	{
-		FVector LocalPlayerLocation = GetComponentTransform().InverseTransformPosition(PlayerCharacter->GetActorLocation());
-		
-		return LocalPlayerLocation.Z >= StompHeightBuffer;
-	}
-
-	return false;
 }

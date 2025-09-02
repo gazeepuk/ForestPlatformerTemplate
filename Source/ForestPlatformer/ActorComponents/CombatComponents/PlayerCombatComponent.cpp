@@ -6,21 +6,19 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "AttackTypes/FPAttackType.h"
+#include "CoreTypes/FPGameplayTags.h"
+#include "FunctionLibrary/FPFunctionLibrary.h"
 
-UPlayerCombatComponent::UPlayerCombatComponent()
+bool UPlayerCombatComponent::CanAttack_Implementation() const
 {
+	return Super::CanAttack_Implementation() && CurrentPrimaryAttack && CurrentPrimaryAttack->CanAttack();
 }
 
-bool UPlayerCombatComponent::CanAttack() const
-{
-	return Super::CanAttack() && CurrentPrimaryAttack && CurrentPrimaryAttack->CanAttack(GetOwner());
-}
-
-bool UPlayerCombatComponent::TryCurrentAttack()
+bool UPlayerCombatComponent::TryPerformCurrentAttack()
 {
 	if(CanAttack())
 	{
-		bAttacking = true;
+		UFPFunctionLibrary::NativeAddGameplayTagToActor(GetOwner(), FPGameplayTags::Shared_Status_Attacking);
 		
 		CurrentPrimaryAttack.Get()->PerformAttack(nullptr);
 
@@ -67,17 +65,11 @@ void UPlayerCombatComponent::ResetPrimaryAttack()
 
 void UPlayerCombatComponent::InitCombatComponent()
 {
-	BindCombatAction();
-
+	BindCombatInput();
 	SetPrimaryAttackByClass(DefaultAttackType);
 }
 
-void UPlayerCombatComponent::AttackAction_Started(const FInputActionValue& ActionValue)
-{
-	TryCurrentAttack();
-}
-
-void UPlayerCombatComponent::BindCombatAction()
+void UPlayerCombatComponent::UnbindCombatInput()
 {
 	APawn* OwningPawn = GetOwner<APawn>();
 	if(!OwningPawn)
@@ -92,8 +84,52 @@ void UPlayerCombatComponent::BindCombatAction()
 	}
 
 	UEnhancedInputLocalPlayerSubsystem* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
-	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent);
+	if(InputSubsystem)
+	{
+		InputSubsystem->RemoveMappingContext(CombatMappingContext);
+	}
+}
 
+void UPlayerCombatComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	UnbindCombatInput();
+	Super::EndPlay(EndPlayReason);
+}
+
+void UPlayerCombatComponent::AttackAction_Started(const FInputActionValue& ActionValue)
+{
+	ExecuteAttack();
+}
+
+void UPlayerCombatComponent::ExecuteAttack_Implementation()
+{
+	TryPerformCurrentAttack();
+}
+
+void UPlayerCombatComponent::BindCombatInput()
+{
+	
+	APawn* OwningPawn = GetOwner<APawn>();
+	if(!OwningPawn)
+	{
+		return;
+	}
+	
+	if(!AttackAction)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AttackAction of UPlayerCombatComponent of %s is not assigned. Binding is termiated."), *GetNameSafe(OwningPawn));
+		return;
+	}
+
+	APlayerController* PlayerController = OwningPawn->GetController<APlayerController>();
+	if(!PlayerController)
+	{
+		return;
+	}
+
+	UEnhancedInputLocalPlayerSubsystem* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent);
+	
 	if(InputSubsystem && EnhancedInputComponent)
 	{
 		InputSubsystem->AddMappingContext(CombatMappingContext, CombatInputPriority);

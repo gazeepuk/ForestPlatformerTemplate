@@ -13,7 +13,8 @@ class FORESTPLATFORMER_API ACoinCollectableBase : public ACollectableBase
 
 protected:
 	virtual void OnCollectableOverlapped_Implementation(AActor* InOverlappedActor) override;
-	
+
+	/** The number of coins this collectable contains */
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))
 	int32 CoinsValue = 1;
 };

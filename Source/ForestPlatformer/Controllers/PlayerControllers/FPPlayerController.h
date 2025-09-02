@@ -20,36 +20,47 @@ class FORESTPLATFORMER_API AFPPlayerController : public APlayerController, publi
 public:
 	AFPPlayerController();
 	
-	// Begin IGenericTeamAgentInterface
+	//~Begin IGenericTeamAgentInterface
+	/** Returns the team ID associated with the player */
 	virtual FGenericTeamId GetGenericTeamId() const override;
+	/** Determines the team attitudes towards another actor */
 	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
-	// End IGenericTeamAgentInterface
+	//~End IGenericTeamAgentInterface
 	
-	// Begin ICoinsWalletInterface
+	//~Begin ICoinsWalletInterface
+	/** Adds the specified number of coins to the player's wallet */
 	virtual void AddCoins_Implementation(int32 InCoinsNum) override;
+	/** Attempts to spend the specified number of coins from the player's wallet */
 	virtual bool TrySpendCoins_Implementation(int32 InCoinsNum) override;
+	/** Check if the player has at least the specified number of coins */
 	virtual bool HasEnoughCoins_Implementation(int32 InCoinsNumToSpend) const override;
+	/** Directly sets the specified number of coins in the player's wallet */
 	virtual void SetCurrentCoins_Implementation(int32 InNewCurrentCoins) override;
+	/** Returns the current number of coins in the player's wallet */
 	virtual int32 GetCurrentCoins_Implementation() const override;
-	// End ICoinsWalletInterface
+	//~End ICoinsWalletInterface
 
+
+	/** Initialize HUD widget for the player */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void InitHUDWidget();
 	
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void OnCurrentCoinsChanged(int32 NewCurrentCoins);
-
+	/** Initialize the health UI with provided health component */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void InitHealthBar(UHealthComponent* InHealthComponent);
-	
+
+	/** Delegate hat broadcasts whenever the player's current coin count changes */
 	UPROPERTY(BlueprintAssignable)
 	FOnCurrentCoinsChanged OnCurrentCoinsChangedDelegate;
 	
 private:
+	/** Team identifier for this player controller */
 	FGenericTeamId PlayerTeamID;
-	
+
+	/** Current number of coins the player possesses */
 	int32 CurrentCoins;
 
+	/** Maximum number of coins the player can carry */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	int32 MaxCoins = INT32_MAX;
 };

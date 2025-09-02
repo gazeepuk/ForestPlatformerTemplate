@@ -17,12 +17,15 @@ class FORESTPLATFORMER_API UFPSaveGame : public USaveGame
 	GENERATED_BODY()
 
 public:
+	/* Stores data for all levels */
 	UPROPERTY()
 	TMap<FString, FFPLevelData> LevelDataMap;
 
+	/* Stores the last opened level name */
 	UPROPERTY()
 	FString CurrentLevelName;
 
+	/* Stores global player data */
 	UPROPERTY()
 	FFPPlayerProgressData PlayerProgressData;
 };

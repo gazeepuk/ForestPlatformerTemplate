@@ -11,7 +11,7 @@ void UPooledAttackType::InitAttack(AActor* InOwningActor, UCombatComponentBase* 
 
 	if(ObjectPoolContainer)
 	{
-		ObjectPoolContainer->InitializePool(InOwningActor, GetOwningActor());
+		ObjectPoolContainer->InitializePool(InOwningActor, InOwningActor);
 	}
 }
 

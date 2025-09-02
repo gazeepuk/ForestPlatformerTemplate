@@ -1,86 +1,106 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "InteractableComponent.h"
+
+#include "PlayerInteractionComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "CoreTypes/FPCustomCollisions.h"
 
-// Sets default values for this component's properties
+
 UInteractableComponent::UInteractableComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	SetCollisionResponseToAllChannels(ECR_Ignore);
-	SetCollisionResponseToChannel(ECC_FP_Player_OC, ECR_Overlap);
-	SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
-	SetCollisionObjectType(ECC_FP_Interactable_OC);
-	SetGenerateOverlapEvents(true);
+	bFocused = false;
+}
+
+void UInteractableComponent::SetInteractableCollision(UShapeComponent* InCollision)
+{
+	if(InCollision == InteractionCollision)
+	{
+		return;
+	}
+
+	if(InteractionCollision)
+	{
+		InteractionCollision->OnComponentBeginOverlap.RemoveDynamic(this, &ThisClass::UInteractableComponent::OnInstigatorBeginOverlap);
+		InteractionCollision->OnComponentEndOverlap.RemoveDynamic(this, &ThisClass::UInteractableComponent::OnInstigatorEndOverlap);
+	}
+
+	InteractionCollision = InCollision;
+	if(InteractionCollision)
+	{
+		InteractionCollision->SetCollisionObjectType(ECC_FP_Interactable_OC);
+		InteractionCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+		InteractionCollision->SetCollisionResponseToChannel(ECC_FP_Player_OC, ECR_Overlap);
+		InteractionCollision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+		InteractionCollision->SetGenerateOverlapEvents(true);
+		
+		InteractionCollision->OnComponentBeginOverlap.AddUniqueDynamic(this, &ThisClass::UInteractableComponent::OnInstigatorBeginOverlap);
+		InteractionCollision->OnComponentEndOverlap.AddUniqueDynamic(this, &ThisClass::UInteractableComponent::OnInstigatorEndOverlap);
+	}
+}
+
+void UInteractableComponent::SetInteractionWidgetComponent(UWidgetComponent* InWidgetComponent)
+{
+	InteractionWidgetComponent = InWidgetComponent;
+	if(InteractionWidgetComponent)
+	{
+		InteractionWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+		InteractionWidgetComponent->SetVisibility(bFocused);
+	}
+}
+
+void UInteractableComponent::SetIsFocused(bool bIsFocused)
+{
+	if(bIsFocused == bFocused)
+	{
+		return;
+	}
 	
-	OnComponentBeginOverlap.AddUniqueDynamic(this, &ThisClass::OnInstigatorBeginOverlap);
-	OnComponentEndOverlap.AddUniqueDynamic(this, &ThisClass::OnInstigatorEndOverlap);
-	
-	InteractionWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractionWidgetComponent"));
-	InteractionWidgetComponent->SetupAttachment(this);
-	InteractionWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
-	InteractionWidgetComponent->SetDrawAtDesiredSize(true);
-	InteractionWidgetComponent->SetVisibility(false);
+	bFocused = bIsFocused;
+	if(InteractionWidgetComponent)
+	{
+		InteractionWidgetComponent->SetVisibility(bFocused);
+	}
+}
+
+void UInteractableComponent::Interact(AActor* InInstigator)
+{
+	OnInteraction.Broadcast(InInstigator);
 }
 
 void UInteractableComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if(InteractionWidgetClass)
-	{
-		InteractionWidgetComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		InteractionWidgetComponent->AttachToComponent(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-		InteractionWidgetComponent->SetRelativeLocation(FVector::ZeroVector);
-		
-		InteractionWidgetComponent->SetWidgetClass(InteractionWidgetClass);
-		InteractionWidgetComponent->InitWidget();
-	}
-}
-
-void UInteractableComponent::OnRegister()
-{
-	Super::OnRegister();
-
-	if(InteractionWidgetComponent && !InteractionWidgetComponent->IsRegistered())
-	{
-		InteractionWidgetComponent->RegisterComponent();
-	}
 }
 
 void UInteractableComponent::OnInstigatorBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                                      UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if(OtherActor)
+	if(!OtherActor)
 	{
-		ShowInteractionWidget();
+		return;
+	}
+
+	if(UPlayerInteractionComponent* InteractionComponent = OtherActor->GetComponentByClass<UPlayerInteractionComponent>())
+	{
+		InteractionComponent->AddInteractable(this);
 	}
 }
 
 void UInteractableComponent::OnInstigatorEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if(OtherActor)
+	if(!OtherActor)
 	{
-		HideInteractionWidget();
+		return;
 	}
-}
 
-void UInteractableComponent::ShowInteractionWidget()
-{
-	if(InteractionWidgetComponent)
+	if(UPlayerInteractionComponent* InteractionComponent = OtherActor->GetComponentByClass<UPlayerInteractionComponent>())
 	{
-		InteractionWidgetComponent->SetVisibility(true);
-	}
-}
-
-void UInteractableComponent::HideInteractionWidget()
-{
-	if(InteractionWidgetComponent)
-	{
-		InteractionWidgetComponent->SetVisibility(false);
+		InteractionComponent->RemoveInteractable(this);
 	}
 }

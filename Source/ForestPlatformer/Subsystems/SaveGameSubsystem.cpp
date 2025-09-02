@@ -7,6 +7,7 @@
 #include "GameModes/FPGameMode.h"
 #include "Interfaces/CoinsWalletInterface.h"
 #include "Interfaces/SavableActorInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "SaveGame/FPSaveGame.h"
 
 void USaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -27,15 +28,23 @@ void USaveGameSubsystem::SetCurrentSlotName(const FString& NewSlotName)
 
 FString USaveGameSubsystem::GetCleanLevelName() const
 {
-	FString LevelName = GetWorld()->GetMapName();
-	LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
-	return LevelName;
+	if(GetWorld())
+	{
+		FString LevelName = GetWorld()->GetMapName();
+		LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+		return LevelName;
+	}
+	return FString();
 }
 
 FFPLevelData* USaveGameSubsystem::GetCurrentLevelData() const
 {
-	const FString LevelName = GetCleanLevelName();
-	return SaveGame->LevelDataMap.Find(LevelName);
+	if(SaveGame)
+	{
+		const FString LevelName = GetCleanLevelName();
+		return SaveGame->LevelDataMap.Find(LevelName);
+	}
+	return nullptr;
 }
 
 FName USaveGameSubsystem::GetCurrentLastCheckpointID() const
@@ -58,7 +67,8 @@ FTransform USaveGameSubsystem::GetCurrentLastCheckpointSpawnPoint() const
 
 void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserIndex, const bool bAsync)
 {
-	
+
+	// Load SaveGame if it exists
 	if(UGameplayStatics::DoesSaveGameExist(SlotName, UserIndex))
 	{
 		// Async loading SaveData
@@ -86,6 +96,7 @@ void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserI
 		}
 	}
 
+	// Create a new SaveGame if the loading failed
 	if(!SaveGame)
 	{
 		SaveGame = Cast<UFPSaveGame>(UGameplayStatics::CreateSaveGameObject(UFPSaveGame::StaticClass()));
@@ -103,8 +114,12 @@ void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserI
 		return;
 	}
 
+	// Write save data of current level
 	WriteSaveData();
-	
+
+	// Save written data either asynchronously or synchronously
+
+	// Async saving
 	if(bAsyncSave)
 	{
 		UGameplayStatics::AsyncSaveGameToSlot(SaveGame, SlotName, UserIndex,
@@ -117,6 +132,7 @@ void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserI
 			}
 		}));
 	}
+	// Sync saving 
 	else
 	{
 		if(UGameplayStatics::SaveGameToSlot(SaveGame, SlotName, UserIndex))
@@ -129,17 +145,21 @@ void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserI
 
 void USaveGameSubsystem::WriteSaveData()
 {
+	// Get current level's name 
 	FString LevelName = GetCleanLevelName();
 
+	// Find or create a level data
 	FFPLevelData& CurrentLevelData = SaveGame->LevelDataMap.FindOrAdd(LevelName);
-	
+
+	// Write checkpoint data and the level name
 	if(const AFPGameMode* FPGameMode = GetWorld()->GetAuthGameMode<AFPGameMode>())
 	{
 		SaveGame->LevelDataMap[LevelName].LastActiveCheckpointID = FPGameMode->GetLastCheckpointID();
 		SaveGame->LevelDataMap[LevelName].LastCheckpointSpawnPoint = FPGameMode->GetLastCheckpointSpawnPoint();
 		SaveGame->CurrentLevelName = LevelName;
 	}
-	
+
+	// Save savable actors
 	TArray<AActor*> AllSavableActors;
 	UGameplayStatics::GetAllActorsWithInterface(this, USavableActorInterface::StaticClass(), AllSavableActors);
 	for (AActor* SavableActor : AllSavableActors)
@@ -149,13 +169,15 @@ void USaveGameSubsystem::WriteSaveData()
 			UE_LOG(LogTemp, Display, TEXT("Saved Object: %s"), *ISavableActorInterface::Execute_GetSaveID(SavableActor).ToString());
 		}
 	}
-	
+
+	// Save the pending data
 	for (TPair<FName, FFPSavableData> Data : PendingSavableData)
 	{
 		FFPSavableData& ExistingSaveData = CurrentLevelData.SavedObjects.FindOrAdd(Data.Key);
 		ExistingSaveData = Data.Value;
 		UE_LOG(LogTemp, Display, TEXT("Saved Object: %s"), *Data.Key.ToString());
 	}
+	// Cleanup the pending data after writing
 	PendingSavableData.Empty();
 
 	// Save Player Data
@@ -177,7 +199,7 @@ void USaveGameSubsystem::WriteSaveData()
 	}
 }
 
-void USaveGameSubsystem::AddPendingSavableObjects(const AActor* InSavableActor)
+void USaveGameSubsystem::AddPendingSavableActor(const AActor* InSavableActor)
 {
 	if(!InSavableActor || !InSavableActor->Implements<USavableActorInterface>())
 	{
@@ -200,7 +222,8 @@ void USaveGameSubsystem::LoadCurrentLevelFromSave() const
 	{
 		return;
 	}
-	
+
+	// Load coins value for player controller
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	if(PlayerController)
 	{
@@ -214,6 +237,7 @@ void USaveGameSubsystem::LoadCurrentLevelFromSave() const
 
 	if(FFPLevelData* LevelData = GetCurrentLevelData())
 	{
+		// Load Savable actors
 		TArray<AActor*> AllSavableActors;
 		UGameplayStatics::GetAllActorsWithInterface(this, USavableActorInterface::StaticClass(), AllSavableActors);
 
@@ -226,6 +250,7 @@ void USaveGameSubsystem::LoadCurrentLevelFromSave() const
 			}
 		}
 
+		// Load player's health
 		if(const APawn* ControlledPawn = PlayerController ? PlayerController->GetPawn() : nullptr)
 		{
 			if(UHealthComponent* HealthComponent = ControlledPawn->GetComponentByClass<UHealthComponent>())

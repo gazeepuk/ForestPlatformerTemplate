@@ -23,7 +23,8 @@ class FORESTPLATFORMER_API IGameplayTagModifierInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-
+	/** Adds the specified gameplay tag to a gameplay tag container */
 	virtual void AddGameplayTag(const FGameplayTag& InGameplayTag) = 0;
+	/** Removes the specified gameplay tag from a gameplay tag container */
 	virtual void RemoveGameplayTag(const FGameplayTag& InGameplayTag) = 0;
 };
