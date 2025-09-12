@@ -5,8 +5,12 @@
 
 #include "AIController.h"
 #include "BrainComponent.h"
+#include "ActorComponents/FPCharacterMovementComponent.h"
+#include "ActorComponents/AIComponents/AICombatComponent.h"
 #include "ActorComponents/EffectComponent/FPEffectComponent.h"
 #include "ActorComponents/HealthComponent/HealthComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "CoreTypes/FPCustomCollisions.h"
 #include "CoreTypes/FPGameplayTags.h"
 #include "FunctionLibrary/FPFunctionLibrary.h"
 #include "GameModes/FPGameMode.h"
@@ -14,10 +18,14 @@
 #include "Subsystems/SaveGameSubsystem.h"
 
 
-AFPEnemyCharacter::AFPEnemyCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+AFPEnemyCharacter::AFPEnemyCharacter(const FObjectInitializer& ObjectInitializer) :
+	Super(ObjectInitializer.SetDefaultSubobjectClass<UFPCharacterMovementComponent>(CharacterMovementComponentName))
 {
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_FP_Damageable_TC, ECR_Block);
+	
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	EffectComponent = CreateDefaultSubobject<UFPEffectComponent>(TEXT("EffectComponent"));
+	AICombatComponent = CreateDefaultSubobject<UAICombatComponent>(TEXT("AICombatComponent"));
 	
 	bDefeated = false;
 }
@@ -83,15 +91,40 @@ void AFPEnemyCharacter::DisableEnemy()
 	SetActorTickEnabled(false);
 }
 
+void AFPEnemyCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	HealthComponent->OnZeroHealth.AddUniqueDynamic(this, &ThisClass::OnDeath);
+	HealthComponent->OnTakeDamage.AddUniqueDynamic(this, &ThisClass::OnTakeDamage);
+}
+
 void AFPEnemyCharacter::Destroyed()
 {
 	if(bSaveAfterDefeating)
 	{
-		if(USaveGameSubsystem* SaveGameSubsystem = GetGameInstance()->GetSubsystem<USaveGameSubsystem>())
+		if(UGameInstance* GameInstance = GetGameInstance())
 		{
-			SaveGameSubsystem->AddPendingSavableActor(this);
+			if(USaveGameSubsystem* SaveGameSubsystem = GameInstance->GetSubsystem<USaveGameSubsystem>())
+			{
+				SaveGameSubsystem->AddPendingSavableActor(this);
+			}
 		}
 	}
 	
 	Super::Destroyed();
+}
+
+void AFPEnemyCharacter::OnDeath_Implementation()
+{
+	bDefeated = true;
+	SetActorEnableCollision(false);
+}
+
+void AFPEnemyCharacter::OnTakeDamage_Implementation(float DamageValue)
+{
+	if(AICombatComponent)
+	{
+		AICombatComponent->TryAbortActiveAttack();
+	}
 }

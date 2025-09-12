@@ -22,25 +22,9 @@ class FORESTPLATFORMER_API UAICombatComponent : public UCombatComponentBase
 
 public:
 
-	/** Attempts to perform an attack associated with the specified tag */
-	virtual bool TryAttackByTag_Implementation(const FGameplayTag& InAttackTypeTag) override;
-
 	/** Retrieves TargetActor from the AI owner's blackboard */
 	AActor* GetTargetActorFromBlackboard() const;
-
-	/** Searches for and returns the attack type associated with the specified gameplay tag */
-	UFUNCTION(BlueprintPure)
-	UFPAttackType* FindAttackTypeByTag(const FGameplayTag& InAttackTypeTag);
 	
 protected:
 	virtual void BeginPlay() override;
-
-	/** Array of all available attack types of this AI owner */
-	UPROPERTY(BlueprintReadOnly)
-	TArray<UFPAttackType*> AttackTypes;
-
-private:
-	/** Default attack type calsses that are available to this AI owner */
-	UPROPERTY(EditDefaultsOnly)
-	TArray<TSubclassOf<UFPAttackType>> DefaultAttackTypeClasses;
 };

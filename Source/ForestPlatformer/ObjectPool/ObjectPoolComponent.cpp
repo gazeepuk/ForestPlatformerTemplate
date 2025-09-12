@@ -57,7 +57,7 @@ APooledActorBase* UObjectPoolContainer::SpawnPoolActorFromPool(const FTransform&
 	APooledActorBase* SpawnedPoolActor = FindFirstAvailableActor();
 	if(!SpawnedPoolActor && bCanExpandPool)
 	{
-		SpawnedPoolActor = SpawnPoolActor(InActorSpawnTransform, bActivateActor);
+		SpawnedPoolActor = SpawnPoolActor(InActorSpawnTransform, false);
 		PoolSize++;
 	}
 	

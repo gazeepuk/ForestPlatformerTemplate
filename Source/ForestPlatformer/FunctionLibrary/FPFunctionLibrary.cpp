@@ -42,6 +42,7 @@ void UFPFunctionLibrary::NativeAddGameplayTagToActor(AActor* InActor, FGameplayT
 	if(IGameplayTagModifierInterface* GameplayTagModifierInterface = Cast<IGameplayTagModifierInterface>(InActor))
 	{
 		GameplayTagModifierInterface->AddGameplayTag(InGameplayTag);
+		UE_LOG(LogTemp, Display, TEXT("Added %s tag to %s"), *InGameplayTag.ToString(), *GetNameSafe(InActor));
 	}
 }
 
@@ -55,6 +56,7 @@ void UFPFunctionLibrary::NativeRemoveGameplayTagFromActor(AActor* InActor, FGame
 	if(IGameplayTagModifierInterface* GameplayTagModifierInterface = Cast<IGameplayTagModifierInterface>(InActor))
 	{
 		GameplayTagModifierInterface->RemoveGameplayTag(InGameplayTag);
+		UE_LOG(LogTemp, Display, TEXT("Removed %s tag from %s"), *InGameplayTag.ToString(), *GetNameSafe(InActor));
 	}
 }
 

@@ -10,20 +10,6 @@
 #include "FunctionLibrary/FPFunctionLibrary.h"
 #include "GameFramework/Character.h"
 
-bool UAICombatComponent::TryAttackByTag_Implementation(const FGameplayTag& InAttackTypeTag)
-{
-	if(UFPAttackType* AttackType = FindAttackTypeByTag(InAttackTypeTag))
-	{
-		if(CanAttack() && AttackType->CanAttack())
-		{
-			UFPFunctionLibrary::NativeAddGameplayTagToActor(GetOwner(), FPGameplayTags::Shared_Status_Attacking);
-			AttackType->PerformAttack(GetTargetActorFromBlackboard());
-			return true;
-		}
-	}
-	
-	return false;
-}
 
 AActor* UAICombatComponent::GetTargetActorFromBlackboard() const
 {
@@ -40,37 +26,9 @@ AActor* UAICombatComponent::GetTargetActorFromBlackboard() const
 	return nullptr;
 }
 
-UFPAttackType* UAICombatComponent::FindAttackTypeByTag(const FGameplayTag& InAttackTypeTag)
-{
-	if(!InAttackTypeTag.IsValid())
-	{
-		return nullptr;
-	}
-	
-	UFPAttackType** FoundedAttackType = AttackTypes.FindByPredicate([InAttackTypeTag](const UFPAttackType* AttackType)
-	{
-		return AttackType && AttackType->GetAttackTypeTag().MatchesTagExact(InAttackTypeTag);
-	});
-
-	return FoundedAttackType ? *FoundedAttackType : nullptr;
-}
-
 void UAICombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for (const TSubclassOf<UFPAttackType>& AttackTypeClass : DefaultAttackTypeClasses)
-	{
-		if(!AttackTypeClass)
-		{
-			continue;
-		}
-		
-		if(UFPAttackType* AttackType = NewObject<UFPAttackType>(GetOwner(), AttackTypeClass))
-		{
-			AttackType->InitAttack(GetOwner(), this);
-			AttackType->OnAttackEnded.AddUniqueDynamic(this, &ThisClass::OnAttackEnded);
-			AttackTypes.AddUnique(AttackType);
-		}
-	}
+	InitAttacks();
 }

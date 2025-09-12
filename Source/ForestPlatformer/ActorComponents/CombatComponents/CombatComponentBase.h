@@ -25,15 +25,66 @@ public:
 	 * @note Always call parent function in derived classes!
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	bool CanAttack() const;
+	bool CanAttack();
 
+	/** Returns the currently active attack */
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE UFPAttackType* GetActiveAttack() const { return ActiveAttack; }
+	
 	/** Attempts to perform an attack associated with the specified tag */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	bool TryAttackByTag(const FGameplayTag& InAttackTypeTag);
+	bool TryActivateAttackByTag(const FGameplayTag& InAttackTypeTag);
+
+	/** Initializes default attack for this component */
+	UFUNCTION(BlueprintCallable)
+	void InitAttacks();
+
+	/** Grants an attack type of the specified class */
+	UFUNCTION(BlueprintCallable)
+	void GrantAttackTypeByClass(TSubclassOf<UFPAttackType> InAttackTypeClass);
+	/** Removes an attack type of the specified class */
+	UFUNCTION(BlueprintCallable)
+	void RemoveAttackTypeByClass(TSubclassOf<UFPAttackType> InAttackTypeClass);
+
+	/**
+	 * Finds an attack type of the specified class
+	 * @param InAttackTypeClass The class of an attack type to be found
+	 */
+	UFUNCTION(BlueprintPure)
+	UFPAttackType* FindAttackTypeByClass(TSubclassOf<UFPAttackType> InAttackTypeClass);
+
+	/** Searches for and returns the attack type associated with the specified gameplay tag */
+	UFUNCTION(BlueprintPure)
+	UFPAttackType* FindAttackTypeByTag(const FGameplayTag& InAttackTypeTag);
+
+	/**
+	 * Aborts the active attack
+	 * @return True if aborted successfully
+	 */
+	UFUNCTION(BlueprintCallable)
+	bool TryAbortActiveAttack();
 	
 protected:
 	
 	/** Callback function triggered when an attack has ended */
 	UFUNCTION()
 	virtual void OnAttackEnded();
+	
+	/** Array of the available attack types */
+	UPROPERTY()
+	TArray<UFPAttackType*> AvailableAttackTypes;
+
+	/** Default attack types to be granted */
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|AttackTypes")
+	TArray<TSubclassOf<UFPAttackType>> DefaultAttackTypeClasses;
+
+
+	/** Activates the specified ability */
+	UFUNCTION(BlueprintNativeEvent)
+	bool TryActivateAttack(UFPAttackType* InAttackTypeToActivate);
+	
+private:
+
+	/** The current active attack */
+	TObjectPtr<UFPAttackType> ActiveAttack;
 };

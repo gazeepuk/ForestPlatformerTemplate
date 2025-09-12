@@ -6,52 +6,71 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "AttackTypes/FPAttackType.h"
-#include "CoreTypes/FPGameplayTags.h"
-#include "FunctionLibrary/FPFunctionLibrary.h"
 
-bool UPlayerCombatComponent::CanAttack_Implementation() const
+bool UPlayerCombatComponent::CanAttack_Implementation()
 {
-	return Super::CanAttack_Implementation() && CurrentPrimaryAttack && CurrentPrimaryAttack->CanAttack();
+	if(UFPAttackType* CurrentAttack = GetCurrentAttackType())
+	{
+		return Super::CanAttack_Implementation() && CurrentAttack->CanAttack();
+	}
+	return false;
 }
 
 bool UPlayerCombatComponent::TryPerformCurrentAttack()
 {
-	if(CanAttack())
-	{
-		UFPFunctionLibrary::NativeAddGameplayTagToActor(GetOwner(), FPGameplayTags::Shared_Status_Attacking);
-		
-		CurrentPrimaryAttack.Get()->PerformAttack(nullptr);
-
-		return true;
-	}
-	
-	return false;
+	return TryActivateAttackByTag(CurrentAttackTag);
 }
 
-void UPlayerCombatComponent::SetPrimaryAttackByClass(TSubclassOf<UFPAttackType> InPrimaryAttackClass)
+void UPlayerCombatComponent::SetCurrentAttackByClass(TSubclassOf<UFPAttackType> InPrimaryAttackClass)
 {
-	if(CurrentPrimaryAttack.GetClass() == InPrimaryAttackClass)
+	UFPAttackType* CurrentAttack = GetCurrentAttackType();
+
+	if(CurrentAttack)
 	{
-		return;
-	}
-	
-	// Cleanup previous Attack
-	if(CurrentPrimaryAttack)
-	{
-		CurrentPrimaryAttack->OnAttackEnded.RemoveDynamic(this, &ThisClass::OnAttackEnded);
-		CurrentPrimaryAttack->ConditionalBeginDestroy();
-		CurrentPrimaryAttack = nullptr;
+		if(CurrentAttack->GetClass() == InPrimaryAttackClass)
+		{
+			return;
+		}
+
+		if(CurrentAttack->IsActive())
+		{
+			CurrentAttack->TryAbortAttack();
+		}
 	}
 
-	if(InPrimaryAttackClass)
+	CurrentAttack = FindAttackTypeByClass(InPrimaryAttackClass);
+	if(CurrentAttack)
 	{
-		// Create and Init New Attack
-		CurrentPrimaryAttack = NewObject<UFPAttackType>(this, InPrimaryAttackClass);
-		if(CurrentPrimaryAttack)
+		CurrentAttackTag = CurrentAttack->GetAttackTypeTag();
+	}
+}
+
+FGameplayTag UPlayerCombatComponent::GetCurrentAttackTag() const
+{
+	return CurrentAttackTag;
+}
+
+void UPlayerCombatComponent::SetCurrentAttackByTag(FGameplayTag InAttackTag)
+{
+	UFPAttackType* CurrentAttack = GetCurrentAttackType();
+
+	if(CurrentAttack)
+	{
+		if(CurrentAttack->GetAttackTypeTag() == InAttackTag)
 		{
-			CurrentPrimaryAttack->InitAttack(GetOwner(), this);
-			CurrentPrimaryAttack->OnAttackEnded.AddUniqueDynamic(this, &ThisClass::OnAttackEnded);
+			return;
 		}
+
+		if(CurrentAttack->IsActive())
+		{
+			CurrentAttack->EndAttack();
+		}
+	}
+
+	CurrentAttack = FindAttackTypeByTag(InAttackTag);
+	if(CurrentAttack)
+	{
+		CurrentAttackTag = CurrentAttack->GetAttackTypeTag();
 	}
 }
 
@@ -59,14 +78,15 @@ void UPlayerCombatComponent::ResetPrimaryAttack()
 {
 	if(DefaultAttackType)
 	{
-		SetPrimaryAttackByClass(DefaultAttackType);
+		SetCurrentAttackByClass(DefaultAttackType);
 	}
 }
 
 void UPlayerCombatComponent::InitCombatComponent()
 {
 	BindCombatInput();
-	SetPrimaryAttackByClass(DefaultAttackType);
+	InitAttacks();
+	SetCurrentAttackByClass(DefaultAttackType);
 }
 
 void UPlayerCombatComponent::UnbindCombatInput()
@@ -88,6 +108,15 @@ void UPlayerCombatComponent::UnbindCombatInput()
 	{
 		InputSubsystem->RemoveMappingContext(CombatMappingContext);
 	}
+}
+
+UFPAttackType* UPlayerCombatComponent::GetCurrentAttackType()
+{
+	if(CurrentAttackTag.IsValid())
+	{
+		return FindAttackTypeByTag(CurrentAttackTag);
+	}
+	return nullptr;
 }
 
 void UPlayerCombatComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)

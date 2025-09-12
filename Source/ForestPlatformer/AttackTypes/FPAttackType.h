@@ -34,6 +34,13 @@ public:
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE FGameplayTag GetAttackTypeTag() const {return AttackTypeTag;}
 
+	/** Returns true if the attack is active */
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE bool IsActive() const { return bActive; }
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE bool IsOnCooldown() const { return RemainingCooldown > 0.f; }
+	
 	/** Sets the actor that owns this attack type */
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE void SetOwningActor(AActor* InOwningActor) { OwningActor = InOwningActor; }
@@ -67,11 +74,16 @@ public:
 	virtual void InitAttack(AActor* InOwningActor, UCombatComponentBase* InCombatComponent);
 
 	/**
-	 * Performs the attack against the specified target actor
-	 * @param InTargetActor The actor to attack
+	 * Activates the attack against the specified target actor
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void PerformAttack(AActor* InTargetActor);
+	UFUNCTION(BlueprintCallable)
+	void PerformAttack();
+	
+	/**
+	 * Contain the main attack logic
+	 */
+	UFUNCTION(BlueprintNativeEvent)
+	void PerformAttackInner();
 
 	/**
 	 * Determines if the attack can be performed by the owner
@@ -80,10 +92,25 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	bool CanAttack();
 
-	/** Ends the current attack and cleans up */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	/**
+	 * Ends the current attack and cleans up
+	 */
+	UFUNCTION(BlueprintCallable)
 	void EndAttack();
 
+	/**
+	 * Contains cleanup logic (clears timers, stops montages). Override to properly clean up the attack
+	 */
+	UFUNCTION(BlueprintNativeEvent)
+	void EndAttackInner();
+
+	/**
+	 * Aborts this attack
+	 * @return True if aborted successfully
+	 */
+	UFUNCTION(BlueprintCallable)
+	bool TryAbortAttack();
+	
 	/** Delegate that broadcasts when the attack sequence has completed */
 	UPROPERTY(BlueprintAssignable)
 	FOnAttackEnded OnAttackEnded;
@@ -91,10 +118,6 @@ public:
 protected:
 	/** Called after all properties are initialized to set up the attack identifiers */
 	virtual void PostInitProperties() override;
-
-	/** Finds valid targets for this attack type within range and conditions */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	TArray<AActor*> FindTarget();
 
 	/** Animation montage to play when performing this attack */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -105,6 +128,16 @@ protected:
 	FGameplayTag AttackTypeTag;
 
 private:
+	UFUNCTION(BlueprintCallable)
+	void StopAttackMontage(float BlendOut = 0.1f);
+	
+	/** Starts attack cooldown */
+	void StartCooldown();
+	/** Resets the cooldown */
+	void ResetCooldown();
+	/** Updates the remaining cooldown time of this attack */
+	void UpdateCooldown();
+	
 	/** Unique identifier for this attack type */
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
 	FName AttackTypeID;
@@ -119,4 +152,23 @@ private:
 	/** The combat component that manages this attack type */
 	UPROPERTY()
 	TObjectPtr<UCombatComponentBase> CombatComponent;
+	
+	/** Indicates whether the attack is currently active */
+	bool bActive = false;
+
+	/** Indicates whether the attack can be interrupted */
+	UPROPERTY(EditDefaultsOnly)
+	bool bInterruptible = false;
+
+	/** Ability's cooldown time in seconds */
+	UPROPERTY(EditDefaultsOnly)
+	float AttackCooldown = 0.f;
+
+	/** The remaining time of cooldown in seconds */
+	float RemainingCooldown;
+
+	float CooldownTick = 0.1f;
+	
+	/** timer handle for cooldown */
+	FTimerHandle CooldownTimerHandle;
 };

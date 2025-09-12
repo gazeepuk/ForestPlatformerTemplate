@@ -46,6 +46,7 @@ AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializ
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	HealthComponent->OnZeroHealth.AddUniqueDynamic(this, &ThisClass::OnDeath);
+	HealthComponent->OnTakeDamage.AddUniqueDynamic(this, &ThisClass::OnTakeDamage);
 }
 
 #pragma region ICoinsWalletInterface
@@ -88,7 +89,6 @@ bool AFPPlayerCharacter::CanInteract_Implementation() const
 {
 	return HealthComponent && HealthComponent->IsAlive();
 }
-
 
 void AFPPlayerCharacter::PossessedBy(AController* NewController)
 {
@@ -134,6 +134,22 @@ void AFPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if(ZoomCameraAction)
 	{
 		EnhancedInputComponent->BindAction(ZoomCameraAction, ETriggerEvent::Started, this, &AFPPlayerCharacter::ZoomCameraAction_Started);
+	}
+}
+
+void AFPPlayerCharacter::OnDeath_Implementation()
+{
+	if(CombatComponent)
+	{
+		CombatComponent->TryAbortActiveAttack();
+	}
+}
+
+void AFPPlayerCharacter::OnTakeDamage_Implementation(float DamageValue)
+{
+	if(CombatComponent)
+	{
+		CombatComponent->TryAbortActiveAttack();
 	}
 }
 
@@ -201,7 +217,3 @@ void AFPPlayerCharacter::Landed(const FHitResult& Hit)
 	GetCharacterMovement<UFPCharacterMovementComponent>()->StopFloating();
 }
 
-void AFPPlayerCharacter::OnDeath_Implementation()
-{
-	
-}

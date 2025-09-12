@@ -7,6 +7,7 @@
 #include "Interfaces/SavableActorInterface.h"
 #include "FPEnemyCharacter.generated.h"
 
+class UAICombatComponent;
 class UFPEffectComponent;
 
 UCLASS()
@@ -50,8 +51,20 @@ public:
 	void DisableEnemy();
 	
 protected:
+	virtual void BeginPlay() override;
 	virtual void Destroyed() override;
 
+	/**
+	 * Handles enemy's death
+	 * @note Always call the parent function!
+	 */
+	UFUNCTION(BlueprintNativeEvent)
+	void OnDeath();
+
+	/** Callback function called whenever the enemy takes damage */
+	UFUNCTION(BlueprintNativeEvent)
+	void OnTakeDamage(float DamageValue);
+	
 	/** Component responsible for managing enemy's health */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UHealthComponent> HealthComponent;
@@ -60,6 +73,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UFPEffectComponent> EffectComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UAICombatComponent> AICombatComponent;
+	
 	/** Indicates whether the enemy is defeated */
 	UPROPERTY(BlueprintReadWrite)
 	bool bDefeated;

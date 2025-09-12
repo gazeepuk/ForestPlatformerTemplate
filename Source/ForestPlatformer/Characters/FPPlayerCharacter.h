@@ -62,9 +62,13 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	/** Handles player's death */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	UFUNCTION(BlueprintNativeEvent)
 	void OnDeath();
 
+	/** Callback function called whenever the character takes damage */
+	UFUNCTION(BlueprintNativeEvent)
+	void OnTakeDamage(float DamageValue);
+	
 	/** Spring arm component that controls the camera positioning */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UFPSpringArmComponent> CameraBoom;
