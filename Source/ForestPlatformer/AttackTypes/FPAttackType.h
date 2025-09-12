@@ -25,10 +25,10 @@ public:
 
 	/** Returns the unique identifier for this attack type */
 	UFUNCTION(BlueprintPure)
-	FORCEINLINE FName GetAttackTypeID() const {return AttackTypeID;}
+	FORCEINLINE FName GetAttackTypeID() const {return GetClass()->GetFName();}
 
 	/** Return the hashed version of the attack type ID for efficient comparisons */
-	FORCEINLINE uint32 GetAttackTypeIDHash() const {return AttackTypeIDHash;}
+	FORCEINLINE uint32 GetAttackTypeIDHash() const {return GetTypeHash(GetAttackTypeID());}
 
 	/** Returns the gameplay tag associated with this attack type */
 	UFUNCTION(BlueprintPure)
@@ -116,8 +116,6 @@ public:
 	FOnAttackEnded OnAttackEnded;
 	
 protected:
-	/** Called after all properties are initialized to set up the attack identifiers */
-	virtual void PostInitProperties() override;
 
 	/** Animation montage to play when performing this attack */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -137,13 +135,6 @@ private:
 	void ResetCooldown();
 	/** Updates the remaining cooldown time of this attack */
 	void UpdateCooldown();
-	
-	/** Unique identifier for this attack type */
-	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
-	FName AttackTypeID;
-	
-	/** Hashed ID of this attack type for efficient comparisons */
-	uint32 AttackTypeIDHash;
 
 	/** The actor that owns and perform this attack type */
 	UPROPERTY()

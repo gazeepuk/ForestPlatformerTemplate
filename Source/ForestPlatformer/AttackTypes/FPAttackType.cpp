@@ -35,7 +35,7 @@ void UFPAttackType::PerformAttack()
 {
 	if(bActive)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s is already active for %s! Canceling activation."), *AttackTypeID.ToString(), *GetNameSafe(GetOwningActor()));
+		UE_LOG(LogTemp, Warning, TEXT("%s is already active for %s! Canceling activation."), *GetAttackTypeID().ToString(), *GetNameSafe(GetOwningActor()));
 		return;
 	}
 
@@ -47,7 +47,7 @@ void UFPAttackType::PerformAttack()
 
 void UFPAttackType::PerformAttackInner_Implementation()
 {
-	UE_LOG(LogTemp, Display, TEXT("Performing Attack %s"), *AttackTypeID.ToString());
+	UE_LOG(LogTemp, Display, TEXT("Performing Attack %s"), *GetAttackTypeID().ToString());
 }
 
 void UFPAttackType::EndAttack()
@@ -74,22 +74,6 @@ bool UFPAttackType::TryAbortAttack()
 
 void UFPAttackType::EndAttackInner_Implementation()
 {
-}
-
-void UFPAttackType::PostInitProperties()
-{
-	UObject::PostInitProperties();
-
-	AttackTypeIDHash = GetTypeHash(AttackTypeID);
-    
-	// Ensure default ID if empty
-#if WITH_EDITOR
-	if (AttackTypeID.IsNone())
-	{
-		AttackTypeID = *ThisClass::StaticClass()->GetName();
-		AttackTypeIDHash = GetTypeHash(AttackTypeID);
-	}
-#endif
 }
 
 void UFPAttackType::StopAttackMontage(float BlendOut)
@@ -147,7 +131,6 @@ void UFPAttackType::UpdateCooldown()
 	}
 
 	RemainingCooldown -= CooldownTick;
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "piss");	
 	if(RemainingCooldown <= 0.f)
 	{
 		ResetCooldown();
