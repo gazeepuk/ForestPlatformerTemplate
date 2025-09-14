@@ -43,7 +43,7 @@ public:
 	
 	/** Resets the primary attack back to the default attack type */
 	UFUNCTION(BlueprintCallable)
-	void ResetPrimaryAttack();
+	void ResetDefaultAttack();
 	/** Initialize combat component, binding inputs, setting the default attack */
 	UFUNCTION(BlueprintCallable)
 	void InitCombatComponent();
@@ -55,6 +55,17 @@ public:
 	/** Returns the current attack type */
 	UFUNCTION(BlueprintPure)
 	UFPAttackType* GetCurrentAttackType();
+
+	/** Sets the next attack type from available attack as the current attack */
+	UFUNCTION(BlueprintCallable, Category = "Combat|AttackTypes")
+	void SetNextAttack();
+	/** Sets the previous attack type from available attack as the current attack */
+	UFUNCTION(BlueprintCallable, Category = "Combat|AttackTypes")
+	void SetPreviousAttack();
+
+	/** Grants an attack type of the specified class */
+	UFUNCTION(BlueprintCallable)
+	void GrantPlayerAttackTypeByClass(TSubclassOf<UFPAttackType> InAttackTypeClass, bool bSetAsCurrentAttack = false);
 	
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -84,14 +95,20 @@ protected:
 	TSubclassOf<UFPAttackType> DefaultAttackType;
 
 	/** Default attack's gameplay tag */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|AttackTypes")
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|AttackTypes")
 	FGameplayTag DefaultAttackTag;
 	
 	/** Current attack's gameplay tag */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat|AttackTypes")
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|AttackTypes")
 	FGameplayTag CurrentAttackTag;
 	
 private:
 	/** Binds combat input actions to the player's input component */
 	void BindCombatInput();
+
+	/** Sets the current attack by the specified index */
+	void SetCurrentAttackByIndex(int32 InAttackIndex);
+
+	/** Sets the current attack */
+	void SetCurrentAttack(UFPAttackType* InAttackType);
 };

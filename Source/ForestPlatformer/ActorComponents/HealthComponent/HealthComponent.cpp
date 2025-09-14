@@ -34,7 +34,7 @@ void UHealthComponent::SetCurrentHealth(const float InNewCurrentHealth)
 	{
 		OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 	}
-	if(NewCurrentHealth < OldCurrentHealth)
+	if(NewCurrentHealth < OldCurrentHealth && !bLoadingHealth)
 	{
 		OnTakeDamage.Broadcast(OldCurrentHealth - CurrentHealth);
 	}
@@ -42,6 +42,14 @@ void UHealthComponent::SetCurrentHealth(const float InNewCurrentHealth)
 	{
 		OnZeroHealth.Broadcast();
 	}
+}
+
+void UHealthComponent::LoadHealth(float InNewCurrentHealth, float InMaxHealth)
+{
+	bLoadingHealth = true;
+	SetMaxHealth(InMaxHealth);
+	SetCurrentHealth(InNewCurrentHealth);
+	bLoadingHealth = false;
 }
 
 void UHealthComponent::RestoreCurrentHealth(const float InHealthAmount)

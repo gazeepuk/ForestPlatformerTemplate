@@ -32,25 +32,24 @@ void UCombatComponentBase::InitAttacks()
 	}
 }
 
-void UCombatComponentBase::GrantAttackTypeByClass(TSubclassOf<UFPAttackType> InAttackTypeClass)
+UFPAttackType* UCombatComponentBase::GrantAttackTypeByClass(TSubclassOf<UFPAttackType> InAttackTypeClass)
 {
-	if(InAttackTypeClass)
+	if(!InAttackTypeClass)
 	{
-		if(!InAttackTypeClass)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Can't add an attack type for %s! The class is invalid!"), *GetNameSafe(GetOwner()));
-			return;
-		}
-		
-		if(UFPAttackType* AttackType = NewObject<UFPAttackType>(this, InAttackTypeClass))
-		{
-			AvailableAttackTypes.AddUnique(AttackType);
-			UE_LOG(LogTemp, Display, TEXT("Added %s to %s attacks"), *AttackType->GetAttackTypeID().ToString(), *GetNameSafe(GetOwner()));
-
-			AttackType->InitAttack(GetOwner(), this);
-			AttackType->OnAttackEnded.AddUniqueDynamic(this, &ThisClass::OnAttackEnded);
-		}
+		UE_LOG(LogTemp, Warning, TEXT("Can't add an attack type for %s! The class is invalid!"), *GetNameSafe(GetOwner()));
+		return nullptr;
 	}
+
+	if(UFPAttackType* AttackType = NewObject<UFPAttackType>(this, InAttackTypeClass))
+	{
+		AvailableAttackTypes.AddUnique(AttackType);
+		UE_LOG(LogTemp, Display, TEXT("Added %s to %s attacks"), *AttackType->GetAttackTypeID().ToString(), *GetNameSafe(GetOwner()));
+
+		AttackType->InitAttack(GetOwner(), this);
+		AttackType->OnAttackEnded.AddUniqueDynamic(this, &ThisClass::OnAttackEnded);
+		return AttackType;
+	}
+	return nullptr;
 }
 
 void UCombatComponentBase::RemoveAttackTypeByClass(TSubclassOf<UFPAttackType> InAttackTypeClass)
@@ -117,6 +116,19 @@ void UCombatComponentBase::OnAttackEnded()
 		ActiveAttack = nullptr;
 	}
 	UFPFunctionLibrary::NativeRemoveGameplayTagFromActor(GetOwner(), FPGameplayTags::Shared_Status_Attacking);
+}
+
+int32 UCombatComponentBase::GetIndexOfAttack(UFPAttackType* InAttackType) const
+{
+	if(!InAttackType)
+	{
+		return INDEX_NONE;
+	}
+
+	return AvailableAttackTypes.IndexOfByPredicate([&InAttackType](const UFPAttackType* AttackType)
+	{
+		return AttackType->GetAttackTypeTag() == InAttackType->GetAttackTypeTag();
+	});
 }
 
 bool UCombatComponentBase::TryActivateAttack_Implementation(UFPAttackType* InAttackTypeToActivate)

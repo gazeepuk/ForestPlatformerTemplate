@@ -21,27 +21,3 @@ void UFPEffectBase::OnRemoved_Implementation(AActor* Target)
 void UFPEffectBase::OnTick_Implementation(AActor* Target, float DeltaTime)
 {
 }
-
-#if WITH_EDITOR
-void UFPEffectBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	UObject::PostEditChangeProperty(PropertyChangedEvent);
-
-	if(EffectID.IsNone())
-	{
-		EffectID = *GetClass()->GetName();
-		EffectIDHash = GetTypeHash(EffectID);
-	}
-	
-	const FName PropertyName = PropertyChangedEvent.Property ? PropertyChangedEvent.Property->GetFName() : NAME_None;
-	if(PropertyName == GET_MEMBER_NAME_CHECKED(ThisClass, EffectID))
-	{
-		if(EffectID.IsNone())
-		{
-			EffectID = *GetClass()->GetName();
-		}
-		
-		EffectIDHash = GetTypeHash(EffectID);
-	}
-}
-#endif

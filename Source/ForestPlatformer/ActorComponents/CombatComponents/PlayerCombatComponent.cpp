@@ -23,26 +23,7 @@ bool UPlayerCombatComponent::TryPerformCurrentAttack()
 
 void UPlayerCombatComponent::SetCurrentAttackByClass(TSubclassOf<UFPAttackType> InPrimaryAttackClass)
 {
-	UFPAttackType* CurrentAttack = GetCurrentAttackType();
-
-	if(CurrentAttack)
-	{
-		if(CurrentAttack->GetClass() == InPrimaryAttackClass)
-		{
-			return;
-		}
-
-		if(CurrentAttack->IsActive())
-		{
-			CurrentAttack->TryAbortAttack();
-		}
-	}
-
-	CurrentAttack = FindAttackTypeByClass(InPrimaryAttackClass);
-	if(CurrentAttack)
-	{
-		CurrentAttackTag = CurrentAttack->GetAttackTypeTag();
-	}
+	SetCurrentAttack(FindAttackTypeByClass(InPrimaryAttackClass));
 }
 
 FGameplayTag UPlayerCombatComponent::GetCurrentAttackTag() const
@@ -52,41 +33,27 @@ FGameplayTag UPlayerCombatComponent::GetCurrentAttackTag() const
 
 void UPlayerCombatComponent::SetCurrentAttackByTag(FGameplayTag InAttackTag)
 {
-	UFPAttackType* CurrentAttack = GetCurrentAttackType();
-
-	if(CurrentAttack)
-	{
-		if(CurrentAttack->GetAttackTypeTag() == InAttackTag)
-		{
-			return;
-		}
-
-		if(CurrentAttack->IsActive())
-		{
-			CurrentAttack->EndAttack();
-		}
-	}
-
-	CurrentAttack = FindAttackTypeByTag(InAttackTag);
-	if(CurrentAttack)
-	{
-		CurrentAttackTag = CurrentAttack->GetAttackTypeTag();
-	}
+	SetCurrentAttack(FindAttackTypeByTag(InAttackTag));
 }
 
-void UPlayerCombatComponent::ResetPrimaryAttack()
+void UPlayerCombatComponent::ResetDefaultAttack()
 {
-	if(DefaultAttackType)
+	if(UFPAttackType* DefaultAttack = FindAttackTypeByClass(DefaultAttackType))
 	{
-		SetCurrentAttackByClass(DefaultAttackType);
+		SetCurrentAttack(DefaultAttack);
+		return;
 	}
+
+	GrantPlayerAttackTypeByClass(DefaultAttackType, true);
+
+	UE_LOG(LogTemp, Warning, TEXT("Can't reset the default attack for %s. Default attack type class is invalid"), *GetNameSafe(GetOwner()))
 }
 
 void UPlayerCombatComponent::InitCombatComponent()
 {
 	BindCombatInput();
 	InitAttacks();
-	SetCurrentAttackByClass(DefaultAttackType);
+	ResetDefaultAttack();
 }
 
 void UPlayerCombatComponent::UnbindCombatInput()
@@ -117,6 +84,47 @@ UFPAttackType* UPlayerCombatComponent::GetCurrentAttackType()
 		return FindAttackTypeByTag(CurrentAttackTag);
 	}
 	return nullptr;
+}
+
+void UPlayerCombatComponent::SetNextAttack()
+{
+	if(AvailableAttackTypes.IsEmpty())
+	{
+		return;
+	}
+	
+	int32 CurrentIndex = GetIndexOfAttack(GetCurrentAttackType());
+	if(AvailableAttackTypes.IsValidIndex(CurrentIndex))
+	{
+		CurrentIndex = (CurrentIndex + 1) % AvailableAttackTypes.Num();
+		SetCurrentAttackByIndex(CurrentIndex);
+	}
+}
+
+void UPlayerCombatComponent::SetPreviousAttack()
+{
+	if(AvailableAttackTypes.IsEmpty())
+	{
+		return;
+	}
+
+	int32 CurrentIndex = GetIndexOfAttack(GetCurrentAttackType());
+	if(AvailableAttackTypes.IsValidIndex(CurrentIndex))
+	{
+		CurrentIndex = (CurrentIndex - 1 + AvailableAttackTypes.Num()) % AvailableAttackTypes.Num();
+		SetCurrentAttackByIndex(CurrentIndex);
+	}
+}
+
+void UPlayerCombatComponent::GrantPlayerAttackTypeByClass(TSubclassOf<UFPAttackType> InAttackTypeClass, bool bSetAsCurrentAttack)
+{
+	if(UFPAttackType* GrantedAttack = GrantAttackTypeByClass(InAttackTypeClass))
+	{
+		if(bSetAsCurrentAttack)
+		{
+			SetCurrentAttack(GrantedAttack);
+		}
+	}
 }
 
 void UPlayerCombatComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -164,4 +172,30 @@ void UPlayerCombatComponent::BindCombatInput()
 		InputSubsystem->AddMappingContext(CombatMappingContext, CombatInputPriority);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ThisClass::AttackAction_Started);
 	}
+}
+
+void UPlayerCombatComponent::SetCurrentAttackByIndex(int32 InAttackIndex)
+{
+	if(AvailableAttackTypes.IsValidIndex(InAttackIndex))
+	{
+		SetCurrentAttack(AvailableAttackTypes[InAttackIndex]);
+	}
+}
+
+void UPlayerCombatComponent::SetCurrentAttack(UFPAttackType* InAttackType)
+{
+	if(InAttackType && CurrentAttackTag.IsValid() && InAttackType->GetAttackTypeTag() == CurrentAttackTag)
+	{
+		return;
+	}
+	
+	if(UFPAttackType* CurrentAttack = GetCurrentAttackType())
+	{
+		if(CurrentAttack->IsActive())
+		{
+			CurrentAttack->EndAttack();
+		}
+	}
+
+	CurrentAttackTag = InAttackType ? InAttackType->GetAttackTypeTag() : FGameplayTag::EmptyTag;
 }

@@ -41,7 +41,7 @@ public:
 
 	/** Grants an attack type of the specified class */
 	UFUNCTION(BlueprintCallable)
-	void GrantAttackTypeByClass(TSubclassOf<UFPAttackType> InAttackTypeClass);
+	UFPAttackType* GrantAttackTypeByClass(TSubclassOf<UFPAttackType> InAttackTypeClass);
 	/** Removes an attack type of the specified class */
 	UFUNCTION(BlueprintCallable)
 	void RemoveAttackTypeByClass(TSubclassOf<UFPAttackType> InAttackTypeClass);
@@ -63,7 +63,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable)
 	bool TryAbortActiveAttack();
-	
+
 protected:
 	
 	/** Callback function triggered when an attack has ended */
@@ -83,6 +83,8 @@ protected:
 	UFUNCTION(BlueprintNativeEvent)
 	bool TryActivateAttack(UFPAttackType* InAttackTypeToActivate);
 	
+	UFUNCTION(BlueprintPure)
+	int32 GetIndexOfAttack(UFPAttackType* InAttackType) const;
 private:
 
 	/** The current active attack */

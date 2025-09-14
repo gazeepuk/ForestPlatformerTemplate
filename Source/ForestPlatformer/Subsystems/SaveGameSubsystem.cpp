@@ -256,9 +256,8 @@ void USaveGameSubsystem::LoadCurrentLevelFromSave() const
 			if(UHealthComponent* HealthComponent = ControlledPawn->GetComponentByClass<UHealthComponent>())
 			{
 				const float PlayerMaxHealth = SaveGame->PlayerProgressData.MaxHealth;
-				HealthComponent->SetMaxHealth(PlayerMaxHealth);
 				const float PlayerCurrentHealth = LevelData->PlayersCurrentHealth > 0 ? LevelData->PlayersCurrentHealth : PlayerMaxHealth;
-				HealthComponent->SetCurrentHealth(PlayerCurrentHealth);
+				HealthComponent->LoadHealth(PlayerCurrentHealth, PlayerMaxHealth);
 			}
 		}
 	}

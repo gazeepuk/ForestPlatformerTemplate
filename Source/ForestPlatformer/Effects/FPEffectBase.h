@@ -40,10 +40,10 @@ public:
 
 	/** Returns the unique identifier for this effect type */
 	UFUNCTION(BlueprintPure, Category = "Effect")
-	FORCEINLINE FName GetEffectID() const { return EffectID; }
+	FORCEINLINE FName GetEffectID() const { return GetClass()->GetFName(); }
 
 	/** Returns the hashed version of the effect ID for efficient comparisons */
-	FORCEINLINE uint32 GetEffectIDHash() const {return EffectIDHash;}
+	FORCEINLINE uint32 GetEffectIDHash() const {return GetTypeHash(GetEffectID());}
 
 	/** Determines if the effect can be applied to the target actor */
 	UFUNCTION(BlueprintNativeEvent, Category = "Effect")
@@ -74,13 +74,6 @@ public:
 	FORCEINLINE EFPEffectStackingPolicy GetStackingPolicy() const { return StackingPolicy; }
 	
 protected:
-	/** Unique identifier for this effect type. Each child class should have a distinct ID */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effect")
-	FName EffectID;
-
-	/** Hashed EffectID for efficient comparison*/
-	uint32 EffectIDHash;
-
 	/** Determines how this effect persists over time */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effect|Duration")
 	EFPEffectDurationType DurationType = EFPEffectDurationType::Duration;
@@ -92,12 +85,7 @@ protected:
 	/** Determines how multiple instances of the same effect interact */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effect")
 	EFPEffectStackingPolicy StackingPolicy = EFPEffectStackingPolicy::NoStack;
-	
-#if WITH_EDITOR
-	/** Handle property changes in te editor, particularly for the EffectID and EffectIDHashed */
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	
+
 private:
 	/** Reference to the world context object for proper world access */
 	UPROPERTY()

@@ -35,6 +35,9 @@ public:
 	/** Sets the current health value (clamped between 0,f and max health) */
 	UFUNCTION(BlueprintCallable, Category = "Health Component")
 	void SetCurrentHealth(float InNewCurrentHealth);
+	/** Sets the current health value without broadcasting OnTakeDamage delegate */
+	UFUNCTION(BlueprintCallable, Category = "Health Component")
+	void LoadHealth(float InNewCurrentHealth, float InMaxHealth);
 	/** Restores health by the specified amount */
 	UFUNCTION(BlueprintCallable, Category = "Health Component")
 	void RestoreCurrentHealth(float InHealthAmount);
@@ -67,4 +70,7 @@ protected:
 	/** Current health value (clamped between 0.f and MaxHealth) */
 	UPROPERTY(BlueprintReadOnly)
 	float CurrentHealth;
+
+private:
+	bool bLoadingHealth = false;
 };
