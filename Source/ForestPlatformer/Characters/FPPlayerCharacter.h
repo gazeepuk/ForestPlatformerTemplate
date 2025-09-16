@@ -129,4 +129,6 @@ private:
 
 	/** handler for camera zoom input started events */
 	void ZoomCameraAction_Started(const FInputActionValue& InputActionValue);
+	void ZoomCameraAction_Completed(const FInputActionValue& InputActionValue);
+	void ZoomCameraAction_Triggered(const FInputActionValue& InputActionValue);
 };

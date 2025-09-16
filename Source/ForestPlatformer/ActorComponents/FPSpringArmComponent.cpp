@@ -38,9 +38,9 @@ void UFPSpringArmComponent::SetTargetArmLengthLerp(float InNewTargetArmLength, f
 	GetWorld()->GetTimerManager().SetTimer(SetTargetArmLengthLerpHandle, this, &UFPSpringArmComponent::UpdateTargetArmLength, 0.02f, true);
 }
 
-void UFPSpringArmComponent::AddTargetArmLength(float InAdditiveValue)
+void UFPSpringArmComponent::AddTargetArmLength(float InZoomMultiplier)
 {
-	SetTargetArmLengthLerp(FinalTargetArmLength + InAdditiveValue, TargetArmLengthLerpDuration);
+	SetTargetArmLengthLerp(FinalTargetArmLength + ZoomingStep * InZoomMultiplier, TargetArmLengthLerpDuration);
 }
 
 void UFPSpringArmComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -63,7 +63,6 @@ void UFPSpringArmComponent::UpdateMovementAlignment(float InDeltaTime)
 
 	FVector OwnerVelocity = OwnerPawn->GetVelocity();
 	OwnerVelocity.Z = 1.f;
-	const FVector LastMovementVelocity = OwnerPawn->GetLastMovementInputVector();
 	
 	if(OwnerVelocity.SizeSquared() < FMath::Square(VelocityAlignmentThreshold))
 	{
@@ -104,7 +103,7 @@ void UFPSpringArmComponent::UpdateTargetArmLength()
 	
 	TargetArmLength = FMath::Lerp(TargetArmLength, FinalTargetArmLength, LerpAlpha);
 
-	if(FMath::IsNearlyEqual(TargetArmLength, FinalTargetArmLength))
+	if(FMath::IsNearlyEqual(TargetArmLength, FinalTargetArmLength) || LerpAlpha >= 1.f)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(SetTargetArmLengthLerpHandle);
 	}

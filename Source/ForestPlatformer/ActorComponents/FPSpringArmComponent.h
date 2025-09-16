@@ -26,7 +26,7 @@ public:
 	void SetTargetArmLengthLerp(float InNewTargetArmLength, float InLerpDuration = 1.5f);
 
 	/** Adds a value to the current target arm length */
-	void AddTargetArmLength(float InAdditiveValue);
+	void AddTargetArmLength(float InZoomMultiplier);
 
 	/** Step size for incremental zoom adjustments */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SprintArm|Zooming", meta = (ClampMin = "0"))

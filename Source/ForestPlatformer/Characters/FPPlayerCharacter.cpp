@@ -134,6 +134,8 @@ void AFPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if(ZoomCameraAction)
 	{
 		EnhancedInputComponent->BindAction(ZoomCameraAction, ETriggerEvent::Started, this, &AFPPlayerCharacter::ZoomCameraAction_Started);
+		EnhancedInputComponent->BindAction(ZoomCameraAction, ETriggerEvent::Completed, this, &AFPPlayerCharacter::ZoomCameraAction_Completed);
+		EnhancedInputComponent->BindAction(ZoomCameraAction, ETriggerEvent::Triggered, this, &AFPPlayerCharacter::ZoomCameraAction_Triggered);
 	}
 }
 
@@ -207,7 +209,18 @@ void AFPPlayerCharacter::JumpAction_Completed(const FInputActionValue& InputActi
 
 void AFPPlayerCharacter::ZoomCameraAction_Started(const FInputActionValue& InputActionValue)
 {
-	CameraBoom->AddTargetArmLength(InputActionValue.Get<float>() * CameraBoom->ZoomingStep);
+	GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Red, TEXT("Started"));
+	CameraBoom->AddTargetArmLength(InputActionValue.Get<float>());
+}
+
+void AFPPlayerCharacter::ZoomCameraAction_Completed(const FInputActionValue& InputActionValue)
+{
+	GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Blue, TEXT("Completed"));
+}
+
+void AFPPlayerCharacter::ZoomCameraAction_Triggered(const FInputActionValue& InputActionValue)
+{
+	GEngine->AddOnScreenDebugMessage(2, 0.2f, FColor::Yellow, TEXT("Triggered"));
 }
 
 void AFPPlayerCharacter::Landed(const FHitResult& Hit)
