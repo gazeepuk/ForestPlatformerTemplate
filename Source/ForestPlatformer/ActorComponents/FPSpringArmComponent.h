@@ -18,20 +18,35 @@ class FORESTPLATFORMER_API UFPSpringArmComponent : public USpringArmComponent
 public:
 	UFPSpringArmComponent();
 
-	/**
-	 * Smoothly interpolates the target arm length to a new value over specified duration
-	 * @param InNewTargetArmLength The desired final arm length
-	 * @param InLerpDuration Duration of the interpolation in seconds
-	 */
-	void SetTargetArmLengthLerp(float InNewTargetArmLength, float InLerpDuration = 1.5f);
-
 	/** Adds a value to the current target arm length */
-	void AddTargetArmLength(float InZoomMultiplier);
+	void AddTargetArmLength(float InAdditiveLength);
 
-	/** Step size for incremental zoom adjustments */
+	/** Stops zooming and immidietly make TargetArmLength equal	to FinalTargetArmLength  */
+	void StopZooming();
+
+	/**
+	 * Zooms in the specified direction for mouse
+	 * @param InZoomingMultiplier Zooming multiplier ( < 0.f - zoom out, == 0.f - do nothing, > 0.f - zoom in);
+	 */
+	void ZoomMouse(float InZoomingMultiplier);
+	/**
+	 * Zooms in the specified direction for controller
+	 * @param InZoomingMultiplier Zooming multiplier ( < 0.f - zoom out, == 0.f - do nothing, > 0.f - zoom in);
+	 */
+	void ZoomController(float InZoomingMultiplier);
+	
+	/** Step size for incremental zoom adjustments for mouse*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SprintArm|Zooming", meta = (ClampMin = "0"))
-	float ZoomingStep = 100.f;
+	float MouseZoomingStep = 100.f;
 
+	/** Step size for incremental zoom adjustments for controller*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SprintArm|Zooming", meta = (ClampMin = "0"))
+	float ControllerZoomingStep = 10.f;
+
+	/** Zooming speed */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SprintArm|Zooming", meta = (ClampMin = "0"))
+	float ZoomingSpeed = 1.5f;
+	
 	/** Whether to clamp the target arm length between minimum and maximum values */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SprintArm|Zooming")
 	bool bClampTargetArmLength = false;
@@ -64,7 +79,6 @@ public:
 	bool bEnableMovementAlignment = false;
 	
 protected:
-	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -79,8 +93,6 @@ private:
 
 	/** The target arm length to interpolate towards */
 	float FinalTargetArmLength;
-	/** The start time of the current interpolation */
-	float LerpStartTime;
 
 	/** Weak reference to the owning pawn  */
 	TWeakObjectPtr<APawn> OwnerPawn;

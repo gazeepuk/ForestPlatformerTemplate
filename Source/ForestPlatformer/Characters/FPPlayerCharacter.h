@@ -112,8 +112,11 @@ private:
 	TObjectPtr<UInputAction> JumpAction;
 	/** Input action for camera zoom functionality */
 	UPROPERTY(EditDefaultsOnly, Category = "Input|InputActions")
-	TObjectPtr<UInputAction> ZoomCameraAction;
-
+	TObjectPtr<UInputAction> ZoomCameraMouseAction;
+	/** Input action for camera zoom functionality */
+	UPROPERTY(EditDefaultsOnly, Category = "Input|InputActions")
+	TObjectPtr<UInputAction> ZoomCameraControllerAction;
+	
 	/** Handler for movement input events */
 	void MoveAction_Triggered(const FInputActionValue& InputActionValue);
 	
@@ -127,8 +130,8 @@ private:
 	/** Handler for character jumping input completed events */
 	void JumpAction_Completed(const FInputActionValue& InputActionValue);
 
-	/** handler for camera zoom input started events */
-	void ZoomCameraAction_Started(const FInputActionValue& InputActionValue);
-	void ZoomCameraAction_Completed(const FInputActionValue& InputActionValue);
-	void ZoomCameraAction_Triggered(const FInputActionValue& InputActionValue);
+	/** Handler for camera zoom input started events */
+	void ZoomCameraMouseAction_Started(const FInputActionValue& InputActionValue);
+	void ZoomCameraControllerAction_Completed(const FInputActionValue& InputActionValue);
+	void ZoomCameraControllerAction_Triggered(const FInputActionValue& InputActionValue);
 };

@@ -22,30 +22,44 @@ void UObserverComponent::InitObservables()
 {
 	for (const AActor* ObservableActor : ObservableActors)
 	{
-		if(UObservableComponent* ObservableComponent = ObservableActor->GetComponentByClass<UObservableComponent>())
+		if (UObservableComponent* ObservableComponent = ObservableActor->GetComponentByClass<UObservableComponent>())
 		{
-			ObservableComponent->OnObservableTriggered.AddDynamic(this, &ThisClass::OnObservableTriggered);
+			ObservableComponent->OnObservableStateChanged.AddDynamic(this, &ThisClass::OnObservableStateChanged);
+			Observables.FindOrAdd(ObservableComponent, ObservableComponent->IsObservableActive());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("%s does not have UObservableComponent. %s can't observe this actor"),
+			       *GetNameSafe(ObservableActor), *GetNameSafe(GetOwner()));
+		}
+	}
+}
 
-			if(!ObservableComponent->HasTriggered())
-			{
-				RemainingObservables++;
-			}
+void UObserverComponent::CheckObservablesState()
+{
+	bool bAllActive = true;
+
+	for (TPair<UObservableComponent*, bool> Observable : Observables)
+	{
+		if (Observable.Key && !Observable.Key->IsObservableActive())
+		{
+			bAllActive = false;
+			break;
 		}
 	}
 
-	if(RemainingObservables <= 0)
+	if (bAllActive)
 	{
-		OnAllObservablesTriggered.Broadcast();
+		OnAllObservablesActivated.Broadcast();
 	}
 }
 
-void UObserverComponent::OnObservableTriggered(UObservableComponent* InObservable)
+void UObserverComponent::OnObservableStateChanged(UObservableComponent* InObservable, bool bObservableActive)
 {
-	RemainingObservables--;
-
-	if(RemainingObservables <= 0)
+	if (InObservable && Observables.Contains(InObservable))
 	{
-		OnAllObservablesTriggered.Broadcast();
+		Observables[InObservable] = bObservableActive;
 	}
-}
 
+	CheckObservablesState();
+}

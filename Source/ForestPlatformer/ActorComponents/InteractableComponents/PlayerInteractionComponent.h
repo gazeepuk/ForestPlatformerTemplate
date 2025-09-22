@@ -36,7 +36,7 @@ protected:
 	/** Returns the closest interactable component from the available list */
 	UInteractableComponent* GetClosestInteractable() const;
 
-	/** Updates focused interactabe component */
+	/** Updates focused interactable component */
 	void UpdateFocusedInteractable();
 
 	/** Performs the interaction with the current focused interactable */

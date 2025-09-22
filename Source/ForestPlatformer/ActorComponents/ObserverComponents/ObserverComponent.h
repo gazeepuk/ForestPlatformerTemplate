@@ -7,7 +7,7 @@
 #include "ObserverComponent.generated.h"
 
 class UObservableComponent;
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAllObservablesTriggered);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAllObservablesActivated);
 
 /**
  * Component that observes multiple observable actors and triggers event
@@ -21,24 +21,28 @@ class FORESTPLATFORMER_API UObserverComponent : public UActorComponent
 public:
 	UObserverComponent();
 
-	/** Delegate that broadcasts when all observables have been triggered */
+	/** Delegate that broadcasts when all observables are activated at the current time */
 	UPROPERTY(BlueprintAssignable)
-	FOnAllObservablesTriggered OnAllObservablesTriggered;
+	FOnAllObservablesActivated OnAllObservablesActivated;
 
 protected:
 	virtual void BeginPlay() override;
 
-	/** Subscribes to observable delegates and initialize the tracking count */
+	/** Subscribes to observable delegates */
 	void InitObservables();
 
 	/** Array of actors containing observable component to monitor */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Observer")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Observer")
 	TArray<AActor*> ObservableActors;
 
+private:
 	/** Callback function triggered when an observable component is triggered */
 	UFUNCTION()
-	void OnObservableTriggered(UObservableComponent* InObservable);
+	void OnObservableStateChanged(UObservableComponent* InObservable, bool bObservableActive);
 
-	/** Count of observables that have not been triggered yet */
-	int32 RemainingObservables = 0;
+	/** Checks the observables states. Broadcasts OnAllObservablesActivated, if all the observables are activated. */
+	void CheckObservablesState();
+
+	/** Map of the observables and their states */
+	TMap<UObservableComponent*, bool> Observables;
 };

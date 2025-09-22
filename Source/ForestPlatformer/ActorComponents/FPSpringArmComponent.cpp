@@ -9,17 +9,12 @@ UFPSpringArmComponent::UFPSpringArmComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void UFPSpringArmComponent::InitializeComponent()
-{
-	Super::InitializeComponent();
-
-	FinalTargetArmLength = TargetArmLength;
-}
-
 void UFPSpringArmComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	FinalTargetArmLength = TargetArmLength;
+	
 	OwnerPawn = GetOwner<APawn>();
 	if(OwnerPawn.IsValid())
 	{
@@ -27,24 +22,8 @@ void UFPSpringArmComponent::BeginPlay()
 	}
 }
 
-void UFPSpringArmComponent::SetTargetArmLengthLerp(float InNewTargetArmLength, float InLerpDuration)
-{
-	GetWorld()->GetTimerManager().ClearTimer(SetTargetArmLengthLerpHandle);
-
-	FinalTargetArmLength = bClampTargetArmLength ? FMath::Clamp(InNewTargetArmLength, MinTargetArmLength, MaxTargetArmLength) : InNewTargetArmLength;
-	TargetArmLengthLerpDuration = InLerpDuration;
-	LerpStartTime = GetWorld()->GetTimeSeconds();
-	
-	GetWorld()->GetTimerManager().SetTimer(SetTargetArmLengthLerpHandle, this, &UFPSpringArmComponent::UpdateTargetArmLength, 0.02f, true);
-}
-
-void UFPSpringArmComponent::AddTargetArmLength(float InZoomMultiplier)
-{
-	SetTargetArmLengthLerp(FinalTargetArmLength + ZoomingStep * InZoomMultiplier, TargetArmLengthLerpDuration);
-}
-
 void UFPSpringArmComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-	FActorComponentTickFunction* ThisTickFunction)
+                                          FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
@@ -52,6 +31,45 @@ void UFPSpringArmComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	{
 		UpdateMovementAlignment(DeltaTime);
 	}
+
+	if(!FMath::IsNearlyEqual(TargetArmLength, FinalTargetArmLength))
+	{
+		const float Distance = FinalTargetArmLength - TargetArmLength;
+		const float AbsDistance = FMath::Abs(Distance);
+		if(AbsDistance < 1.f)
+		{
+			TargetArmLength = FinalTargetArmLength;
+		}
+		else
+		{
+			TargetArmLength = FMath::FInterpTo(TargetArmLength, FinalTargetArmLength, DeltaTime, ZoomingSpeed);
+		}
+	}
+	else
+	{
+		TargetArmLength = FinalTargetArmLength;
+	}
+}
+
+void UFPSpringArmComponent::AddTargetArmLength(float InAdditiveLength)
+{
+	float NewTargetArmLength = FinalTargetArmLength + InAdditiveLength;
+	FinalTargetArmLength = bClampTargetArmLength ? FMath::Clamp(NewTargetArmLength, MinTargetArmLength, MaxTargetArmLength) : NewTargetArmLength;
+}
+
+void UFPSpringArmComponent::StopZooming()
+{
+	FinalTargetArmLength = TargetArmLength;
+}
+
+void UFPSpringArmComponent::ZoomMouse(float InZoomingMultiplier)
+{
+	AddTargetArmLength(MouseZoomingStep * InZoomingMultiplier);
+}
+
+void UFPSpringArmComponent::ZoomController(float InZoomingMultiplier)
+{
+	AddTargetArmLength(ControllerZoomingStep * InZoomingMultiplier);
 }
 
 void UFPSpringArmComponent::UpdateMovementAlignment(float InDeltaTime)
@@ -93,18 +111,5 @@ void UFPSpringArmComponent::UpdateMovementAlignment(float InDeltaTime)
 		);
 
 		OwnerController->SetControlRotation(FRotator(CurrentControlRotation.Pitch, NewRotation.Yaw, CurrentControlRotation.Roll));
-	}
-}
-
-void UFPSpringArmComponent::UpdateTargetArmLength()
-{
-	const float ElapsedTime = GetWorld()->GetTimeSeconds() - LerpStartTime;
-	const float LerpAlpha = FMath::Clamp(ElapsedTime / TargetArmLengthLerpDuration, 0.f, 1.f);
-	
-	TargetArmLength = FMath::Lerp(TargetArmLength, FinalTargetArmLength, LerpAlpha);
-
-	if(FMath::IsNearlyEqual(TargetArmLength, FinalTargetArmLength) || LerpAlpha >= 1.f)
-	{
-		GetWorld()->GetTimerManager().ClearTimer(SetTargetArmLengthLerpHandle);
 	}
 }

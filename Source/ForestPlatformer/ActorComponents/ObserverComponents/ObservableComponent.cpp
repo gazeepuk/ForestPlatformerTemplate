@@ -8,12 +8,13 @@ UObservableComponent::UObservableComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UObservableComponent::TriggerObservable()
+void UObservableComponent::SetObservableActive(bool bNewActive)
 {
-	if(!bTriggered)
+	if(bObservableActive == bNewActive)
 	{
-		OnObservableTriggered.Broadcast(this);
-
-		bTriggered = true;
+		return;
 	}
+
+	bObservableActive = bNewActive;
+	OnObservableStateChanged.Broadcast(this, bObservableActive);
 }

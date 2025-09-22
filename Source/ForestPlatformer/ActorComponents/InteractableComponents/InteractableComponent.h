@@ -42,7 +42,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	/** Collision component used to detect when the player enters itneraction range */
+	/** Collision component used to detect when the player enters interaction range */
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UShapeComponent> InteractionCollision;
 
