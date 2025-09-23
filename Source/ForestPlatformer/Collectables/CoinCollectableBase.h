@@ -12,7 +12,7 @@ class FORESTPLATFORMER_API ACoinCollectableBase : public ACollectableBase
 	GENERATED_BODY()
 
 protected:
-	virtual void OnCollectableOverlapped_Implementation(AActor* InOverlappedActor) override;
+	virtual void NativeOnCollected(AActor* InInstigator) override;
 
 	/** The number of coins this collectable contains */
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))

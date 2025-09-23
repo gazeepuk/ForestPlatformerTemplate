@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InteractableComponent.h"
 #include "Components/ActorComponent.h"
 #include "PlayerInteractionComponent.generated.h"
 
@@ -27,17 +28,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void BindInteractionAction();
 
-	/** Adds an interactable component to the list of available interactables */
-	void AddInteractable(UInteractableComponent* InInteractableComponent);
-	/** Removes an interactable component from the list of available interactables */
-	void RemoveInteractable(UInteractableComponent* InInteractableComponent);
+	/** Set the specified collision for interaction */
+	UFUNCTION(BlueprintCallable, Category = "Interaction|Collision")
+	void SetInteractionCollision(UShapeComponent* InInteractionCollision);
 
+	UFUNCTION(BlueprintPure)
+	AActor* GetFocusedInteractableActor() const;
 protected:
 	/** Returns the closest interactable component from the available list */
-	UInteractableComponent* GetClosestInteractable() const;
+	AActor* GetClosestInteractableActor() const;
 
 	/** Updates focused interactable component */
-	void UpdateFocusedInteractable();
+	void UpdateFocusedInteractableActor();
 
 	/** Performs the interaction with the current focused interactable */
 	void PerformInteraction() const;
@@ -45,13 +47,17 @@ protected:
 	/** Determines if the player can interact with objects */
 	bool CanInteract() const;
 
-	/** Array of all interactable components currently within interaction range */
+	/** Collision that handles overlapping with interactable actors */
+	UPROPERTY(BlueprintReadOnly, Category = "Interaction|Collision")
+	TObjectPtr<UShapeComponent> InteractionCollision;
+
+	/** The array of available interactable actors */
 	UPROPERTY()
-	TArray<UInteractableComponent*> AvailableInteractables;
+	TArray<TWeakObjectPtr<AActor>> AvailableInteractableActors;
 
-	/** The currently focused interactable component */
-	TObjectPtr<UInteractableComponent> FocusedInteractable;
-
+	/** The currently focused interactable actor */
+	TWeakObjectPtr<AActor> FocusedInteractableActor;
+	
 	/** Input mapping context containing the interaction input bindings */
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction|Input")
 	TObjectPtr<UInputMappingContext> InteractionMappingContext;
@@ -65,9 +71,24 @@ protected:
 	int32 InteractionPriority = 1;
 
 private:
+	/** Adds the actor to the available interactable actors array */
+	void AddActorToInteractableActor(AActor* InActor);
+
+	/** Removes the actor from the available interactable actors array */
+	void RemoveActorInteractableActor(const AActor* InActor);
+	
+	/** Callback function triggered when an actor enters the interaction collision area */
+	UFUNCTION()
+	void OnInteractableBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	/** Callback function triggered when an actor enters the interaction collision area */
+	UFUNCTION()
+	void OnInteractableEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
 	/** Callback function triggered when the interact input action is started */
 	UFUNCTION()
 	void InteractAction_Started(const FInputActionValue& InputActionValue);
+	
 	/** Timer handle for managing periodic updates of focused interactables */
 	FTimerHandle UpdateInteractableTimerHandle;
 };

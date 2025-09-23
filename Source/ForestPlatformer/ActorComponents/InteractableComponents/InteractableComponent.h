@@ -55,12 +55,15 @@ protected:
 	FText InteractableText;
 
 private:
-	/** Callback function triggered when an actor enters the interaction collision area */
-	UFUNCTION()
-	void OnInstigatorBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
-	/** Callback function triggered when an actor enters the interaction collision area */
-	UFUNCTION()
-	void OnInstigatorEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
+	// /** Callback function triggered when an actor enters the interaction collision area */
+	// UFUNCTION()
+	// void OnInstigatorBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	// /** Callback function triggered when an actor enters the interaction collision area */
+	// UFUNCTION()
+	// void OnInstigatorEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	
 	/** Indicates whether this interactable is currently focused by the player */
 	bool bFocused;
 };

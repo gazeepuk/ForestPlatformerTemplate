@@ -9,6 +9,7 @@
 #include "Interfaces/InteractorInterface.h"
 #include "FPPlayerCharacter.generated.h"
 
+class USphereComponent;
 class UPlayerInteractionComponent;
 class UFPEffectComponent;
 class UPlayerCombatComponent;
@@ -56,6 +57,7 @@ public:
 	//~End IInteractorInterface
 	
 protected:
+	virtual void BeginPlay() override;
 	/** Called when the character is possessed by a controller */
 	virtual void PossessedBy(AController* NewController) override;
 	/** Sets up player input bindings and mapping */
@@ -79,7 +81,11 @@ protected:
 
 	/** Component responsible for handling player interaction with interactable objects */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UPlayerInteractionComponent> PlayerInteractionComponentV2;
+	TObjectPtr<UPlayerInteractionComponent> PlayerInteractionComponent;
+
+	/** Component responsible for handling player overlapping with interactable objects */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<USphereComponent> InteractionCollisionComponent;
 
 	/** Component that manages player combat attacks */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

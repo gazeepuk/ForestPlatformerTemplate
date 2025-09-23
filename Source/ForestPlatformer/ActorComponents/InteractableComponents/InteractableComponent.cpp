@@ -22,24 +22,17 @@ void UInteractableComponent::SetInteractableCollision(UShapeComponent* InCollisi
 	{
 		return;
 	}
-
-	if(InteractionCollision)
-	{
-		InteractionCollision->OnComponentBeginOverlap.RemoveDynamic(this, &ThisClass::UInteractableComponent::OnInstigatorBeginOverlap);
-		InteractionCollision->OnComponentEndOverlap.RemoveDynamic(this, &ThisClass::UInteractableComponent::OnInstigatorEndOverlap);
-	}
-
+	
 	InteractionCollision = InCollision;
 	if(InteractionCollision)
 	{
 		InteractionCollision->SetCollisionObjectType(ECC_FP_Interactable_OC);
 		InteractionCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 		InteractionCollision->SetCollisionResponseToChannel(ECC_FP_Player_OC, ECR_Overlap);
+		InteractionCollision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+		InteractionCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 		InteractionCollision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 		InteractionCollision->SetGenerateOverlapEvents(true);
-		
-		InteractionCollision->OnComponentBeginOverlap.AddUniqueDynamic(this, &ThisClass::UInteractableComponent::OnInstigatorBeginOverlap);
-		InteractionCollision->OnComponentEndOverlap.AddUniqueDynamic(this, &ThisClass::UInteractableComponent::OnInstigatorEndOverlap);
 	}
 }
 
@@ -77,6 +70,7 @@ void UInteractableComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
+/*
 void UInteractableComponent::OnInstigatorBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -103,4 +97,4 @@ void UInteractableComponent::OnInstigatorEndOverlap(UPrimitiveComponent* Overlap
 	{
 		InteractionComponent->RemoveInteractable(this);
 	}
-}
+}*/

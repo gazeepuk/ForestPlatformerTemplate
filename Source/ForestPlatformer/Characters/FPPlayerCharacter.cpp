@@ -11,11 +11,10 @@
 #include "ActorComponents/HealthComponent/HealthComponent.h"
 #include "ActorComponents/InteractableComponents/PlayerInteractionComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SphereComponent.h"
 #include "CoreTypes/FPCustomCollisions.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Controllers/PlayerControllers/FPPlayerController.h"
-#include "CoreTypes/FPGameplayTags.h"
-#include "FunctionLibrary/FPFunctionLibrary.h"
 
 AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer.SetDefaultSubobjectClass<UFPCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -37,8 +36,14 @@ AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	CameraComponent->bUsePawnControlRotation = false;
 
 	GetMesh()->SetCollisionObjectType(ECC_FP_Player_OC);
+
+	InteractionCollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("InteractionCollisionComponent"));
+	InteractionCollisionComponent->SetupAttachment(GetRootComponent());
+	InteractionCollisionComponent->SetGenerateOverlapEvents(true);
+	InteractionCollisionComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	InteractionCollisionComponent->SetCollisionResponseToChannel(ECC_FP_Interactable_OC, ECR_Overlap);
 	
-	PlayerInteractionComponentV2 = CreateDefaultSubobject<UPlayerInteractionComponent>(TEXT("PlayerInteractionComponentV2"));
+	PlayerInteractionComponent = CreateDefaultSubobject<UPlayerInteractionComponent>(TEXT("PlayerInteractionComponent"));
 
 	CombatComponent = CreateDefaultSubobject<UPlayerCombatComponent>(TEXT("CombatComponent"));
 
@@ -90,6 +95,16 @@ bool AFPPlayerCharacter::CanInteract_Implementation() const
 	return HealthComponent && HealthComponent->IsAlive();
 }
 
+void AFPPlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if(PlayerInteractionComponent)
+	{
+		PlayerInteractionComponent->SetInteractionCollision(InteractionCollisionComponent);
+	}
+}
+
 void AFPPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -99,7 +114,7 @@ void AFPPlayerCharacter::PossessedBy(AController* NewController)
 		FPPlayerController->InitHUDWidget();
 		FPPlayerController->InitHealthBar(HealthComponent);
 		CombatComponent->InitCombatComponent();
-		PlayerInteractionComponentV2->BindInteractionAction();
+		PlayerInteractionComponent->BindInteractionAction();
 	}
 }
 

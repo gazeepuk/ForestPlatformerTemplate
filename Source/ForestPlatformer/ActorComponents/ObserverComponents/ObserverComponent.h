@@ -35,6 +35,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Observer")
 	TArray<AActor*> ObservableActors;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Observer")
+	bool bCanTriggerAgain = true;
+	
 private:
 	/** Callback function triggered when an observable component is triggered */
 	UFUNCTION()
@@ -45,4 +48,6 @@ private:
 
 	/** Map of the observables and their states */
 	TMap<UObservableComponent*, bool> Observables;
+
+	bool bHasTriggered = false;
 };

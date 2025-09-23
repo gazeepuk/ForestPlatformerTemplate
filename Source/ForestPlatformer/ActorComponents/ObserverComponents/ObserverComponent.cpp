@@ -50,7 +50,13 @@ void UObserverComponent::CheckObservablesState()
 
 	if (bAllActive)
 	{
+		if(!bCanTriggerAgain && bHasTriggered)
+		{
+			return;
+		}
+		
 		OnAllObservablesActivated.Broadcast();
+		bHasTriggered = true;
 	}
 }
 

@@ -6,12 +6,10 @@
 #include "Interfaces/CoinsWalletInterface.h"
 
 
-void ACoinCollectableBase::OnCollectableOverlapped_Implementation(AActor* InOverlappedActor)
+void ACoinCollectableBase::NativeOnCollected(AActor* InInstigator)
 {
-	if(InOverlappedActor && InOverlappedActor->Implements<UCoinsWalletInterface>())
+	if(InInstigator && InInstigator->Implements<UCoinsWalletInterface>())
 	{
-		ICoinsWalletInterface::Execute_AddCoins(InOverlappedActor, CoinsValue);
-
-		Super::OnCollectableOverlapped_Implementation(InOverlappedActor);
+		ICoinsWalletInterface::Execute_AddCoins(InInstigator, CoinsValue);
 	}
 }

@@ -40,12 +40,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UBoxComponent> BoxCollision;
 
-	/** Called when an actor overlaps with this collectable.
-	 * @note Always call Super to keep saving logic
-	 */
-	UFUNCTION(BlueprintNativeEvent)
-	void OnCollectableOverlapped(AActor* InOverlappedActor);
-
+	virtual void NativeOnCollected(AActor* InInstigator) {}
+	
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "On Collected")
+	void BP_OnCollected(AActor* InInstigator);
+	
 	/** If true, the collectable will be destroyed when collected */
 	UPROPERTY(EditAnywhere, Category = "Collectable")
 	bool bDestroyOnCollect = true;
@@ -53,7 +52,7 @@ protected:
 	/** If true and bDestroyOnCollect is false, the collectable will re-enable after a delay */
 	UPROPERTY(EditAnywhere, meta = (EditCondition = "!bDestroyOnCollect"), Category = "Collectable")
 	bool bEnableCollectableInTime = true;
-	/** Tiem in seconds before the collectable re-eanbles */
+	/** Time in seconds before the collectable re-enables */
 	UPROPERTY(EditAnywhere, meta = (EditCondition = "!bDestroyOnCollect && bEnableCollectableInTime"), Category = "Collectable")
 	float CollectableRespawnTime = 30.f;
 
@@ -72,13 +71,16 @@ protected:
 	/** If true, this collectable will be after being collected */
 	UPROPERTY(EditAnywhere, Category = "SavableObject")
 	bool bSaveOnCollected = false;
+	
 private:
+	/** Called after collecting the collectable. */
+	void HandleCollection();
 
 	/** Callback function for the box component overlap event */
 	UFUNCTION()
 	void OnBoxCollisionBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
-	FTimerHandle CoinRespawnTimerHandle;
+	FTimerHandle CollectableRespawnTimerHandle;
 
 	/** Reactivates this collectable */
 	UFUNCTION()

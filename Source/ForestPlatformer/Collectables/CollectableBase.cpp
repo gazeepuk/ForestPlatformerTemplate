@@ -5,7 +5,6 @@
 
 #include "Components/BoxComponent.h"
 #include "CoreTypes/FPCustomCollisions.h"
-#include "GameModes/FPGameMode.h"
 #include "Subsystems/SaveGameSubsystem.h"
 
 
@@ -55,7 +54,7 @@ void ACollectableBase::OnLoadedFromSaveData_Implementation()
 }
 
 
-void ACollectableBase::OnCollectableOverlapped_Implementation(AActor* InOverlappedActor)
+void ACollectableBase::HandleCollection()
 {
 	bActive = false;
 	
@@ -78,8 +77,8 @@ void ACollectableBase::OnCollectableOverlapped_Implementation(AActor* InOverlapp
 
 		if(bEnableCollectableInTime)
 		{
-			GetWorldTimerManager().ClearTimer(CoinRespawnTimerHandle);
-			GetWorldTimerManager().SetTimer(CoinRespawnTimerHandle, this, &ThisClass::RespawnCollectable, CollectableRespawnTime);
+			GetWorldTimerManager().ClearTimer(CollectableRespawnTimerHandle);
+			GetWorldTimerManager().SetTimer(CollectableRespawnTimerHandle, this, &ThisClass::RespawnCollectable, CollectableRespawnTime);
 		}
 	}
 }
@@ -95,7 +94,9 @@ void ACollectableBase::OnBoxCollisionBeginOverlap(UPrimitiveComponent* Overlappe
 {
 	if(CanCollect(OtherActor))
 	{
-		OnCollectableOverlapped(OtherActor);
+		NativeOnCollected(OtherActor);
+		BP_OnCollected(OtherActor);
+		HandleCollection();
 	}
 }
 
