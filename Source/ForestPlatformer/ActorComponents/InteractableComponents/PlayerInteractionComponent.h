@@ -91,4 +91,7 @@ private:
 	
 	/** Timer handle for managing periodic updates of focused interactables */
 	FTimerHandle UpdateInteractableTimerHandle;
+
+	/** Sets the interactable actor focus state */
+	static void SetInteractableActorFocused(AActor* InActor, bool bFocused);
 };

@@ -2,8 +2,6 @@
 
 
 #include "WindBoxComponent.h"
-
-#include "Components/ArrowComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -21,30 +19,28 @@ void UWindBoxComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if(bLifting)
+	if(bWindActive)
 	{
+		const FVector WindDirection = GetUpVector().GetSafeNormal();
+		const FVector WindForce = WindDirection * WindStrength;
+
 		for (AActor* LiftingActor : OverlappedActors)
 		{
-			if(!LiftingActor)
+			if(!IsValid(LiftingActor))
 			{
 				continue;
 			}
 
-			if(ACharacter* LiftingCharacter = Cast<ACharacter>(LiftingActor))
+			if(const ACharacter* LiftingCharacter = Cast<ACharacter>(LiftingActor))
 			{
-				const FVector AntiGravityForce = LiftingCharacter->GetCharacterMovement()->GetGravityDirection() * GetWorld()->GetGravityZ() * LiftingCharacter->GetCharacterMovement()->GravityScale * LiftingCharacter->GetCharacterMovement()->Mass;
-				const FVector WindForce = GetUpVector() * LiftSpeed;
-				LiftingCharacter->GetCharacterMovement()->AddForce(AntiGravityForce + WindForce);
-			}
-			else if(UPrimitiveComponent* RootPrim = Cast<UPrimitiveComponent>(LiftingActor->GetRootComponent()))
-			{
-				if(IsSimulatingPhysics())
+				if(UCharacterMovementComponent* CharacterMovementComponent = LiftingCharacter->GetCharacterMovement())
 				{
-					const FVector WindForce = GetUpVector() * LiftSpeed;
-					RootPrim->AddForce(WindForce);
+					const FVector AntiGravityForce = CharacterMovementComponent->GetGravityDirection() * CharacterMovementComponent->GravityScale * CharacterMovementComponent->GetGravityZ();
+					const FVector DumpingForce = -CharacterMovementComponent->Velocity;
+					
+					CharacterMovementComponent->Velocity += (AntiGravityForce + DumpingForce + WindForce) * DeltaTime;
 				}
 			}
-			
 		} 
 	}
 }
@@ -55,19 +51,6 @@ void UWindBoxComponent::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedCompone
 	if(OtherActor)
 	{
 		OverlappedActors.AddUnique(OtherActor);
-		if(UPrimitiveComponent* RootPrimitive = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent()))
-		{
-			RootPrimitive->SetEnableGravity(false);
-			FVector RootVelocity = RootPrimitive->GetComponentVelocity();
-			RootVelocity.Z =  FMath::Clamp(RootVelocity.Z, -125.f, 15.f);
-			RootPrimitive->SetPhysicsLinearVelocity(RootVelocity);
-		}
-		if(ACharacter* OtherCharacter = Cast<ACharacter>(OtherActor))
-		{
-			FVector CharacterVelocity = OtherCharacter->GetMovementComponent()->Velocity;
-			CharacterVelocity.Z = FMath::Clamp(CharacterVelocity.Z, -200.f, 15.f);
-			OtherCharacter->GetMovementComponent()->Velocity = CharacterVelocity;
-		}
 	}
 
 	if(!OverlappedActors.IsEmpty() && !PrimaryComponentTick.IsTickFunctionEnabled())
@@ -78,13 +61,9 @@ void UWindBoxComponent::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedCompone
 
 void UWindBoxComponent::OnBoxEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if(OtherActor && OtherActor->GetRootComponent()->Mobility == EComponentMobility::Type::Movable)
+	if(OtherActor)
 	{
 		OverlappedActors.Remove(OtherActor);
-		if(UPrimitiveComponent* RootPrimitive = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent()))
-		{
-			RootPrimitive->SetEnableGravity(true);
-		}
 	}
 
 	if (OverlappedActors.IsEmpty() && PrimaryComponentTick.IsTickFunctionEnabled())

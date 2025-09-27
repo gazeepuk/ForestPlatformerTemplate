@@ -119,26 +119,16 @@ void UPlayerInteractionComponent::UpdateFocusedInteractableActor()
 		return;
 	}
 	
-	UInteractableComponent* ClosestInteractableComponent = ClosestInteractableActor
-	?  ClosestInteractableActor->GetComponentByClass<UInteractableComponent>()
-	: nullptr;
-	
-	UInteractableComponent* FocusedInteractableComponent = FocusedInteractableActor.IsValid()
-	? FocusedInteractableActor->GetComponentByClass<UInteractableComponent>()
-	: nullptr;
-
-	if(FocusedInteractableComponent)
+	if(FocusedInteractableActor.IsValid())
 	{
-		FocusedInteractableComponent->SetIsFocused(false);
+		SetInteractableActorFocused(FocusedInteractableActor.Get(), false);
 	}
 	
-	FocusedInteractableComponent = ClosestInteractableComponent;
-	if(FocusedInteractableComponent)
-	{
-		FocusedInteractableComponent->SetIsFocused(true);
-	}
-
 	FocusedInteractableActor = ClosestInteractableActor;
+	if(FocusedInteractableActor.IsValid())
+	{
+		SetInteractableActorFocused(FocusedInteractableActor.Get(), true);
+	}
 }
 
 void UPlayerInteractionComponent::PerformInteraction() const
@@ -225,4 +215,21 @@ void UPlayerInteractionComponent::RemoveActorInteractableActor(const AActor* InA
 void UPlayerInteractionComponent::InteractAction_Started(const FInputActionValue& InputActionValue)
 {
 	PerformInteraction();
+}
+
+void UPlayerInteractionComponent::SetInteractableActorFocused(AActor* InActor, bool bFocused)
+{
+	if(!InActor)
+	{
+		return;
+	}
+
+	if(UInteractableComponent* InteractableComponent = InActor->GetComponentByClass<UInteractableComponent>())
+	{
+		InteractableComponent->SetIsFocused(bFocused);
+	}
+	if(InActor->Implements<UInteractableInterface>())
+	{
+		IInteractableInterface::Execute_OnFocusChanged(InActor, bFocused);
+	}
 }

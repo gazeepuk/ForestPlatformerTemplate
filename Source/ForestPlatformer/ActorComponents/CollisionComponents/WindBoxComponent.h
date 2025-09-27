@@ -24,11 +24,11 @@ public:
 protected:
 	/** Speed at which actors are lifted upward within the wind volume */
 	UPROPERTY(EditAnywhere, Category = "Lifting")
-	float LiftSpeed = 15000.f;
+	float WindStrength = 15000.f;
 	
 	/**	Controls whether the wind lifting effect is currently active */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Lifting")
-	bool bLifting = true;
+	bool bWindActive = true;
 
 	/**	Callback function triggered when an actor enters the wind volume */
 	UFUNCTION()

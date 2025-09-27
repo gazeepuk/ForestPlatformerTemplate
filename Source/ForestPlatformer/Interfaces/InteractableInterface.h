@@ -28,4 +28,6 @@ public:
 	bool CanInteract(AActor* Instigator);
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
 	FText GetInteractableText() const;
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
+	void OnFocusChanged(bool bFocused);
 };
