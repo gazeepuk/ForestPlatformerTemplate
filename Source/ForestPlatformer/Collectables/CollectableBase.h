@@ -36,6 +36,7 @@ public:
 	//~End ISavableActorInterface
 	
 protected:
+	
 	/** Collectable collision */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UBoxComponent> BoxCollision;
@@ -71,7 +72,7 @@ protected:
 	/** If true, this collectable will be after being collected */
 	UPROPERTY(EditAnywhere, Category = "SavableObject")
 	bool bSaveOnCollected = false;
-	
+
 private:
 	/** Called after collecting the collectable. */
 	void HandleCollection();

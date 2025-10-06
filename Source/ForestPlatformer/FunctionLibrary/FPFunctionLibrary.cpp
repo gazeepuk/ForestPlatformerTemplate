@@ -7,6 +7,7 @@
 #include "ActorComponents/EffectComponent/FPEffectComponent.h"
 #include "Effects/FPEffectBase.h"
 #include "Interfaces/GameplayTagModifierInterface.h"
+#include "Interfaces/SavableActorInterface.h"
 
 
 bool UFPFunctionLibrary::NativeDoesActorHaveTag(const AActor* InActor, const FGameplayTag& InGameplayTag)

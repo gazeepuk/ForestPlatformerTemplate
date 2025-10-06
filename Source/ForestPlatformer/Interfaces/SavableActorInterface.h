@@ -9,7 +9,7 @@
 
 // This class does not need to be modified.
 UINTERFACE()
-class USavableActorInterface : public UInterface
+class FORESTPLATFORMER_API USavableActorInterface : public UInterface
 {
 	GENERATED_BODY()
 };

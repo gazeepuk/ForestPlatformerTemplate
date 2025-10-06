@@ -37,8 +37,9 @@ void UWindBoxComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 				{
 					const FVector AntiGravityForce = CharacterMovementComponent->GetGravityDirection() * CharacterMovementComponent->GravityScale * CharacterMovementComponent->GetGravityZ();
 					const FVector DumpingForce = -CharacterMovementComponent->Velocity;
+					const FVector ForceToApply = (AntiGravityForce + DumpingForce + WindForce) * DeltaTime;
 					
-					CharacterMovementComponent->Velocity += (AntiGravityForce + DumpingForce + WindForce) * DeltaTime;
+					CharacterMovementComponent->Velocity += ForceToApply;
 				}
 			}
 		} 
@@ -53,6 +54,12 @@ void UWindBoxComponent::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedCompone
 		OverlappedActors.AddUnique(OtherActor);
 	}
 
+	if(ACharacter* LiftingCharacter = Cast<ACharacter>(OtherActor))
+	{
+		const FVector UpwardLaunch = FVector(0.f, 0.f, 10.f);
+		LiftingCharacter->LaunchCharacter(UpwardLaunch, false, true);
+	}
+	
 	if(!OverlappedActors.IsEmpty() && !PrimaryComponentTick.IsTickFunctionEnabled())
 	{
 		PrimaryComponentTick.SetTickFunctionEnable(true);

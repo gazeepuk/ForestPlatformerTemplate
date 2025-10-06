@@ -151,6 +151,8 @@ void AFPGameMode::InitGameFromSave()
 		LastActiveCheckpoint = FindCheckpointByID(LastCheckpointID);
 		
 		SaveSubsystem->LoadCurrentLevelFromSave();
+
+		RespawnPlayer(GetWorld()->GetFirstPlayerController());
 	}
 }
 

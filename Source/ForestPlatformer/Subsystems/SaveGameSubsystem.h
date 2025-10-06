@@ -27,10 +27,11 @@ public:
 	/* Returns the name of the current active save slot */
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE FString GetCurrentSlotName() const { return CurrentSlotName; }
+
 	/* Sets the name of the current save slot */
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentSlotName(const FString& NewSlotName);
-
+	
 	/* Returns the clean name of the current level */
 	UFUNCTION(BlueprintPure)
 	FString GetCleanLevelName() const;
@@ -69,9 +70,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SaveGameSlot(const FString& SlotName = "SaveSlot", const int32 UserIndex = 0, const bool bAsyncSave = false);
 
-	/* Writes the current level's data to the save game */
-	void WriteSaveData();
-
 	/*
 	 * Adds a savable actor to be processed during the next save.
 	 * Useful for actors that may be destroyed before the save occurs saving
@@ -91,6 +89,9 @@ public:
 	FOnSaveGameSaved OnSaveGameSaved;
 
 protected:
+	/* Writes the current level's data to the save game */
+	void WriteSaveData();
+	
 	/** the current loaded game save */
 	UPROPERTY()
 	TObjectPtr<UFPSaveGame> SaveGame;

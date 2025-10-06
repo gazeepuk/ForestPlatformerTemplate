@@ -88,6 +88,7 @@ void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserI
 		else
 		{
 			SaveGame = Cast<UFPSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, UserIndex));
+			OnSaveGameLoaded.Broadcast(SlotName, UserIndex, SaveGame);
 		}
 
 		if(!SaveGame)
@@ -100,6 +101,8 @@ void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserI
 	if(!SaveGame)
 	{
 		SaveGame = Cast<UFPSaveGame>(UGameplayStatics::CreateSaveGameObject(UFPSaveGame::StaticClass()));
+		OnSaveGameLoaded.Broadcast(SlotName, UserIndex, SaveGame);
+
 		if(!SaveGame)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Failed to create a new save data"));
@@ -109,9 +112,16 @@ void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserI
 
 void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserIndex, const bool bAsyncSave)
 {
-	if(!SaveGame || !GetWorld())
+	if(!SaveGame)
 	{
-		return;
+		// Try to load or create a new save slot, if it does not exist
+		LoadGameSlot(SlotName, UserIndex);
+
+		if(!SaveGame)
+		{
+			UE_LOG(LogTemp, Error, TEXT("SaveGame is invalid. Can't save the data"));
+			return;
+		}
 	}
 
 	// Write save data of current level
@@ -135,13 +145,17 @@ void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserI
 	// Sync saving 
 	else
 	{
-		if(UGameplayStatics::SaveGameToSlot(SaveGame, SlotName, UserIndex))
+		bool bSavedSuccessfully = UGameplayStatics::SaveGameToSlot(SaveGame, SlotName, UserIndex);
+		OnSaveGameSaved.Broadcast(SlotName, UserIndex, bSavedSuccessfully);
+		
+		if(bSavedSuccessfully)
 		{
 			UE_LOG(LogTemp, Display, TEXT("Successfly saved game"));
 		}
 	}
 
 }
+
 
 void USaveGameSubsystem::WriteSaveData()
 {
