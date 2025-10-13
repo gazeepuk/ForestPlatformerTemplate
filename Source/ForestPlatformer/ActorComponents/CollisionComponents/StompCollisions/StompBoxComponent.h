@@ -33,7 +33,7 @@ protected:
 
 	/**	Vertical tolerance buffer for detecting "above" positioning */
 	UPROPERTY(EditDefaultsOnly)
-	float StompHeightBuffer = 10.f;
+	float StompHeightBuffer = 5.f;
 private:
 	/** Callback function triggered when any actor begins overlapping this component */
 	UFUNCTION()

@@ -37,7 +37,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Observer")
 	bool bCanTriggerAgain = true;
-	
+
 private:
 	/** Callback function triggered when an observable component is triggered */
 	UFUNCTION()
