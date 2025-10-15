@@ -4,6 +4,7 @@
 #include "ActorComponents/ObserverComponents/ObserverComponent.h"
 
 #include "ObservableComponent.h"
+#include "ObserverConditions/ObserverCondition.h"
 
 UObserverComponent::UObserverComponent()
 {
@@ -20,28 +21,55 @@ void UObserverComponent::BeginPlay()
 
 void UObserverComponent::InitObservables()
 {
-	for (const AActor* ObservableActor : ObservableActors)
+	for (const FObservedCondition& ObservedCondition : ObservedConditions)
 	{
-		if (UObservableComponent* ObservableComponent = ObservableActor->GetComponentByClass<UObservableComponent>())
+		if(ObservedCondition.IsValid())
 		{
-			ObservableComponent->OnObservableStateChanged.AddDynamic(this, &ThisClass::OnObservableStateChanged);
-			Observables.FindOrAdd(ObservableComponent, ObservableComponent->IsObservableActive());
+			if(UObservableComponent* ObservableComponent = ObservedCondition.ObservableActor->GetComponentByClass<UObservableComponent>())
+			{
+				if(!ObservableToCondition.Contains(ObservableComponent))
+				{
+					ObservableComponent->OnObservableStateChanged.AddUniqueDynamic(this, &ThisClass::OnObservableStateChanged);
+					ObservableToCondition.Add(ObservableComponent, ObservedCondition.ObserverCondition);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning,
+						TEXT("Observable %s observable component already contains in %s observer component"),
+						*GetNameSafe(ObservedCondition.ObservableActor),
+						*GetNameSafe(GetOwner()));
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning,
+						TEXT("Observable %s actor does not have an observable component"),
+						*GetNameSafe(ObservedCondition.ObservableActor));
+			}
 		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("%s does not have UObservableComponent. %s can't observe this actor"),
-			       *GetNameSafe(ObservableActor), *GetNameSafe(GetOwner()));
-		}
-	}
+	} 
 }
 
-void UObserverComponent::CheckObservablesState()
+void UObserverComponent::CheckObservableStates()
 {
 	bool bAllActive = true;
 
-	for (TPair<UObservableComponent*, bool> Observable : Observables)
+	for (TPair<UObservableComponent*, UObserverCondition*> ObservableCondition : ObservableToCondition)
 	{
-		if (Observable.Key && !Observable.Key->IsObservableActive())
+		UObservableComponent* ObservableComponent = ObservableCondition.Key;
+		UObserverCondition* ObserverCondition = ObservableCondition.Value;
+		
+		if (ObservableComponent && ObserverCondition)
+		{
+			bool bHasConditionMet = ObserverCondition->IsConditionMet_Implementation(ObservableComponent->GetObservableState());
+			if(!bHasConditionMet)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s hasn't met condition"), *GetNameSafe(ObservableComponent->GetOwner()));
+				bAllActive = false;
+				break;
+			}
+		}
+		else
 		{
 			bAllActive = false;
 			break;
@@ -50,22 +78,21 @@ void UObserverComponent::CheckObservablesState()
 
 	if (bAllActive)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("All observables are active"));
+
 		if(!bCanTriggerAgain && bHasTriggered)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("-- Has already triggered. Can't trigger again"));
 			return;
 		}
 		
 		OnAllObservablesActivated.Broadcast();
 		bHasTriggered = true;
+		UE_LOG(LogTemp, Warning, TEXT("Observer has triggered"));
 	}
 }
 
-void UObserverComponent::OnObservableStateChanged(UObservableComponent* InObservable, bool bObservableActive)
+void UObserverComponent::OnObservableStateChanged(UObservableComponent* InChangedObservable)
 {
-	if (InObservable && Observables.Contains(InObservable))
-	{
-		Observables[InObservable] = bObservableActive;
-	}
-
-	CheckObservablesState();
+	CheckObservableStates();
 }

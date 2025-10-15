@@ -6,13 +6,13 @@
 #include "Components/ActorComponent.h"
 #include "ObservableComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnObservableStateChanged, UObservableComponent*, ObservableActor, bool, bObservableActive);
+class UObservableState;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnObservableStateChanged, UObservableComponent*, ObservableActor);
 
 /**
  * Component that represents an observable entity which can be triggered
  * and notifies observers when its state changes to triggered
  */
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class FORESTPLATFORMER_API UObservableComponent : public UActorComponent
 {
@@ -21,20 +21,21 @@ class FORESTPLATFORMER_API UObservableComponent : public UActorComponent
 public:	
 
 	UObservableComponent();
-
-	/** Checks if this component has been triggered */
-	UFUNCTION(BlueprintPure)
-	FORCEINLINE bool IsObservableActive() const { return bObservableActive; }
-
+	
 	/** Delegate that broadcasts when this component is triggered */
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "Observable")
 	FOnObservableStateChanged OnObservableStateChanged;
-
-	/** Triggers this component and notifies all subscribers */
-	UFUNCTION(BlueprintCallable)
-	void SetObservableActive(bool bNewActive);
+	
+	UFUNCTION(BlueprintPure, Category = "Observable")
+	FORCEINLINE UObservableState* GetObservableState() const { return ObservableState; }
+	
+protected:
+	virtual void BeginPlay() override;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "Observable")
+	TObjectPtr<UObservableState> ObservableState;
 
 private:
-	/** Indicates whether this component has been triggered */
-	bool bObservableActive = false;
+	UFUNCTION()
+	void ObservableStateChanged();
 };

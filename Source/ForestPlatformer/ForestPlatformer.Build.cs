@@ -20,7 +20,8 @@ public class ForestPlatformer : ModuleRules
             "NavigationSystem",
             "AnimGraphRuntime",
             "Niagara",
-            "CommonUI"
+            "CommonUI",
+            "StructUtils"
         });
 		
 		PublicIncludePaths.Add("ForestPlatformer/");

@@ -3,18 +3,26 @@
 
 #include "ActorComponents/ObserverComponents/ObservableComponent.h"
 
+#include "ObservableStates/ObservableState.h"
+
 UObservableComponent::UObservableComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UObservableComponent::SetObservableActive(bool bNewActive)
+void UObservableComponent::BeginPlay()
 {
-	if(bObservableActive == bNewActive)
-	{
-		return;
-	}
+	Super::BeginPlay();
 
-	bObservableActive = bNewActive;
-	OnObservableStateChanged.Broadcast(this, bObservableActive);
+	if(ensureMsgf(ObservableState,
+		TEXT("Observer State for %s actor is nullptr. Assign the state object, otherwise checking results with any observable condition will be false"),
+		*GetNameSafe(GetOwner())))
+	{
+		ObservableState->OnStateChanged.AddUniqueDynamic(this, &ThisClass::ObservableStateChanged);
+	}
+}
+
+void UObservableComponent::ObservableStateChanged()
+{
+	OnObservableStateChanged.Broadcast(this);
 }
