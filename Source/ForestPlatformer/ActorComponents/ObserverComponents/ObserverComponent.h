@@ -9,7 +9,7 @@
 class UObserverCondition;
 class UObservableComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAllObservablesActivated);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAllObservableStatesChanged, bool, bConditionsMet);
 
 USTRUCT(BlueprintType)
 struct FObservedCondition
@@ -39,8 +39,14 @@ public:
 
 	/** Delegate that broadcasts when all observables are activated at the current time */
 	UPROPERTY(BlueprintAssignable)
-	FOnAllObservablesActivated OnAllObservablesActivated;
+	FOnAllObservableStatesChanged OnAllObservablesActivated;
 
+	UFUNCTION(BlueprintPure, Category = "Observer")
+	FORCEINLINE bool HaveConditionsMet() const { return bConditionsMet; }
+
+	UFUNCTION(BlueprintCallable, Category = "Observer")
+	void ResetHasTrigger();
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -49,6 +55,7 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Observer")
 	TArray<FObservedCondition> ObservedConditions;
+	
 	
 private:
 	/** Subscribes to observable delegates */
@@ -63,4 +70,6 @@ private:
 	
 	TMap<UObservableComponent*, UObserverCondition*> ObservableToCondition;
 	TArray<FObservedCondition> ObservablesConditions;
+
+	bool bConditionsMet = false;
 };

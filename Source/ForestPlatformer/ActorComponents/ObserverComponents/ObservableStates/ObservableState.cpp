@@ -96,6 +96,11 @@ void UTriggerObservableState::SetStateValue_Implementation(const FInstancedStruc
 	}
 }
 
+void UTriggerObservableState::ResetTrigger()
+{
+	bHasTriggered = false;
+}
+
 void UTriggerObservableState::TriggerState()
 {
 	SetStateValue(FInstancedStruct::Make(FTriggerObservableData(true)));

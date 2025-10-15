@@ -11,6 +11,10 @@ UObserverComponent::UObserverComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+void UObserverComponent::ResetHasTrigger()
+{
+	bHasTriggered = false;
+}
 
 void UObserverComponent::BeginPlay()
 {
@@ -75,20 +79,30 @@ void UObserverComponent::CheckObservableStates()
 			break;
 		}
 	}
-
+	
+	if(bConditionsMet == bAllActive)
+	{
+		return;
+	}
+	
+	if(!bCanTriggerAgain && bHasTriggered)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Observer has already triggered. Can't trigger again"));
+		return;
+	}
+	
+	bConditionsMet = bAllActive;
+	OnAllObservablesActivated.Broadcast(bConditionsMet);
+	UE_LOG(LogTemp, Warning, TEXT("Observable states have changed"));
+	
 	if (bAllActive)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("All observables are active"));
-
-		if(!bCanTriggerAgain && bHasTriggered)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("-- Has already triggered. Can't trigger again"));
-			return;
-		}
-		
-		OnAllObservablesActivated.Broadcast();
+		UE_LOG(LogTemp, Warning, TEXT("All observer conditions have met"));
 		bHasTriggered = true;
-		UE_LOG(LogTemp, Warning, TEXT("Observer has triggered"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Some observer conditions haven't met"));
 	}
 }
 

@@ -75,6 +75,9 @@ public:
 	
 	virtual FInstancedStruct GetStateValue_Implementation() override;
 	virtual void SetStateValue_Implementation(const FInstancedStruct& NewValue) override;
+
+	UFUNCTION(BlueprintCallable)
+	void ResetTrigger();
 	
 	UFUNCTION(BlueprintCallable)
 	void TriggerState();
