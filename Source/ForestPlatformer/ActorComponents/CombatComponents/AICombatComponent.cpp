@@ -4,7 +4,7 @@
 #include "AICombatComponent.h"
 
 #include "AIController.h"
-#include "AttackTypes/FPAttackType.h"
+#include "CoreTypes/AttackTypes/FPAttackType.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "CoreTypes/FPGameplayTags.h"
 #include "FunctionLibrary/FPFunctionLibrary.h"

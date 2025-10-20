@@ -2,8 +2,7 @@
 
 
 #include "FPEffectComponent.h"
-
-#include "Effects/FPEffectBase.h"
+#include "CoreTypes/Effects/FPEffectBase.h"
 
 
 UFPEffectComponent::UFPEffectComponent()

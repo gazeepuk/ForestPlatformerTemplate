@@ -64,6 +64,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool TryAbortActiveAttack();
 
+	UFUNCTION(BlueprintPure)
+	bool CanActivateAttackByTag(FGameplayTag InAttackTypeTag);
+
+	UFUNCTION(BlueprintPure)
+	float GetAttackRemainingCooldown(FGameplayTag InAttackTypeTag);
 protected:
 	
 	/** Callback function triggered when an attack has ended */
@@ -77,7 +82,6 @@ protected:
 	/** Default attack types to be granted */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|AttackTypes")
 	TArray<TSubclassOf<UFPAttackType>> DefaultAttackTypeClasses;
-
 
 	/** Activates the specified ability */
 	UFUNCTION(BlueprintNativeEvent)

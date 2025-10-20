@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Effects/FPEffectBase.h"
+#include "CoreTypes/Effects/FPEffectBase.h"
 #include "FPEffectComponent.generated.h"
 
 class UFPEffectBase;

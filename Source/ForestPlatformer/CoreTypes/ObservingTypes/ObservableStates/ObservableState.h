@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "InstancedStruct.h"
-#include "ActorComponents/ObserverComponents/ObservableDataTypes/ObservableDataTypes.h"
 #include "ObservableState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStateChanged);

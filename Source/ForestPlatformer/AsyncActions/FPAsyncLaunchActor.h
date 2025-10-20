@@ -63,4 +63,11 @@ private:
 	bool bShouldOrientToMovement;
 	/** Timer handle for managing the launch update tick */
 	FTimerHandle LaunchTimerHandle;
+
+	bool bFalling;
+	FVector CurrentVelocity;
+	
+	void ParabolicMovement();
+	void FallingMovement();
+	void SwitchToFalling();
 };

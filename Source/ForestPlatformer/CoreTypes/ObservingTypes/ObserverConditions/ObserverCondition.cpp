@@ -3,7 +3,8 @@
 
 #include "ObserverCondition.h"
 
-#include "ActorComponents/ObserverComponents/ObservableStates/ObservableState.h"
+#include "CoreTypes/ObservingTypes/ObservableDataTypes/ObservableDataTypes.h"
+#include "CoreTypes/ObservingTypes/ObservableStates/ObservableState.h"
 
 bool UObserverCondition::IsConditionMet_Implementation(UObservableState* InObservableState) const
 {

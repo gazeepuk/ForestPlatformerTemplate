@@ -42,7 +42,6 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
-
 	// Find a checkpoint by ID
 	AFPCheckpoint* FindCheckpointByID(const FName& InCheckpointID) const;
 	

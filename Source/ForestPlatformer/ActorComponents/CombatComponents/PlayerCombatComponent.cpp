@@ -5,7 +5,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "AttackTypes/FPAttackType.h"
+#include "CoreTypes/AttackTypes/FPAttackType.h"
 
 bool UPlayerCombatComponent::CanAttack_Implementation()
 {

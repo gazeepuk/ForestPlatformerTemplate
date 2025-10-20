@@ -3,7 +3,7 @@
 
 #include "ActorComponents/ObserverComponents/ObservableComponent.h"
 
-#include "ObservableStates/ObservableState.h"
+#include "CoreTypes/ObservingTypes/ObservableStates/ObservableState.h"
 
 UObservableComponent::UObservableComponent()
 {

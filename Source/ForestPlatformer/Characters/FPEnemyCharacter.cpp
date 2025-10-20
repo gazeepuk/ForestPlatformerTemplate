@@ -5,15 +5,14 @@
 
 #include "AIController.h"
 #include "BrainComponent.h"
-#include "ActorComponents/FPCharacterMovementComponent.h"
-#include "ActorComponents/AIComponents/AICombatComponent.h"
+#include "ActorComponents/CharacterMovementComponents/FPCharacterMovementComponent.h"
+#include "ActorComponents/CombatComponents/AICombatComponent.h"
 #include "ActorComponents/EffectComponent/FPEffectComponent.h"
 #include "ActorComponents/HealthComponent/HealthComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "CoreTypes/FPCustomCollisions.h"
 #include "CoreTypes/FPGameplayTags.h"
 #include "FunctionLibrary/FPFunctionLibrary.h"
-#include "GameModes/FPGameMode.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Subsystems/SaveGameSubsystem.h"
 

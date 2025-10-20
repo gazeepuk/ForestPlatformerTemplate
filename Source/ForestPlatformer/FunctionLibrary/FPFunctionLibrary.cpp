@@ -5,7 +5,7 @@
 #include "GameplayTagAssetInterface.h"
 #include "GenericTeamAgentInterface.h"
 #include "ActorComponents/EffectComponent/FPEffectComponent.h"
-#include "Effects/FPEffectBase.h"
+#include "CoreTypes/Effects/FPEffectBase.h"
 #include "Interfaces/GameplayTagModifierInterface.h"
 #include "Interfaces/SavableActorInterface.h"
 

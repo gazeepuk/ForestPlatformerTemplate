@@ -70,6 +70,10 @@ public:
 	 * @param InOwningActor The actor that own and perform this attack type
 	 * @param InCombatComponent The combat component managing this attack
 	 */
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetRemainingCooldownTime() const { return RemainingCooldown; }
+	
 	UFUNCTION(BlueprintCallable)
 	virtual void InitAttack(AActor* InOwningActor, UCombatComponentBase* InCombatComponent);
 

@@ -4,7 +4,7 @@
 #include "FPGameMode.h"
 
 #include "EngineUtils.h"
-#include "Checkpoints/FPCheckpoint.h"
+#include "EnvironmentActors/Checkpoints/FPCheckpoint.h"
 #include "GameFramework/PlayerStart.h"
 #include "Interfaces/SavableActorInterface.h"
 #include "Kismet/GameplayStatics.h"
@@ -33,7 +33,7 @@ void AFPGameMode::BeginPlay()
 			}
 		}
 	}
-	
+
 	InitGameFromSave();
 }
 

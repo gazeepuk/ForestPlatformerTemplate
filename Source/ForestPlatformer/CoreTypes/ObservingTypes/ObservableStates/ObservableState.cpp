@@ -3,6 +3,8 @@
 
 #include "ObservableState.h"
 
+#include "CoreTypes/ObservingTypes/ObservableDataTypes/ObservableDataTypes.h"
+
 FInstancedStruct UObservableState::GetStateValue_Implementation()
 {
 	return FInstancedStruct();

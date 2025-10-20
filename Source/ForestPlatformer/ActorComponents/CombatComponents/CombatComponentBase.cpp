@@ -3,7 +3,7 @@
 
 #include "CombatComponentBase.h"
 
-#include "AttackTypes/FPAttackType.h"
+#include "CoreTypes/AttackTypes/FPAttackType.h"
 #include "CoreTypes/FPGameplayTags.h"
 #include "FunctionLibrary/FPFunctionLibrary.h"
 
@@ -106,6 +106,24 @@ bool UCombatComponentBase::TryAbortActiveAttack()
 	}
 
 	return true;
+}
+
+bool UCombatComponentBase::CanActivateAttackByTag(FGameplayTag InAttackTypeTag)
+{
+	if(UFPAttackType* AttackType = FindAttackTypeByTag(InAttackTypeTag))
+	{
+		return AttackType->CanAttack();
+	}
+	return false;
+}
+
+float UCombatComponentBase::GetAttackRemainingCooldown(FGameplayTag InAttackTypeTag)
+{
+	if(UFPAttackType* AttackType = FindAttackTypeByTag(InAttackTypeTag))
+	{
+		return AttackType->GetRemainingCooldownTime();
+	}
+	return -1.f;
 }
 
 void UCombatComponentBase::OnAttackEnded()

@@ -19,6 +19,8 @@ UFPAsyncLaunchActor* UFPAsyncLaunchActor::LaunchActor(UObject* WorldContextObjec
 	Task->ControlPoint = (Task->StartLocation + Task->TargetLocation) * 0.5f + FVector(0,0,MaxHeight);
 	Task->TotalDuration = FMath::Max(0, Duration);
 	Task->bShouldOrientToMovement = bOrientToMovement;
+	Task->bFalling = false;
+	Task->CurrentVelocity = FVector::ZeroVector;
 	Task->RegisterWithGameInstance(WorldContextObject);
 
 	return Task;
@@ -45,13 +47,40 @@ void UFPAsyncLaunchActor::TickMovement()
 	}
 
 	ElapsedTime += GetWorld()->GetDeltaSeconds();
+
+	if(!bFalling)
+	{
+		ParabolicMovement();
+	}
+	else
+	{
+		FallingMovement();
+	}
+}
+
+void UFPAsyncLaunchActor::Cleanup()
+{
+	OnLaunchCompleted.Broadcast();
+	SetReadyToDestroy();
+}
+
+void UFPAsyncLaunchActor::ParabolicMovement()
+{
 	const float Alpha = FMath::Clamp(ElapsedTime / TotalDuration, 0.f, 1.f);
 	const FVector NewLocation = FMath::Lerp(
 		FMath::Lerp(StartLocation, ControlPoint, Alpha),
 		FMath::Lerp(ControlPoint, TargetLocation, Alpha),
 		Alpha);
+
+	if(Alpha >= 1.f)
+	{
+		SwitchToFalling();
+		return;
+	}
+
+	CurrentVelocity = (NewLocation - LaunchingActor->GetActorLocation()) / GetWorld()->GetDeltaSeconds();
 	
-	if(bShouldOrientToMovement && Alpha < 1.f)
+	if(bShouldOrientToMovement)
 	{
 		const FVector Direction = NewLocation - LaunchingActor->GetActorLocation();
 		if(Direction.SizeSquared() > SMALL_NUMBER)
@@ -62,19 +91,44 @@ void UFPAsyncLaunchActor::TickMovement()
 	
 	LaunchingActor->SetActorLocation(NewLocation, true);
 
-	if(Alpha < 1.f && GetWorld())
-	{
-		GetWorld()->GetTimerManager().ClearTimer(LaunchTimerHandle);
-		LaunchTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UFPAsyncLaunchActor::TickMovement);
-	}
-	else
-	{
-		Cleanup();
-	}
+	GetWorld()->GetTimerManager().ClearTimer(LaunchTimerHandle);
+	LaunchTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UFPAsyncLaunchActor::TickMovement);
 }
 
-void UFPAsyncLaunchActor::Cleanup()
+void UFPAsyncLaunchActor::FallingMovement()
 {
-	OnLaunchCompleted.Broadcast();
-	SetReadyToDestroy();
+	CurrentVelocity.Z += GetWorld()->GetGravityZ() * GetWorld()->GetDeltaSeconds();
+	
+	FVector CurrentLocation = LaunchingActor->GetActorLocation();
+	FVector NewLocation = CurrentLocation + CurrentVelocity * GetWorld()->GetDeltaSeconds();
+	
+	FHitResult HitResult;
+	FVector TraceStart = CurrentLocation;
+	FVector TraceEnd = NewLocation;
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(LaunchingActor.Get());
+
+	if(GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_WorldStatic, CollisionParams))
+	{
+		LaunchingActor->SetActorLocation(HitResult.Location, true);
+		Cleanup();
+		return;
+	}
+	
+	LaunchingActor->SetActorLocation(NewLocation, true);
+
+	if(bShouldOrientToMovement && CurrentVelocity.SizeSquared() > SMALL_NUMBER)
+	{
+		LaunchingActor->SetActorRotation(CurrentVelocity.Rotation());
+	}
+
+	LaunchTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UFPAsyncLaunchActor::TickMovement);
+}
+
+void UFPAsyncLaunchActor::SwitchToFalling()
+{
+	bFalling = true;
+	CurrentVelocity.Z = -FMath::Abs(CurrentVelocity.Z) * 0.75f;
+	
+	LaunchTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UFPAsyncLaunchActor::TickMovement);
 }

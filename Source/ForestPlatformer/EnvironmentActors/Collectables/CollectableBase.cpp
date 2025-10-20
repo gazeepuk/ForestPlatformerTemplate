@@ -11,12 +11,15 @@
 
 ACollectableBase::ACollectableBase()
 {
+	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	SetRootComponent(Root);
+	
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
 	BoxCollision->SetGenerateOverlapEvents(true);
 	BoxCollision->SetCollisionObjectType(ECC_FP_Collectable_OC);
 	BoxCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 	BoxCollision->SetCollisionResponseToChannel(ECC_FP_Player_OC, ECR_Overlap);
-	SetRootComponent(BoxCollision);
+	BoxCollision->SetupAttachment(GetRootComponent());
 	
 	BoxCollision->OnComponentBeginOverlap.AddUniqueDynamic(this, &ThisClass::OnBoxCollisionBeginOverlap);
 

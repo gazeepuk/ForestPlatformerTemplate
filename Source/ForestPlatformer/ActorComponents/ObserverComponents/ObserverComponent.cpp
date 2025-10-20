@@ -4,7 +4,7 @@
 #include "ActorComponents/ObserverComponents/ObserverComponent.h"
 
 #include "ObservableComponent.h"
-#include "ObserverConditions/ObserverCondition.h"
+#include "CoreTypes/ObservingTypes/ObserverConditions/ObserverCondition.h"
 
 UObserverComponent::UObserverComponent()
 {
