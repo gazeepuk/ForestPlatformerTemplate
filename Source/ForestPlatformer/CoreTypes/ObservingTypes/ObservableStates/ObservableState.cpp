@@ -61,7 +61,7 @@ void UBoolObservableState::SetStateBoolValue(bool bNewValue)
 
 void UToggleObservableState::SetStateValue_Implementation(const FInstancedStruct& NewValue)
 {
-	Super::SetStateValue_Implementation(FInstancedStruct::Make(FBoolObservableData(!GetStateBoolValue())));
+	UBoolObservableState::SetStateValue_Implementation(FInstancedStruct::Make(FBoolObservableData(!GetStateBoolValue())));
 }
 
 void UToggleObservableState::ToggleState()
@@ -86,16 +86,8 @@ void UTriggerObservableState::SetStateValue_Implementation(const FInstancedStruc
 		return;
 	}
 	
-	if(!NewValue.IsValid())
-	{
-		return;
-	}
-
-	if(const FTriggerObservableData* TriggerObservableData = NewValue.GetPtr<FTriggerObservableData>())
-	{
-		bHasTriggered = true;
-		OnStateChanged.Broadcast();
-	}
+	bHasTriggered = true;
+	OnStateChanged.Broadcast();
 }
 
 void UTriggerObservableState::ResetTrigger()

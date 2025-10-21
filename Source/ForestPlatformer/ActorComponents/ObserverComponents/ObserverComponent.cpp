@@ -2,8 +2,6 @@
 
 
 #include "ActorComponents/ObserverComponents/ObserverComponent.h"
-
-#include "ObservableComponent.h"
 #include "CoreTypes/ObservingTypes/ObserverConditions/ObserverCondition.h"
 
 UObserverComponent::UObserverComponent()
@@ -33,7 +31,7 @@ void UObserverComponent::InitObservables()
 			{
 				if(!ObservableToCondition.Contains(ObservableComponent))
 				{
-					ObservableComponent->OnObservableStateChanged.AddUniqueDynamic(this, &ThisClass::OnObservableStateChanged);
+					ObservableComponent->OnObservableStateChanged.AddUniqueDynamic(this, &ThisClass::ObservableStateChanged);
 					ObservableToCondition.Add(ObservableComponent, ObservedCondition.ObserverCondition);
 				}
 				else
@@ -80,11 +78,6 @@ void UObserverComponent::CheckObservableStates()
 		}
 	}
 	
-	if(bConditionsMet == bAllActive)
-	{
-		return;
-	}
-	
 	if(!bCanTriggerAgain && bHasTriggered)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Observer has already triggered. Can't trigger again"));
@@ -92,13 +85,13 @@ void UObserverComponent::CheckObservableStates()
 	}
 	
 	bConditionsMet = bAllActive;
-	OnAllObservablesActivated.Broadcast(bConditionsMet);
-	UE_LOG(LogTemp, Warning, TEXT("Observable states have changed"));
+	OnCheckConditions.Broadcast(bConditionsMet);
 	
 	if (bAllActive)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("All observer conditions have met"));
 		bHasTriggered = true;
+		OnAllConditionsMet.Broadcast();
 	}
 	else
 	{
@@ -106,7 +99,8 @@ void UObserverComponent::CheckObservableStates()
 	}
 }
 
-void UObserverComponent::OnObservableStateChanged(UObservableComponent* InChangedObservable)
+void UObserverComponent::ObservableStateChanged(UObservableComponent* InChangedObservable)
 {
+	OnObservableStateChanged.Broadcast(InChangedObservable);
 	CheckObservableStates();
 }
