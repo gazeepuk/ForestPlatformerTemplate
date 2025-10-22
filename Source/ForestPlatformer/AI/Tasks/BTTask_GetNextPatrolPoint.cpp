@@ -6,7 +6,7 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BlackboardData.h"
-#include "CoreTypes/PatrolDataTypes.h"
+#include "CoreTypes/PatrolTypes/PatrolDataTypes.h"
 
 UBTTask_GetNextPatrolPoint::UBTTask_GetNextPatrolPoint()
 {

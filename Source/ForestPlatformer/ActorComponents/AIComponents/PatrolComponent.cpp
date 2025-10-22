@@ -8,7 +8,7 @@
 
 bool UPatrolComponent::IsCurrentPatrolIndexValid() const
 {
-	return CurrentPatrolPointIndex >= 0 && CurrentPatrolPointIndex < PatrolPoints.Num() && PatrolPoints[CurrentPatrolPointIndex] != nullptr;
+	return CurrentPatrolPointIndex >= 0 && CurrentPatrolPointIndex < PatrolPoints.Num() && PatrolPoints[CurrentPatrolPointIndex] != nullptr && !PatrolPoints.IsEmpty();
 }
 
 FVector UPatrolComponent::GetPatrolPointLocationByIndex(int32 InPatrolPointIndex) const
@@ -52,8 +52,12 @@ FVector UPatrolComponent::GetRandomLocationWithinPatrolBorders() const
 
 void UPatrolComponent::SetNextPatrolPointIndex()
 {
+	if(PatrolPoints.IsEmpty())
+	{
+		CurrentPatrolPointIndex = -1;
+		return;
+	}
 	const int32 PatrolDirection = bPatrolForward ? 1 : -1;
-	
 	CurrentPatrolPointIndex = (CurrentPatrolPointIndex + PatrolDirection + PatrolPoints.Num()) % PatrolPoints.Num();
 }
 

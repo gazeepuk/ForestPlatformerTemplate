@@ -72,14 +72,30 @@ AActor* UPlayerInteractionComponent::GetFocusedInteractableActor() const
 	return nullptr;
 }
 
+void UPlayerInteractionComponent::OnRegister()
+{
+	Super::OnRegister();
+
+	ensureMsgf(GetOwner()->Implements<UInteractorInterface>(), TEXT("%s of %s class has UPlayerInteractionComponent but does not implement IInteractorIterface"),
+		*GetNameSafe(GetOwner()),
+		*GetOwner()->GetClass()->GetName());
+}
+
 bool UPlayerInteractionComponent::CanInteract() const
 {
+	bool bCanOwnerInteract = false;
+	bool bCanFocusedActorInteract = false;
+	
 	if (GetOwner()->Implements<UInteractorInterface>())
 	{
-		return IInteractorInterface::Execute_CanInteract(GetOwner());
+		bCanOwnerInteract = IInteractorInterface::Execute_CanInteract(GetOwner());
 	}
-
-	return true;
+	if(FocusedInteractableActor.IsValid())
+	{
+		bCanFocusedActorInteract = IInteractableInterface::Execute_CanInteract(FocusedInteractableActor.Get(), GetOwner());
+	}
+	
+	return bCanOwnerInteract && bCanFocusedActorInteract;
 }
 
 AActor* UPlayerInteractionComponent::GetClosestInteractableActor() const
@@ -113,7 +129,7 @@ AActor* UPlayerInteractionComponent::GetClosestInteractableActor() const
 void UPlayerInteractionComponent::UpdateFocusedInteractableActor()
 {
 	AActor* ClosestInteractableActor = GetClosestInteractableActor();
-
+	
 	if(ClosestInteractableActor == FocusedInteractableActor)
 	{
 		return;
@@ -133,20 +149,13 @@ void UPlayerInteractionComponent::UpdateFocusedInteractableActor()
 
 void UPlayerInteractionComponent::PerformInteraction() const
 {
-	if (!CanInteract() || !FocusedInteractableActor.IsValid())
-	{
-		return;
-	}
-
-	if (UInteractableComponent* FocusedInteractableComponent = FocusedInteractableActor->GetComponentByClass<UInteractableComponent>())
-	{
-		FocusedInteractableComponent->Interact(GetOwner());
-		return;
-	}
-	
-	if (FocusedInteractableActor->Implements<UInteractableInterface>())
+	if (CanInteract())
 	{
 		IInteractableInterface::Execute_Interact(FocusedInteractableActor.Get(), GetOwner());
+	}
+	else
+	{
+		IInteractableInterface::Execute_OnFailedInteract(FocusedInteractableActor.Get(), GetOwner());
 	}
 }
 
@@ -155,8 +164,7 @@ void UPlayerInteractionComponent::OnInteractableBeginOverlap(UPrimitiveComponent
 															 int32 OtherBodyIndex, bool bFromSweep,
 															 const FHitResult& SweepResult)
 {
-	if (OtherActor &&
-		(OtherActor->GetComponentByClass<UInteractableComponent>() || OtherActor->Implements<UInteractableInterface>()))
+	if (OtherActor && OtherActor->Implements<UInteractableInterface>())
 	{
 		AddActorToInteractableActor(OtherActor);
 	}
@@ -182,7 +190,7 @@ void UPlayerInteractionComponent::AddActorToInteractableActor(AActor* InActor)
 		if (AvailableInteractableActors.Num() > 1 && GetWorld())
 		{
 			GetWorld()->GetTimerManager().ClearTimer(UpdateInteractableTimerHandle);
-			GetWorld()->GetTimerManager().SetTimer(UpdateInteractableTimerHandle, this, &ThisClass::UpdateFocusedInteractableActor, 0.1f, true);
+			GetWorld()->GetTimerManager().SetTimer(UpdateInteractableTimerHandle, this, &ThisClass::UpdateFocusedInteractableActor, UpdateFocusedActorRate, true);
 		}
 	}
 }
@@ -217,19 +225,15 @@ void UPlayerInteractionComponent::InteractAction_Started(const FInputActionValue
 	PerformInteraction();
 }
 
-void UPlayerInteractionComponent::SetInteractableActorFocused(AActor* InActor, bool bFocused)
+void UPlayerInteractionComponent::SetInteractableActorFocused(const AActor* InActor, bool bFocused)
 {
 	if(!InActor)
 	{
 		return;
 	}
 
-	if(UInteractableComponent* InteractableComponent = InActor->GetComponentByClass<UInteractableComponent>())
+	if(UInteractableComponent* InteractableComponent = IInteractableInterface::Execute_GetInteractableComponent(InActor))
 	{
 		InteractableComponent->SetIsFocused(bFocused);
-	}
-	if(InActor->Implements<UInteractableInterface>())
-	{
-		IInteractableInterface::Execute_OnFocusChanged(InActor, bFocused);
 	}
 }

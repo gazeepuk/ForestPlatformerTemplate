@@ -3,10 +3,10 @@
 
 #include "InteractableComponent.h"
 
-#include "PlayerInteractionComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "CoreTypes/FPCustomCollisions.h"
+#include "Interfaces/InteractableInterface.h"
 
 
 UInteractableComponent::UInteractableComponent()
@@ -14,6 +14,12 @@ UInteractableComponent::UInteractableComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	bFocused = false;
+}
+
+void UInteractableComponent::InitInteractableComponent(UShapeComponent* InCollision, UWidgetComponent* InWidgetComponent)
+{
+	SetInteractableCollision(InCollision);
+	SetInteractionWidgetComponent(InWidgetComponent);
 }
 
 void UInteractableComponent::SetInteractableCollision(UShapeComponent* InCollision)
@@ -60,41 +66,14 @@ void UInteractableComponent::SetIsFocused(bool bIsFocused)
 	}
 }
 
-void UInteractableComponent::Interact(AActor* InInstigator)
+void UInteractableComponent::OnRegister()
 {
-	OnInteraction.Broadcast(InInstigator);
-}
-
-void UInteractableComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-/*
-void UInteractableComponent::OnInstigatorBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if(!OtherActor)
+	Super::OnRegister();
+	
+	if(!GetOwner()->Implements<UInteractableInterface>())
 	{
-		return;
-	}
-
-	if(UPlayerInteractionComponent* InteractionComponent = OtherActor->GetComponentByClass<UPlayerInteractionComponent>())
-	{
-		InteractionComponent->AddInteractable(this);
+		UE_LOG(LogTemp, Warning, TEXT("%s of %s calss has Interactable Component but does not implement IInteractableInterface."),
+			*GetNameSafe(GetOwner()),
+			*GetOwner()->GetClass()->GetName());
 	}
 }
-
-void UInteractableComponent::OnInstigatorEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if(!OtherActor)
-	{
-		return;
-	}
-
-	if(UPlayerInteractionComponent* InteractionComponent = OtherActor->GetComponentByClass<UPlayerInteractionComponent>())
-	{
-		InteractionComponent->RemoveInteractable(this);
-	}
-}*/

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Components/WidgetComponent.h"
 #include "InteractableComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionDelegate, AActor*, Instigator);
@@ -21,6 +22,9 @@ class FORESTPLATFORMER_API UInteractableComponent : public UActorComponent
 public:
 	UInteractableComponent();
 
+	UFUNCTION(BlueprintCallable)
+	void InitInteractableComponent(UShapeComponent* InCollision, UWidgetComponent* InWidgetComponent);
+	
 	/** Sets the collision that will detect when players enter interaction range */
 	UFUNCTION(BlueprintCallable)
 	void SetInteractableCollision(UShapeComponent* InCollision);
@@ -31,17 +35,8 @@ public:
 
 	/** Sets the focus state of this interactable */
 	void SetIsFocused(bool bIsFocused);
-
-	/** Triggers the interaction with this object from the specified instigator */
-	UFUNCTION(BlueprintCallable)
-	void Interact(AActor* InInstigator);
-
-	/** Delegate that broadcasts when this interactable is interacted */
-	UPROPERTY(BlueprintAssignable)
-	FOnInteractionDelegate OnInteraction;
 protected:
-	virtual void BeginPlay() override;
-
+	virtual void OnRegister() override;
 	/** Collision component used to detect when the player enters interaction range */
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UShapeComponent> InteractionCollision;

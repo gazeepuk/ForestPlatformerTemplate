@@ -58,7 +58,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Observer")
 	void ResetHasTrigger();
-	
+
 protected:
 	virtual void BeginPlay() override;
 

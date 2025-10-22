@@ -35,6 +35,8 @@ public:
 	UFUNCTION(BlueprintPure)
 	AActor* GetFocusedInteractableActor() const;
 protected:
+	virtual void OnRegister() override;
+	
 	/** Returns the closest interactable component from the available list */
 	AActor* GetClosestInteractableActor() const;
 
@@ -92,6 +94,9 @@ private:
 	/** Timer handle for managing periodic updates of focused interactables */
 	FTimerHandle UpdateInteractableTimerHandle;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	float UpdateFocusedActorRate = 0.1f;
+
 	/** Sets the interactable actor focus state */
-	static void SetInteractableActorFocused(AActor* InActor, bool bFocused);
+	static void SetInteractableActorFocused(const AActor* InActor, bool bFocused);
 };
