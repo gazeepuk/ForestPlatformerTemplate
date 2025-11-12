@@ -8,6 +8,7 @@
 
 bool UPatrolComponent::IsCurrentPatrolIndexValid() const
 {
+	// Returns true, if the current index is within bounds and points to a valid actor
 	return CurrentPatrolPointIndex >= 0 && CurrentPatrolPointIndex < PatrolPoints.Num() && PatrolPoints[CurrentPatrolPointIndex] != nullptr && !PatrolPoints.IsEmpty();
 }
 
@@ -39,6 +40,7 @@ FVector UPatrolComponent::GetRandomLocationWithinPatrolBorders() const
 	FVector PatrolOrigin = PatrolBorders->GetActorLocation();
 	FVector PatrolExtent = PatrolBorders->GetBounds().BoxExtent;
 
+	// Uses navigation system to find a random point within patrol bounds. Returns zero vector, if the navigation or found location is invalid. 
 	if(UNavigationSystemV1* NavigationSystemV1 = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld()))
 	{
 		FNavLocation RandomLocation;
@@ -57,7 +59,9 @@ void UPatrolComponent::SetNextPatrolPointIndex()
 		CurrentPatrolPointIndex = -1;
 		return;
 	}
+	// Determines patrol direction. If moving forward, the index increments. If moving backward, the index decrements.
 	const int32 PatrolDirection = bPatrolForward ? 1 : -1;
+	// Clamps the index within the array bounds
 	CurrentPatrolPointIndex = (CurrentPatrolPointIndex + PatrolDirection + PatrolPoints.Num()) % PatrolPoints.Num();
 }
 
@@ -65,5 +69,6 @@ void UPatrolComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Sets the last patrol point as the current point so the first call of SetNextPatrolPointIndex() selects the first point.
 	CurrentPatrolPointIndex = PatrolPoints.Num() - 1;
 }

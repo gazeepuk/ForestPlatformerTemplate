@@ -22,6 +22,7 @@ class FORESTPLATFORMER_API UInteractableComponent : public UActorComponent
 public:
 	UInteractableComponent();
 
+	/** Sets interactable collision and widget and setups their properties */
 	UFUNCTION(BlueprintCallable)
 	void InitInteractableComponent(UShapeComponent* InCollision, UWidgetComponent* InWidgetComponent);
 	

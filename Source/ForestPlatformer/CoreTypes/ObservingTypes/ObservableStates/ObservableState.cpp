@@ -23,6 +23,7 @@ FInstancedStruct UBoolObservableState::GetStateValue_Implementation()
 
 void UBoolObservableState::SetStateValue_Implementation(const FInstancedStruct& NewValue)
 {
+	// Casts NewValue to bool struct and sets its value
 	if(const FBoolObservableData* BoolObservableData = NewValue.GetPtr<FBoolObservableData>())
 	{
 		if(bValue != BoolObservableData->bValue)
@@ -33,20 +34,9 @@ void UBoolObservableState::SetStateValue_Implementation(const FInstancedStruct& 
 	}
 }
 
-bool UBoolObservableState::GetStateBoolValue()
+bool UBoolObservableState::GetStateBoolValue() const
 {
-	FInstancedStruct StateStruct = GetStateValue();
-	if(!StateStruct.IsValid())
-	{
-		return false;
-	}
-	
-	if(const FBoolObservableData* BoolObservableData = StateStruct.GetPtr<FBoolObservableData>())
-	{
-		return BoolObservableData->bValue;
-	}
-
-	return false;
+	return bValue;
 }
 
 void UBoolObservableState::SetStateBoolValue(bool bNewValue)
@@ -61,11 +51,13 @@ void UBoolObservableState::SetStateBoolValue(bool bNewValue)
 
 void UToggleObservableState::SetStateValue_Implementation(const FInstancedStruct& NewValue)
 {
+	// Sets the opposite of the current bool value
 	UBoolObservableState::SetStateValue_Implementation(FInstancedStruct::Make(FBoolObservableData(!GetStateBoolValue())));
 }
 
 void UToggleObservableState::ToggleState()
 {
+	// Uses empty struct, because the input value isn't used in setter function
 	SetStateValue_Implementation(FInstancedStruct());
 }
 
@@ -81,6 +73,7 @@ FInstancedStruct UTriggerObservableState::GetStateValue_Implementation()
 
 void UTriggerObservableState::SetStateValue_Implementation(const FInstancedStruct& NewValue)
 {
+	// Prevents re-triggering
 	if(!bCanTriggerAgain && bHasTriggered)
 	{
 		return;

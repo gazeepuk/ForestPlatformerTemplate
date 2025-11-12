@@ -7,6 +7,8 @@
 #include "Components/ActorComponent.h"
 #include "ObserverComponent.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogFpObserver, Log, All);
+
 class UObserverCondition;
 class UObservableComponent;
 
@@ -52,23 +54,26 @@ public:
 	/** Delegate that broadcasts when all conditions met */
 	UPROPERTY(BlueprintAssignable)
 	FOnAllConditionsMet OnAllConditionsMet;
-	
+
+	/** Returns true, if all observables have met their conditions */
 	UFUNCTION(BlueprintPure, Category = "Observer")
 	FORCEINLINE bool HaveConditionsMet() const { return bConditionsMet; }
 
+	/** Resets bHasTriggered so the component can trigger again */
 	UFUNCTION(BlueprintCallable, Category = "Observer")
 	void ResetHasTrigger();
 
 protected:
 	virtual void BeginPlay() override;
 
+	// If the value is true, the component won't trigger again after any observable changes
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Observer")
 	bool bCanTriggerAgain = true;
-	
+
+	// List of all observing actors and their expecting conditions
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Observer")
 	TArray<FObservedCondition> ObservedConditions;
-	
-	
+
 private:
 	/** Subscribes to observable delegates */
 	void InitObservables();
@@ -78,11 +83,13 @@ private:
 	/** Checks the observables states. Broadcasts OnAllObservablesActivated, if all the observables are activated. */
 	void CheckObservableStates();
 
+	/** Indicates whether the component has successfully triggered */
 	bool bHasTriggered = false;
 
+	/** A map of observable components and conditions they must meet*/
 	UPROPERTY()
 	TMap<UObservableComponent*, UObserverCondition*> ObservableToCondition;
-	TArray<FObservedCondition> ObservablesConditions;
 
+	/** Indicates whether all conditions met or not */
 	bool bConditionsMet = false;
 };

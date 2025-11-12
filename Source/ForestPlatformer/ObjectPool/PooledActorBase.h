@@ -15,11 +15,11 @@ public:
 	/* Default constructor for APooledActorBase */
 	APooledActorBase();
 
-	/* Set the actor active or not */
+	/* Sets the actor active or not */
 	UFUNCTION(BlueprintCallable, Category = "PooledActor")
 	void SetPooledActorActive(bool InActive);
 
-	/* Return bActive */
+	/* Returns bActive */
 	UFUNCTION(BlueprintPure, Category = "PooledActor")
 	FORCEINLINE bool IsActive() const { return bActive; }
 	

@@ -11,13 +11,9 @@
 
 UStompDamageBoxCollision::UStompDamageBoxCollision()
 {
+	// Makes collision detects only player
 	SetCollisionResponseToAllChannels(ECR_Ignore);
 	SetCollisionResponseToChannel(ECC_FP_Player_OC, ECR_Overlap);
-}
-
-void UStompDamageBoxCollision::BeginPlay()
-{
-	Super::BeginPlay();
 }
 
 void UStompDamageBoxCollision::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -33,11 +29,13 @@ void UStompDamageBoxCollision::OnBeginOverlap(UPrimitiveComponent* OverlappedCom
 	{
 		OnStompBoxOverlappedActorAbove.Broadcast(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
+		// Apply damage to owner if it implements IDamageableInterface
 		if(GetOwner()->Implements<UDamageableInterface>())
 		{
 			IDamageableInterface::Execute_TakeDamage(GetOwner(), PlayerCharacter, DamageAmount, PlayerCharacter->GetController());
 		}
-		
-		PlayerCharacter->GetCharacterMovement()->Launch(GetComponentRotation().RotateVector(FVector::UpVector) * LaunchActorForce);
+
+		// Launches actor after stomping
+		PlayerCharacter->GetCharacterMovement()->Launch(GetUpVector() * LaunchActorForce);
 	}
 }

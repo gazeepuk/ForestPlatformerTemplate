@@ -14,8 +14,8 @@ void UStompLaunchBoxComponent::OnBeginOverlap(UPrimitiveComponent* OverlappedCom
 	{
 		OnStompBoxOverlappedActorAbove.Broadcast(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 		
-		const FVector LaunchVelocity = GetComponentRotation().RotateVector(FVector::UpVector) * LaunchActorForce;
-
+		const FVector LaunchVelocity = GetUpVector() * LaunchActorForce;
+		// Tries to launch the character or add impulse to root component
 		if(ACharacter* OtherCharacter = Cast<ACharacter>(OtherActor))
 		{
 			OtherCharacter->GetCharacterMovement()->Launch(LaunchVelocity);

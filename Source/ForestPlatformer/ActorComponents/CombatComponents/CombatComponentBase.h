@@ -7,6 +7,7 @@
 #include "Components/ActorComponent.h"
 #include "CombatComponentBase.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogFpCombat, Log, All);
 
 struct FGameplayTag;
 class UFPAttackType;
@@ -53,7 +54,7 @@ public:
 	UFUNCTION(BlueprintPure)
 	UFPAttackType* FindAttackTypeByClass(TSubclassOf<UFPAttackType> InAttackTypeClass);
 
-	/** Searches for and returns the attack type associated with the specified gameplay tag */
+	/** Searches and returns the attack type associated with the specified gameplay tag */
 	UFUNCTION(BlueprintPure)
 	UFPAttackType* FindAttackTypeByTag(const FGameplayTag& InAttackTypeTag);
 

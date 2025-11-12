@@ -19,7 +19,6 @@ public:
 	UStompDamageBoxCollision();
 	
 protected:
-	virtual void BeginPlay() override;
 
 	/** Amount of damage to apply to the owner when stomped */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)

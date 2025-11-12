@@ -9,6 +9,7 @@
 #include "Interfaces/GameplayTagModifierInterface.h"
 #include "Interfaces/SavableActorInterface.h"
 
+DEFINE_LOG_CATEGORY(LogFpFunctionLibrary);
 
 bool UFPFunctionLibrary::NativeDoesActorHaveTag(const AActor* InActor, const FGameplayTag& InGameplayTag)
 {
@@ -16,7 +17,8 @@ bool UFPFunctionLibrary::NativeDoesActorHaveTag(const AActor* InActor, const FGa
 	{
 		return false;
 	}
-	
+
+	// Uses IGameplayTagAssetInterface to find the specified tag
 	if(const IGameplayTagAssetInterface* GameplayTagAssetInterface = Cast<IGameplayTagAssetInterface>(InActor))
 	{
 		FGameplayTagContainer OwnedGameplayTags;
@@ -39,11 +41,12 @@ void UFPFunctionLibrary::NativeAddGameplayTagToActor(AActor* InActor, FGameplayT
 	{
 		return;
 	}
-	
+
+	// Uses IGameplayTagModifierInterface to add the tag to the actor
 	if(IGameplayTagModifierInterface* GameplayTagModifierInterface = Cast<IGameplayTagModifierInterface>(InActor))
 	{
 		GameplayTagModifierInterface->AddGameplayTag(InGameplayTag);
-		UE_LOG(LogTemp, Display, TEXT("Added %s tag to %s"), *InGameplayTag.ToString(), *GetNameSafe(InActor));
+		UE_LOG(LogFpFunctionLibrary, Display, TEXT("Added %s tag to %s"), *InGameplayTag.ToString(), *GetNameSafe(InActor));
 	}
 }
 
@@ -53,11 +56,12 @@ void UFPFunctionLibrary::NativeRemoveGameplayTagFromActor(AActor* InActor, FGame
 	{
 		return;
 	}
-	
+
+	// Uses IGameplayTagModifierInterface to remove the tag from the actor
 	if(IGameplayTagModifierInterface* GameplayTagModifierInterface = Cast<IGameplayTagModifierInterface>(InActor))
 	{
 		GameplayTagModifierInterface->RemoveGameplayTag(InGameplayTag);
-		UE_LOG(LogTemp, Display, TEXT("Removed %s tag from %s"), *InGameplayTag.ToString(), *GetNameSafe(InActor));
+		UE_LOG(LogFpFunctionLibrary, Display, TEXT("Removed %s tag from %s"), *InGameplayTag.ToString(), *GetNameSafe(InActor));
 	}
 }
 
@@ -69,13 +73,14 @@ bool UFPFunctionLibrary::NativeTryApplyEffectByClassToActor(AActor* InTargetActo
 		return false;
 	}
 
+	// Tries to create and apply the effect to the actor
 	if(UFPEffectComponent* EffectComponent = InTargetActor->GetComponentByClass<UFPEffectComponent>())
 	{
-		UFPEffectBase* EffectToApply = NewObject<UFPEffectBase>(InTargetActor, InEffectClass);
-
-		return EffectComponent->TryApplyEffect(EffectToApply);
+		if(UFPEffectBase* EffectToApply = NewObject<UFPEffectBase>(InTargetActor, InEffectClass))
+		{
+			return EffectComponent->TryApplyEffect(EffectToApply);
+		}
 	}
-
 	return false;
 }
 
@@ -92,7 +97,7 @@ void UFPFunctionLibrary::RemoveEffectByClassFromActor(AActor* InActor, TSubclass
 	{
 		return;
 	}
-
+	
 	if(UFPEffectComponent* EffectComponent = InActor->GetComponentByClass<UFPEffectComponent>())
 	{
 		EffectComponent->RemoveEffectByClass(InEffectClass);
@@ -105,7 +110,8 @@ bool UFPFunctionLibrary::IsPawnHostile(const APawn* InInstigator, const APawn* I
 	{
 		return false;
 	}
-	
+
+	// Uses IGenericTeamAgentInterface to check the instigator actor team attitude towards the target actor
 	const IGenericTeamAgentInterface* InstigatorTeamAgentInterface = Cast<IGenericTeamAgentInterface>(InInstigator->GetController());
 	const IGenericTeamAgentInterface* TargetTeamAgentInterface = Cast<IGenericTeamAgentInterface>(InTarget->GetController());
 
@@ -120,6 +126,7 @@ bool UFPFunctionLibrary::IsPawnHostile(const APawn* InInstigator, const APawn* I
 FName UFPFunctionLibrary::GenerateSaveIDByActorLocation(const AActor* InActor)
 {
 	FName AutoSaveID;
+	// Makes a SaveId based on actor's name and location (ActorClassName_X_Y_Z). For example: "FPCheckpoint_102.231_56.43_0.000"
 	if(InActor)
 	{
 		const FVector Location = InActor->GetActorLocation();
@@ -180,8 +187,8 @@ DEFINE_FUNCTION(UFPFunctionLibrary::execSerializeStruct)
 	FMemoryWriter MemoryWriter(*OutBytesPtr, true);
 	StructType->SerializeBin(MemoryWriter, StructData);
 
-	UE_LOG(LogTemp, Warning, TEXT("SerializeStruct: Serializing struct %s size %d"), *StructType->GetName(), StructType->GetStructureSize());
-	UE_LOG(LogTemp, Warning, TEXT("OutBytesPtr: Serialized %d bytes"), OutBytesPtr->Num()); 
+	UE_LOG(LogFpFunctionLibrary, Warning, TEXT("SerializeStruct: Serializing struct %s size %d"), *StructType->GetName(), StructType->GetStructureSize());
+	UE_LOG(LogFpFunctionLibrary, Warning, TEXT("OutBytesPtr: Serialized %d bytes"), OutBytesPtr->Num()); 
 	
 	bSuccess = true;
 	P_FINISH;
@@ -234,14 +241,14 @@ DEFINE_FUNCTION(UFPFunctionLibrary::execDeserializeStruct)
 		return;
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("InBytes: num %d bytes"), InBytesPtr->Num());
+	UE_LOG(LogFpFunctionLibrary, Warning, TEXT("InBytes: num %d bytes"), InBytesPtr->Num());
 
 	// Deserialize the array
 	StructType->InitializeStruct(StructData);
 	FMemoryReader MemoryReader(*InBytesPtr, true);
 	StructType->SerializeBin(MemoryReader, StructData);
 	
-	UE_LOG(LogTemp, Warning, TEXT("Deserialized struct %s from %d bytes"), *StructType->GetName(), InBytesPtr->Num());
+	UE_LOG(LogFpFunctionLibrary, Warning, TEXT("Deserialized struct %s from %d bytes"), *StructType->GetName(), InBytesPtr->Num());
 	bSuccess = true;
 
 	P_FINISH;

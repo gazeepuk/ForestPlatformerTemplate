@@ -38,15 +38,22 @@ void UPlayerCombatComponent::SetCurrentAttackByTag(FGameplayTag InAttackTag)
 
 void UPlayerCombatComponent::ResetDefaultAttack()
 {
+	// Tries to find default attack by its tag and set as current attack
 	if(UFPAttackType* DefaultAttack = FindAttackTypeByClass(DefaultAttackType))
 	{
 		SetCurrentAttack(DefaultAttack);
 		return;
 	}
 
-	GrantPlayerAttackTypeByClass(DefaultAttackType, true);
-
-	UE_LOG(LogTemp, Warning, TEXT("Can't reset the default attack for %s. Default attack type class is invalid"), *GetNameSafe(GetOwner()))
+	if(DefaultAttackType)
+	{
+		// Grants default attack and sets as current attack
+		GrantPlayerAttackTypeByClass(DefaultAttackType, true);
+	}
+	else
+	{
+		UE_LOG(LogFpCombat, Warning, TEXT("Can't reset the default attack for %s. Default attack type class is invalid"), *GetNameSafe(GetOwner()))
+	}
 }
 
 void UPlayerCombatComponent::InitCombatComponent()
@@ -70,6 +77,7 @@ void UPlayerCombatComponent::UnbindCombatInput()
 		return;
 	}
 
+	// Removes combat input mapping context
 	UEnhancedInputLocalPlayerSubsystem* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
 	if(InputSubsystem)
 	{
@@ -92,11 +100,14 @@ void UPlayerCombatComponent::SetNextAttack()
 	{
 		return;
 	}
-	
+
+	// Gets current attack index
 	int32 CurrentIndex = GetIndexOfAttack(GetCurrentAttackType());
 	if(AvailableAttackTypes.IsValidIndex(CurrentIndex))
 	{
+		// Clamps and sets next index
 		CurrentIndex = (CurrentIndex + 1) % AvailableAttackTypes.Num();
+		// Sets new current attack
 		SetCurrentAttackByIndex(CurrentIndex);
 	}
 }
@@ -107,11 +118,14 @@ void UPlayerCombatComponent::SetPreviousAttack()
 	{
 		return;
 	}
-
+	
+	// Gets current attack index
 	int32 CurrentIndex = GetIndexOfAttack(GetCurrentAttackType());
 	if(AvailableAttackTypes.IsValidIndex(CurrentIndex))
 	{
+		// Clamps and sets next index
 		CurrentIndex = (CurrentIndex - 1 + AvailableAttackTypes.Num()) % AvailableAttackTypes.Num();
+		// Sets new current attack
 		SetCurrentAttackByIndex(CurrentIndex);
 	}
 }
@@ -145,7 +159,6 @@ void UPlayerCombatComponent::ExecuteAttack_Implementation()
 
 void UPlayerCombatComponent::BindCombatInput()
 {
-	
 	APawn* OwningPawn = GetOwner<APawn>();
 	if(!OwningPawn)
 	{
@@ -154,7 +167,7 @@ void UPlayerCombatComponent::BindCombatInput()
 	
 	if(!AttackAction)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AttackAction of UPlayerCombatComponent of %s is not assigned. Binding is termiated."), *GetNameSafe(OwningPawn));
+		UE_LOG(LogFpCombat, Warning, TEXT("AttackAction of UPlayerCombatComponent of %s is not assigned. Binding is termiated."), *GetNameSafe(OwningPawn));
 		return;
 	}
 
@@ -184,11 +197,13 @@ void UPlayerCombatComponent::SetCurrentAttackByIndex(int32 InAttackIndex)
 
 void UPlayerCombatComponent::SetCurrentAttack(UFPAttackType* InAttackType)
 {
+	// Returns if the current attack and the new attack have the same tags
 	if(InAttackType && CurrentAttackTag.IsValid() && InAttackType->GetAttackTypeTag() == CurrentAttackTag)
 	{
 		return;
 	}
 	
+	// Ends the current attack
 	if(UFPAttackType* CurrentAttack = GetCurrentAttackType())
 	{
 		if(CurrentAttack->IsActive())
@@ -196,6 +211,6 @@ void UPlayerCombatComponent::SetCurrentAttack(UFPAttackType* InAttackType)
 			CurrentAttack->EndAttack();
 		}
 	}
-
+	
 	CurrentAttackTag = InAttackType ? InAttackType->GetAttackTypeTag() : FGameplayTag::EmptyTag;
 }

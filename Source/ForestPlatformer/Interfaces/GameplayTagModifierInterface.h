@@ -15,7 +15,9 @@ class UGameplayTagModifierInterface : public UInterface
 };
 
 /**
- * 
+ * Interface for modifying tag containers at runtime.
+ * The interface is designed to be implemented by any actor that needs to expose tag management functionality.
+ * It's primarily used by UFPFunctionLibrary helper functions, which rely on this interface.
  */
 class FORESTPLATFORMER_API IGameplayTagModifierInterface
 {

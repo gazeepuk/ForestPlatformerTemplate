@@ -3,11 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AIController.h"
 #include "ActorComponents/CombatComponents/CombatComponentBase.h"
 #include "Components/ActorComponent.h"
 #include "AICombatComponent.generated.h"
 
 
+class UBlackboardComponent;
 struct FGameplayTag;
 class UFPAttackType;
 
@@ -23,7 +25,12 @@ class FORESTPLATFORMER_API UAICombatComponent : public UCombatComponentBase
 public:
 
 	/** Retrieves TargetActor from the AI owner's blackboard */
+	UFUNCTION(BlueprintPure)
 	AActor* GetTargetActorFromBlackboard() const;
+	
+	/** Retrieves Blackboard component of the AI owner's controller */
+	UFUNCTION(BlueprintPure)
+	const UBlackboardComponent* GetBlackboardFromOwningActor() const;
 	
 protected:
 	virtual void BeginPlay() override;

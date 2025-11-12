@@ -14,6 +14,7 @@ void UObservableComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Ensures that the component has a valid state
 	if(ensureMsgf(ObservableState,
 		TEXT("Observer State for %s actor is nullptr. Assign the state object, otherwise checking results with any observable condition will be false"),
 		*GetNameSafe(GetOwner())))

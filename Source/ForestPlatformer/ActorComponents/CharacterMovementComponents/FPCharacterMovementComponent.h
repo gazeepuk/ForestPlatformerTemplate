@@ -48,20 +48,25 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Character Movement|MovementState")
 	EFPMovementState GetCurrentMovementState() const;
 
-	UFUNCTION(BlueprintPure, Category = "Character Movement|MovementState")
+	/** Returns walk speed of the specified state */
+	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category = "Character Movement|MovementState")
 	float GetMovementStateSpeed(EFPMovementState InMovementState) const;
+	/** Returns walk speed of the current state */
 	UFUNCTION(BlueprintPure, Category = "Character Movement|MovementState")
 	float GetCurrentMovementStateSpeed() const;
 protected:
 	/** Gravity multiplier applied specifically during floating movement */
 	UPROPERTY(EditDefaultsOnly, Category = "Character Movement: Floating")
 	float FloatingGravityMultiplier = 1.f;
-
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: MovementState")
 	float NormalSpeed = 600.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: MovementState")
 	float StrafeSpeed = 300.f;
 
+	/** Handles movement state changes. Sets new speed, orienting rotation */
+	UFUNCTION(BlueprintNativeEvent)
+	void HandleMovementState();
 private:
 	EFPMovementState CurrentMovementState = EFPMovementState::Normal;
 	
@@ -71,5 +76,6 @@ private:
 	/** Indicates whether the character is currently in floating movement mode */
 	bool bFloating;
 
-	virtual void HandleMovementState();
+	/** Cached gravity value before floating start. Used for restoring the original gravity after ending floating */
+	float CachedGravity;
 };

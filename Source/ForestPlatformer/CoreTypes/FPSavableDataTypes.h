@@ -54,7 +54,7 @@ struct FFPLevelData
 	 * @param InActor - The actor to save
 	 * @return True if the actor was successfully saved, false otherwise 
 	 */
-	bool TrySaveActor(const AActor* InActor);
+	bool TrySaveActor(const AActor* InActor);	
 
 	/** Identifier of the last activated checkpoint ID in this level */
 	UPROPERTY()

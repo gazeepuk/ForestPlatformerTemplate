@@ -14,7 +14,10 @@ class UDamageableInterface : public UInterface
 };
 
 /**
- * 
+ * Interface for actors that can receive damage.
+ *
+ * Any class implementing this interface must provide logic for handling incoming damage events.
+ * This allows a unified way to apply damage across different actor types (characters, destructible objects, etc.)
  */
 class FORESTPLATFORMER_API IDamageableInterface
 {

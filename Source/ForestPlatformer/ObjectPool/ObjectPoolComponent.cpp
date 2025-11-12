@@ -5,18 +5,25 @@
 
 #include "PooledActorBase.h"
 
+DEFINE_LOG_CATEGORY(LogFpObjectPool);
+
 #pragma region ObjectPoolContainer
+UWorld* UObjectPoolContainer::GetWorld() const
+{
+	return WorldContext ? WorldContext->GetWorld() : nullptr;
+}
+
 void UObjectPoolContainer::InitializePool(UObject* InWorldContext, AActor* InOwningActor)
 {
 	WorldContext = InWorldContext;
 
 	if(!PooledActorClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Pooled Actor Class is not valid. Can't initialize object pool"));
+		UE_LOG(LogFpObjectPool, Warning, TEXT("Pooled Actor Class is not valid. Can't initialize object pool"));
 	}
 	if(PoolSize <= 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Pool size is %d. Can't initialize object pool"), PoolSize);
+		UE_LOG(LogFpObjectPool, Warning, TEXT("Pool size is not valid (%d). Can't initialize object pool"), PoolSize);
 	}
 
 	OwningActor = InOwningActor;
@@ -78,7 +85,7 @@ APooledActorBase* UObjectPoolContainer::SpawnPoolActor(const FTransform& InActor
 		return nullptr;
 	}
 	
-	if(UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr)
+	if(UWorld* World = GetWorld())
 	{
 		if(APooledActorBase* SpawnedPooledActor = World->SpawnActorDeferred<APooledActorBase>(PooledActorClass, InActorSpawnTransform, OwningActor, Cast<APawn>(OwningActor)))
 		{
@@ -91,7 +98,38 @@ APooledActorBase* UObjectPoolContainer::SpawnPoolActor(const FTransform& InActor
 
 	return nullptr;
 }
+
 #pragma endregion
 
-#pragma region ObjectPoolComponent
-#pragma endregion
+UObjectPoolContainer* UObjectPoolComponent::GetObjectPoolContainer() const
+{
+	return ObjectPoolContainer;
+}
+
+APooledActorBase* UObjectPoolComponent::SpawnPoolActorFromPool(const FTransform& InActorSpawnTransform,
+	bool bActivateOnSpawn)
+{
+	if(ObjectPoolContainer)
+	{
+		return ObjectPoolContainer->SpawnPoolActorFromPool(InActorSpawnTransform, bActivateOnSpawn);
+	}
+	return nullptr;
+}
+
+void UObjectPoolComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if(ObjectPoolContainer)
+	{
+		ObjectPoolContainer->InitializePool(this, GetOwner());
+	}
+}
+
+void UObjectPoolComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	ObjectPoolContainer->ClearPool();
+	ObjectPoolContainer->ConditionalBeginDestroy();
+	
+	Super::EndPlay(EndPlayReason);
+}

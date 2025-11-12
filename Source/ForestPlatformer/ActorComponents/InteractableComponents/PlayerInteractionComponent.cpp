@@ -30,15 +30,13 @@ void UPlayerInteractionComponent::BindInteractionAction()
 		return;
 	}
 
-	UEnhancedInputLocalPlayerSubsystem* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
-		PlayerController->GetLocalPlayer());
+	UEnhancedInputLocalPlayerSubsystem* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
 	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent);
 
 	if (InputSubsystem && EnhancedInputComponent)
 	{
 		InputSubsystem->AddMappingContext(InteractionMappingContext, InteractionPriority);
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this,
-		                                   &ThisClass::InteractAction_Started);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ThisClass::InteractAction_Started);
 	}
 }
 
@@ -49,12 +47,14 @@ void UPlayerInteractionComponent::SetInteractionCollision(UShapeComponent* InInt
 		return;
 	}
 
+	// Unbinds from the current collision's delegates
 	if (InteractionCollision)
 	{
 		InteractionCollision->OnComponentBeginOverlap.RemoveDynamic(this, &ThisClass::OnInteractableBeginOverlap);
 		InteractionCollision->OnComponentEndOverlap.RemoveDynamic(this, &ThisClass::OnInteractableEndOverlap);
 	}
 
+	// Sets new collision and binds to its delegates
 	InteractionCollision = InInteractionCollision;
 	if (InteractionCollision)
 	{
@@ -76,7 +76,9 @@ void UPlayerInteractionComponent::OnRegister()
 {
 	Super::OnRegister();
 
-	ensureMsgf(GetOwner()->Implements<UInteractorInterface>(), TEXT("%s of %s class has UPlayerInteractionComponent but does not implement IInteractorIterface"),
+	// Ensures that owner implements interactor interface 
+	ensureMsgf(GetOwner()->Implements<UInteractorInterface>(),
+		TEXT("%s of %s class has UPlayerInteractionComponent but does not implement IInteractorIterface"),
 		*GetNameSafe(GetOwner()),
 		*GetOwner()->GetClass()->GetName());
 }
@@ -85,11 +87,13 @@ bool UPlayerInteractionComponent::CanInteract() const
 {
 	bool bCanOwnerInteract = false;
 	bool bCanFocusedActorInteract = false;
-	
+
+	// Checks if the owner can interact
 	if (GetOwner()->Implements<UInteractorInterface>())
 	{
 		bCanOwnerInteract = IInteractorInterface::Execute_CanInteract(GetOwner());
 	}
+	// Checks if the interactable actor can interact
 	if(FocusedInteractableActor.IsValid())
 	{
 		bCanFocusedActorInteract = IInteractableInterface::Execute_CanInteract(FocusedInteractableActor.Get(), GetOwner());
@@ -106,7 +110,7 @@ AActor* UPlayerInteractionComponent::GetClosestInteractableActor() const
 	}
 
 	float ClosestDistance = FLT_MAX;
-	AActor* ClosestInteractableActor = nullptr;
+	AActor* ClosestInteractableActor = AvailableInteractableActors[0].IsValid() ? AvailableInteractableActors[0].Get() : nullptr;
 
 	for (TWeakObjectPtr<AActor> InteractableActor : AvailableInteractableActors)
 	{
@@ -115,6 +119,7 @@ AActor* UPlayerInteractionComponent::GetClosestInteractableActor() const
 			continue;
 		}
 
+		// Compares the cached distance with the current distance and caches the closest and the actor
 		const float DistanceToInteractable = FVector::Distance(GetOwner()->GetActorLocation(), InteractableActor->GetActorLocation());
 		if (DistanceToInteractable < ClosestDistance)
 		{
@@ -164,9 +169,10 @@ void UPlayerInteractionComponent::OnInteractableBeginOverlap(UPrimitiveComponent
 															 int32 OtherBodyIndex, bool bFromSweep,
 															 const FHitResult& SweepResult)
 {
+	// Adds to the list actors that implements IinteractableInterface
 	if (OtherActor && OtherActor->Implements<UInteractableInterface>())
 	{
-		AddActorToInteractableActor(OtherActor);
+		AddActorToInteractableActors(OtherActor);
 	}
 }
 
@@ -175,11 +181,11 @@ void UPlayerInteractionComponent::OnInteractableEndOverlap(UPrimitiveComponent* 
 {
 	if (OtherActor)
 	{
-		RemoveActorInteractableActor(OtherActor);
+		RemoveActorFromInteractableActors(OtherActor);
 	}
 }
 
-void UPlayerInteractionComponent::AddActorToInteractableActor(AActor* InActor)
+void UPlayerInteractionComponent::AddActorToInteractableActors(AActor* InActor)
 {
 	if(InActor)
 	{
@@ -187,6 +193,7 @@ void UPlayerInteractionComponent::AddActorToInteractableActor(AActor* InActor)
 
 		UpdateFocusedInteractableActor();
 
+		// Enable updating the closest actor, if the list num is greater than 1
 		if (AvailableInteractableActors.Num() > 1 && GetWorld())
 		{
 			GetWorld()->GetTimerManager().ClearTimer(UpdateInteractableTimerHandle);
@@ -195,25 +202,27 @@ void UPlayerInteractionComponent::AddActorToInteractableActor(AActor* InActor)
 	}
 }
 
-void UPlayerInteractionComponent::RemoveActorInteractableActor(const AActor* InActor)
+void UPlayerInteractionComponent::RemoveActorFromInteractableActors(const AActor* InActor)
 {
 	if(!InActor)
 	{
 		return;
 	}
 
-	const int32 InfoToRemoveIndex = AvailableInteractableActors.IndexOfByPredicate([InActor](const TWeakObjectPtr<AActor> InteractableActor)
+	// Finds removing actor's index
+	const int32 ActorToRemoveIndex = AvailableInteractableActors.IndexOfByPredicate([InActor](const TWeakObjectPtr<AActor> InteractableActor)
 	{
 		return InteractableActor == InActor;
 	});
-	
-	if(AvailableInteractableActors.IsValidIndex(InfoToRemoveIndex))
-	{
-		AvailableInteractableActors.RemoveAt(InfoToRemoveIndex);
-	}
 
-	UpdateFocusedInteractableActor();
+	if(AvailableInteractableActors.IsValidIndex(ActorToRemoveIndex))
+	{
+		AvailableInteractableActors.RemoveAt(ActorToRemoveIndex);
+	}
 	
+	UpdateFocusedInteractableActor();
+
+	// Stops updating the closest actor, if nothing overlaps 
 	if (AvailableInteractableActors.Num() <= 1 && GetWorld())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(UpdateInteractableTimerHandle);

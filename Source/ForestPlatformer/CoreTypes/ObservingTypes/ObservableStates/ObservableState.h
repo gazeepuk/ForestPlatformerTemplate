@@ -11,6 +11,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStateChanged);
 /**
  * 
  */
+
+
+/**
+ * Base observable state with. Broadcasts a delegate after changing the value
+ */
 UCLASS(Blueprintable, Abstract)
 class FORESTPLATFORMER_API UObservableState : public UObject
 {
@@ -26,24 +31,25 @@ public:
 	void SetStateValue(const FInstancedStruct& NewValue);
 };
 
-USTRUCT()
-struct FMyStruct
-{
-	GENERATED_BODY()
-	
-};
-
+/**
+ * Bool observable state.
+ * - Stores a bool value.
+ * - You can use SetStateBoolValue and GetStateBoolValue for convenience
+ */
 UCLASS(BlueprintType, EditInlineNew)
 class UBoolObservableState : public UObservableState
 {
 	GENERATED_BODY()
 
 public:
+	/**
+	 * Sets value of this state. A convenient way to change value, if you have a cast state of this type
+	 */
 	UFUNCTION(BlueprintCallable)
 	void SetStateBoolValue(bool bNewValue);
 	
 	UFUNCTION(BlueprintPure)
-	bool GetStateBoolValue();
+	bool GetStateBoolValue() const;
 
 	virtual FInstancedStruct GetStateValue_Implementation() override;
 
@@ -54,6 +60,13 @@ protected:
 	bool bValue;
 };
 
+/**
+ * Toggle observable state.
+ * - A child class of UBoolObservableState
+ * - Can't set directly the bool state, but toggle it.
+ * - The value of NewValue input param in SetStateValue() does not matter.
+ * - You can use ToggleState for convenient toggling.
+ */
 UCLASS(BlueprintType, EditInlineNew)
 class UToggleObservableState : public UBoolObservableState
 {
@@ -61,10 +74,18 @@ class UToggleObservableState : public UBoolObservableState
 
 public:
 	virtual void SetStateValue_Implementation(const FInstancedStruct& NewValue) override;
-	
+
+	UFUNCTION(BlueprintCallable)
 	void ToggleState();	
 };
 
+/**
+ * Trigger observable state.
+ * - Broadcast changes whenever the state is set.
+ * - Tracks whether it has already triggered.
+ * - Optionally allows repeated triggering.
+ * - Can be reset via ResetTrigger()
+ */
 UCLASS(BlueprintType, EditInlineNew)
 class UTriggerObservableState : public UObservableState
 {
@@ -87,7 +108,7 @@ public:
 protected:
 	UPROPERTY(EditAnywhere)
 	bool bCanTriggerAgain = true;
-	
+
 private:
 	bool bHasTriggered = false;
 };

@@ -5,6 +5,8 @@
 
 #include "GameFramework/Character.h"
 
+DEFINE_LOG_CATEGORY(LogFpAttackType);
+
 bool UFPAttackType::CanAttack_Implementation()
 {
 	return !IsOnCooldown();
@@ -35,7 +37,7 @@ void UFPAttackType::PerformAttack()
 {
 	if(bActive)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s is already active for %s! Canceling activation."), *GetAttackTypeID().ToString(), *GetNameSafe(GetOwningActor()));
+		UE_LOG(LogFpAttackType, Warning, TEXT("%s is already active for %s! Canceling activation."), *GetAttackTypeID().ToString(), *GetNameSafe(GetOwningActor()));
 		return;
 	}
 
@@ -47,7 +49,7 @@ void UFPAttackType::PerformAttack()
 
 void UFPAttackType::PerformAttackInner_Implementation()
 {
-	UE_LOG(LogTemp, Display, TEXT("Performing Attack %s"), *GetAttackTypeID().ToString());
+	UE_LOG(LogFpAttackType, Display, TEXT("Performing Attack %s"), *GetAttackTypeID().ToString());
 }
 
 void UFPAttackType::EndAttack()
@@ -104,7 +106,7 @@ void UFPAttackType::StartCooldown()
 		return;
 	}
 
-	ResetCooldown();
+	ClearCooldown();
 	
 	if(AttackCooldown > 0.f)
 	{
@@ -113,7 +115,7 @@ void UFPAttackType::StartCooldown()
 	}
 }
 
-void UFPAttackType::ResetCooldown()
+void UFPAttackType::ClearCooldown()
 {
 	if(UWorld* World = GetWorld())
 	{
@@ -126,13 +128,13 @@ void UFPAttackType::UpdateCooldown()
 {
 	if(!GetWorld())
 	{
-		ResetCooldown();
+		ClearCooldown();
 		return;
 	}
 
 	RemainingCooldown -= CooldownTick;
 	if(RemainingCooldown <= 0.f)
 	{
-		ResetCooldown();
+		ClearCooldown();
 	}
 }

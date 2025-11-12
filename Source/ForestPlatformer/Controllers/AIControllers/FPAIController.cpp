@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿ // Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "FPAIController.h"
@@ -13,6 +13,7 @@
 AFPAIController::AFPAIController(const FObjectInitializer& ObjectInitializer):
 Super(ObjectInitializer.SetDefaultSubobjectClass<UCrowdFollowingComponent>("PathFollowingComponent"))
 {
+	// Setups sight sense config
 	SenseConfig_Sight = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SenseConfig_Sight"));
 	SenseConfig_Sight->DetectionByAffiliation.bDetectEnemies = true;
 	SenseConfig_Sight->DetectionByAffiliation.bDetectFriendlies = false;
@@ -21,11 +22,13 @@ Super(ObjectInitializer.SetDefaultSubobjectClass<UCrowdFollowingComponent>("Path
 	SenseConfig_Sight->LoseSightRadius = 3000.f;
 	SenseConfig_Sight->PeripheralVisionAngleDegrees = 150.f;
 
+	// Adds perception component
 	EnemyPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("EnemyPerceptionComponent"));
 	EnemyPerceptionComponent->ConfigureSense(*SenseConfig_Sight);
 	EnemyPerceptionComponent->SetDominantSense(UAISenseConfig_Sight::StaticClass());
 	EnemyPerceptionComponent->OnTargetPerceptionUpdated.AddUniqueDynamic(this, &ThisClass::OnPerceptionUpdated);
-	
+
+	// Sets enemy team 
 	SetGenericTeamId(FGenericTeamId(1));
 }
 
@@ -65,6 +68,4 @@ void AFPAIController::HandleSightSense_Implementation(AActor* InActor, FAIStimul
 		BlackboardComponent->SetValueAsObject(FName("TargetActor"), InStimulus.WasSuccessfullySensed() ? TargetActor : nullptr);
 		BlackboardComponent->SetValueAsVector(FName("LastKnownLocation"), InStimulus.StimulusLocation);
 	}
-
-	UE_LOG(LogTemp, Type::Display, TEXT("%s: %s"), InStimulus.WasSuccessfullySensed() ? *GetNameSafe(InActor) : TEXT("Null"), *InStimulus.StimulusLocation.ToString());
 }

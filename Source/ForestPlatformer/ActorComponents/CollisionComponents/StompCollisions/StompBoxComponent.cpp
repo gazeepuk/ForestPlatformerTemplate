@@ -10,7 +10,8 @@
 UStompBoxComponent::UStompBoxComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	
+
+	// Makes collision detects only player and world dynamic objects
 	UPrimitiveComponent::SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	SetCollisionObjectType(ECC_WorldStatic);
 	SetCollisionResponseToAllChannels(ECR_Ignore);
@@ -27,9 +28,10 @@ bool UStompBoxComponent::IsActorAbove(const AActor* InActor)
 	{
 		return false;
 	}
-	
+
+	// Finds overlapping actors location relative to this component world location
 	FVector LocalActorLocation = GetComponentTransform().InverseTransformPosition(InActor->GetActorLocation());
-		
+	
 	return LocalActorLocation.Z >= StompHeightBuffer;
 }
 

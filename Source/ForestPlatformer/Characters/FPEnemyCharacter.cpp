@@ -118,6 +118,10 @@ void AFPEnemyCharacter::OnDeath_Implementation()
 {
 	bDefeated = true;
 	SetActorEnableCollision(false);
+	if(AICombatComponent)
+	{
+		AICombatComponent->TryAbortActiveAttack();
+	}
 }
 
 void AFPEnemyCharacter::OnTakeDamage_Implementation(float DamageValue)

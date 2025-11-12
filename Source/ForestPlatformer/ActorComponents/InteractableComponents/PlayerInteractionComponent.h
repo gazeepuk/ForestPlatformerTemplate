@@ -74,10 +74,10 @@ protected:
 
 private:
 	/** Adds the actor to the available interactable actors array */
-	void AddActorToInteractableActor(AActor* InActor);
+	void AddActorToInteractableActors(AActor* InActor);
 
 	/** Removes the actor from the available interactable actors array */
-	void RemoveActorInteractableActor(const AActor* InActor);
+	void RemoveActorFromInteractableActors(const AActor* InActor);
 	
 	/** Callback function triggered when an actor enters the interaction collision area */
 	UFUNCTION()

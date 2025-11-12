@@ -23,22 +23,28 @@ public:
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE bool IsPatrolBordersValid() const { return PatrolBorders != nullptr; } 
 
-	/** Returns the world location of a patrol point by its index */
+	/** Returns the world location of a patrol point by its index
+	 * @return Patrol point location if it's valid, zero vector otherwise
+	 */
 	UFUNCTION(BlueprintPure)
 	FVector GetPatrolPointLocationByIndex(int32 InPatrolPointIndex) const;
-	/** Returns the world of the current patrol point */
+
+	/** Returns the world of the current patrol point
+	 * @return Current patrol point location if it's valid, zero vector otherwise
+	 */
 	UFUNCTION(BlueprintPure)
 	FVector GetCurrentPatrolPointLocation() const;
 
-	/** Returns a random location within the patrol borders volume */
+	/** Returns a random location within the patrol borders volume or zero vector, if bounds are invalid*/
 	UFUNCTION(BlueprintPure)
 	FVector GetRandomLocationWithinPatrolBorders() const;
 	
-	/** Advances to the next patrol point in the sequence */
+	/** Advances to the next patrol point in the sequence. Clamps the index or sets -1, if the patrol points array is empty */
 	UFUNCTION(BlueprintCallable)
 	void SetNextPatrolPointIndex();
 	
 protected:
+	/** Sets the last patrol point of the array as the current point */
 	virtual void BeginPlay() override;
 
 	/** Array of actor waypoints that define the patrol route */

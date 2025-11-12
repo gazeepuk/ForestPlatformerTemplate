@@ -35,7 +35,6 @@ bool AInteractableActorBase::CanInteract_Implementation(AActor* InInstigator)
 void AInteractableActorBase::BeginPlay()
 {
 	Super::BeginPlay();
-
 	if(bAutoInitInteractableComponent)
 	{
 		InteractableComponent->InitInteractableComponent(InteractableCollision, InteractableWidgetComponent);

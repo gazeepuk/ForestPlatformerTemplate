@@ -7,7 +7,7 @@
 #include "CoreTypes/FPGameplayTags.h"
 #include "FunctionLibrary/FPFunctionLibrary.h"
 
-
+DEFINE_LOG_CATEGORY(LogFpCombat);
 
 bool UCombatComponentBase::CanAttack_Implementation()
 {
@@ -36,14 +36,15 @@ UFPAttackType* UCombatComponentBase::GrantAttackTypeByClass(TSubclassOf<UFPAttac
 {
 	if(!InAttackTypeClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Can't add an attack type for %s! The class is invalid!"), *GetNameSafe(GetOwner()));
+		UE_LOG(LogFpCombat, Warning, TEXT("Can't add an attack type for %s! The class is invalid!"), *GetNameSafe(GetOwner()));
 		return nullptr;
 	}
 
+	// Creates attack, subscribe on its delegate and return the instance
 	if(UFPAttackType* AttackType = NewObject<UFPAttackType>(this, InAttackTypeClass))
 	{
 		AvailableAttackTypes.AddUnique(AttackType);
-		UE_LOG(LogTemp, Display, TEXT("Added %s to %s attacks"), *AttackType->GetAttackTypeID().ToString(), *GetNameSafe(GetOwner()));
+		UE_LOG(LogFpCombat, Display, TEXT("Added %s to %s attacks"), *AttackType->GetAttackTypeID().ToString(), *GetNameSafe(GetOwner()));
 
 		AttackType->InitAttack(GetOwner(), this);
 		AttackType->OnAttackEnded.AddUniqueDynamic(this, &ThisClass::OnAttackEnded);
@@ -57,12 +58,16 @@ void UCombatComponentBase::RemoveAttackTypeByClass(TSubclassOf<UFPAttackType> In
 
 	if(UFPAttackType* FoundAttackType = FindAttackTypeByClass(InAttackTypeClass))
 	{
+		// Removes the attack from the list
 		AvailableAttackTypes.Remove(FoundAttackType);
+		//Ends the attack, if it's active
 		if(FoundAttackType->IsActive())
 		{
 			FoundAttackType->EndAttack(); 
 		}
+		// Unbinds the attack's delegate
 		FoundAttackType->OnAttackEnded.RemoveDynamic(this, &ThisClass::OnAttackEnded);
+		// Mark to destroy the attack
 		FoundAttackType->ConditionalBeginDestroy();
 	}
 }
@@ -74,12 +79,14 @@ UFPAttackType* UCombatComponentBase::FindAttackTypeByClass(TSubclassOf<UFPAttack
 	{
 		return nullptr;
 	}
-	
+
+	// Finds an attack of the specified InAttackTypeClass class 
 	UFPAttackType** FoundAttack = AvailableAttackTypes.FindByPredicate([InAttackTypeClass](const UFPAttackType* AttackType)
 	{
 		return AttackType && AttackType->GetClass() == InAttackTypeClass;
 	});
-	
+
+	// Returns the attack point, if was founded, or nullptr otherwise
 	return FoundAttack ? *FoundAttack : nullptr;
 }
 
@@ -89,12 +96,14 @@ UFPAttackType* UCombatComponentBase::FindAttackTypeByTag(const FGameplayTag& InA
 	{
 		return nullptr;
 	}
-	
+
+	// Finds an attack with the specified InAttackTypeTag tag
 	UFPAttackType** FoundedAttackType = AvailableAttackTypes.FindByPredicate([InAttackTypeTag](const UFPAttackType* AttackType)
 	{
 		return AttackType && AttackType->GetAttackTypeTag().MatchesTagExact(InAttackTypeTag);
 	});
-
+	
+	// Returns the attack point, if was founded, or nullptr otherwise
 	return FoundedAttackType ? *FoundedAttackType : nullptr;
 }
 
@@ -130,9 +139,11 @@ void UCombatComponentBase::OnAttackEnded()
 {
 	if(ActiveAttack != nullptr)
 	{
-		UE_LOG(LogTemp, Display, TEXT("%s attack of %s has ended"), *ActiveAttack->GetAttackTypeID().ToString(), *GetNameSafe(GetOwner()))
+		// Clear active attack pointer
+		UE_LOG(LogFpCombat, Display, TEXT("%s attack of %s has ended"), *ActiveAttack->GetAttackTypeID().ToString(), *GetNameSafe(GetOwner()))
 		ActiveAttack = nullptr;
 	}
+	// Removes attacking status on the owner
 	UFPFunctionLibrary::NativeRemoveGameplayTagFromActor(GetOwner(), FPGameplayTags::Shared_Status_Attacking);
 }
 
@@ -143,9 +154,10 @@ int32 UCombatComponentBase::GetIndexOfAttack(UFPAttackType* InAttackType) const
 		return INDEX_NONE;
 	}
 
+	// Finds an attack with the same attack type ID and returns its index
 	return AvailableAttackTypes.IndexOfByPredicate([&InAttackType](const UFPAttackType* AttackType)
 	{
-		return AttackType->GetAttackTypeTag() == InAttackType->GetAttackTypeTag();
+		return AttackType->GetAttackTypeID() == InAttackType->GetAttackTypeID();
 	});
 }
 
@@ -155,7 +167,8 @@ bool UCombatComponentBase::TryActivateAttack_Implementation(UFPAttackType* InAtt
 	{
 		if(CanAttack() && InAttackTypeToActivate->CanAttack())
 		{
-			UE_LOG(LogTemp, Display, TEXT("Performing %s attack for %s"), *InAttackTypeToActivate->GetAttackTypeID().ToString(), *GetNameSafe(GetOwner()));
+			// Set active attack, adds attacking status tag on owner and performs attack
+			UE_LOG(LogFpCombat, Display, TEXT("Performing %s attack for %s"), *InAttackTypeToActivate->GetAttackTypeID().ToString(), *GetNameSafe(GetOwner()));
 			ActiveAttack = InAttackTypeToActivate;
 			UFPFunctionLibrary::NativeAddGameplayTagToActor(GetOwner(), FPGameplayTags::Shared_Status_Attacking);
 			InAttackTypeToActivate->PerformAttack();

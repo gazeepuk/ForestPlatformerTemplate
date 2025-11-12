@@ -6,6 +6,7 @@
 #include "UObject/Interface.h"
 #include "InteractableInterface.generated.h"
 
+class UInteractableComponent;
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UInteractableInterface : public UInterface
@@ -14,7 +15,8 @@ class UInteractableInterface : public UInterface
 };
 
 /**
- * 
+ * Interface managing interactions with other actors.
+ * This interface provides a unified way of interacting between actors.
  */
 class FORESTPLATFORMER_API IInteractableInterface
 {

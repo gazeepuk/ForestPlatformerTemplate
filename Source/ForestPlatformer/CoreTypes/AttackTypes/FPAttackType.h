@@ -7,6 +7,8 @@
 #include "UObject/Object.h"
 #include "FPAttackType.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogFpAttackType, Log, All);
+
 class UCombatComponentBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackEnded);
@@ -64,16 +66,15 @@ public:
 	/** Returns the skeletal mesh from the owning actor */
 	UFUNCTION(BlueprintPure)
 	USkeletalMeshComponent* GetSkeletalMeshFromOwningActor() const;
-
+	
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetRemainingCooldownTime() const { return RemainingCooldown; }
+	
 	/**
 	 * Initialize the attack type with ownership and combat component
 	 * @param InOwningActor The actor that own and perform this attack type
 	 * @param InCombatComponent The combat component managing this attack
 	 */
-
-	UFUNCTION(BlueprintPure)
-	FORCEINLINE float GetRemainingCooldownTime() const { return RemainingCooldown; }
-	
 	UFUNCTION(BlueprintCallable)
 	virtual void InitAttack(AActor* InOwningActor, UCombatComponentBase* InCombatComponent);
 
@@ -101,13 +102,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable)
 	void EndAttack();
-
-	/**
-	 * Contains cleanup logic (clears timers, stops montages). Override to properly clean up the attack
-	 */
-	UFUNCTION(BlueprintNativeEvent)
-	void EndAttackInner();
-
+	
 	/**
 	 * Aborts this attack
 	 * @return True if aborted successfully
@@ -120,6 +115,11 @@ public:
 	FOnAttackEnded OnAttackEnded;
 	
 protected:
+	/**
+	 * Contains cleanup logic (clears timers, stops montages). Override to properly clean up the attack
+	 */
+	UFUNCTION(BlueprintNativeEvent)
+	void EndAttackInner();
 
 	/** Animation montage to play when performing this attack */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -136,7 +136,7 @@ private:
 	/** Starts attack cooldown */
 	void StartCooldown();
 	/** Resets the cooldown */
-	void ResetCooldown();
+	void ClearCooldown();
 	/** Updates the remaining cooldown time of this attack */
 	void UpdateCooldown();
 
@@ -162,6 +162,7 @@ private:
 	/** The remaining time of cooldown in seconds */
 	float RemainingCooldown;
 
+	UPROPERTY(EditDefaultsOnly)
 	float CooldownTick = 0.1f;
 	
 	/** timer handle for cooldown */

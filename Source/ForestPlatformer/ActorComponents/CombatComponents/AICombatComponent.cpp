@@ -4,23 +4,27 @@
 #include "AICombatComponent.h"
 
 #include "AIController.h"
-#include "CoreTypes/AttackTypes/FPAttackType.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "CoreTypes/FPGameplayTags.h"
-#include "FunctionLibrary/FPFunctionLibrary.h"
 #include "GameFramework/Character.h"
 
 
 AActor* UAICombatComponent::GetTargetActorFromBlackboard() const
 {
+	// Tries to get TargetActor value from owner blackboard
+	if(const UBlackboardComponent* BlackboardComponent = GetBlackboardFromOwningActor())
+	{
+		return Cast<AActor>(BlackboardComponent->GetValueAsObject(FName("TargetActor")));
+	}
+	return nullptr;
+}
+
+const UBlackboardComponent* UAICombatComponent::GetBlackboardFromOwningActor() const
+{
 	if(const ACharacter* OwningCharacter = GetOwner<ACharacter>())
 	{
 		if(const AAIController* AIController = OwningCharacter->GetController<AAIController>())
 		{
-			if(const UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
-			{
-				return Cast<AActor>(BlackboardComponent->GetValueAsObject(FName("TargetActor")));
-			}
+			return AIController->GetBlackboardComponent();
 		}
 	}
 	return nullptr;

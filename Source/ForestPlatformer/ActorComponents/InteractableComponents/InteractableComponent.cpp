@@ -28,7 +28,8 @@ void UInteractableComponent::SetInteractableCollision(UShapeComponent* InCollisi
 	{
 		return;
 	}
-	
+
+	// Sets new interaction collision pointer and setups its properties for interactions
 	InteractionCollision = InCollision;
 	if(InteractionCollision)
 	{
@@ -44,6 +45,7 @@ void UInteractableComponent::SetInteractableCollision(UShapeComponent* InCollisi
 
 void UInteractableComponent::SetInteractionWidgetComponent(UWidgetComponent* InWidgetComponent)
 {
+	// Sets new interaction widget component pointer and setups its properties for interaction
 	InteractionWidgetComponent = InWidgetComponent;
 	if(InteractionWidgetComponent)
 	{
@@ -69,11 +71,10 @@ void UInteractableComponent::SetIsFocused(bool bIsFocused)
 void UInteractableComponent::OnRegister()
 {
 	Super::OnRegister();
-	
-	if(!GetOwner()->Implements<UInteractableInterface>())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s of %s calss has Interactable Component but does not implement IInteractableInterface."),
-			*GetNameSafe(GetOwner()),
-			*GetOwner()->GetClass()->GetName());
-	}
+
+	// Ensures that the owner implements interactable interface
+	ensureMsgf(GetOwner()->Implements<UInteractableInterface>(),
+		TEXT("%s of %s calss has Interactable Component but does not implement IInteractableInterface."),
+		*GetNameSafe(GetOwner()),
+		*GetOwner()->GetClass()->GetName());
 }

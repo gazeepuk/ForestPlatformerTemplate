@@ -14,7 +14,8 @@ class UCoinsWalletInterface : public UInterface
 };
 
 /**
- * 
+ * Interface for managing a coin wallet system.
+ * This interfaces allows systems (shops, pickups) to interact with coins in a unified way.
  */
 class FORESTPLATFORMER_API ICoinsWalletInterface
 {

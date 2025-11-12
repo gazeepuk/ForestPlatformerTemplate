@@ -10,6 +10,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "FPFunctionLibrary.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogFpFunctionLibrary, Log, All);
+
 class UFPEffectBase;
 /**
  * 
@@ -53,13 +55,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	static FName GenerateSaveIDByActorLocation(const AActor* InActor);
 
-	/* Serializes a structure into a byte array */
+	/* Serializes a structure into a byte array. */
 	UFUNCTION(BlueprintCallable, CustomThunk, Category="Serialization", meta=(CustomStructureParam = "Struct"))
 	static bool SerializeStruct(const FGenericStruct& Struct, TArray<uint8>& OutBytes);
 
 	DECLARE_FUNCTION(execSerializeStruct);
 
-	/* Deserialize a byte array back into a structure */
+	/* Deserialize a byte array back into a structure. */
 	UFUNCTION(BlueprintCallable, CustomThunk, Category="Serialization", meta=(CustomStructureParam = "Struct"))
 	static bool DeserializeStruct(UPARAM(ref) FGenericStruct& Struct, const TArray<uint8>& InBytes);
 

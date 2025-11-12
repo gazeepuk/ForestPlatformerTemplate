@@ -7,7 +7,8 @@ void UFPCharacterMovementComponent::StartFloating_Implementation()
 {
 	if(!bFloating)
 	{
-		GravityScale *= FloatingGravityMultiplier;
+		CachedGravity = GravityScale;
+		GravityScale = GravityScale * FloatingGravityMultiplier;
 		bFloating = true;
 	}
 }
@@ -16,13 +17,14 @@ void UFPCharacterMovementComponent::StopFloating_Implementation()
 {
 	if(bFloating)
 	{
-		GravityScale /= FloatingGravityMultiplier;
+		GravityScale = CachedGravity;
 		bFloating = false;
 	}
 }
 
 void UFPCharacterMovementComponent::HandleFloating_Implementation()
 {
+	// Starts floating if the 
 	if(GetOwner()->GetVelocity().Z < 0.f)
 	{
 		StartFloating();
@@ -36,6 +38,7 @@ void UFPCharacterMovementComponent::HandleFloating_Implementation()
 void UFPCharacterMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	// Sets max walk speed of the current movement state to ensure it's correct
 	MaxWalkSpeed = GetCurrentMovementStateSpeed();
 }
 
@@ -70,7 +73,7 @@ EFPMovementState UFPCharacterMovementComponent::GetCurrentMovementState() const
 	return CurrentMovementState;
 }
 
-float UFPCharacterMovementComponent::GetMovementStateSpeed(EFPMovementState InMovementState) const
+float UFPCharacterMovementComponent::GetMovementStateSpeed_Implementation(EFPMovementState InMovementState) const
 {
 	switch (InMovementState)
 	{
@@ -88,7 +91,7 @@ float UFPCharacterMovementComponent::GetCurrentMovementStateSpeed() const
 	return GetMovementStateSpeed(CurrentMovementState);
 }
 
-void UFPCharacterMovementComponent::HandleMovementState()
+void UFPCharacterMovementComponent::HandleMovementState_Implementation()
 {
 	switch (CurrentMovementState)
 	{

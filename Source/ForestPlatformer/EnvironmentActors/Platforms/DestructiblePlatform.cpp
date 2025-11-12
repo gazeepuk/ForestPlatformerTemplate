@@ -20,7 +20,7 @@ ADestructiblePlatform::ADestructiblePlatform()
 void ADestructiblePlatform::OnStompBoxOverlapped(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// Destroy or disable the platform if it's active
+	// Destroys or disables the platform if it's active
 	if(!bDestructing)
 	{
 		bDestructing = true;
@@ -38,11 +38,11 @@ void ADestructiblePlatform::DestroyPlatform()
 
 	if(GetWorld())
 	{
-		// Disable the platform and
+		// Disables collision and hides the platform
 		SetActorHiddenInGame(true);
 		SetActorEnableCollision(false);
 
-		// Set a timer to restore the platform
+		// Sets a timer to restore the platform
 		GetWorldTimerManager().SetTimer(RestorationTimerHandle, this, &ThisClass::RestorePlatform, RestorationTime);
 	}
 }
@@ -51,11 +51,11 @@ void ADestructiblePlatform::RestorePlatform()
 {
 	bDestructing = false;
 
-	// Enable the platform
+	// Enables the platform
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
 
-	// Clear all timers
+	// Clears all timers
 	GetWorldTimerManager().ClearTimer(DestructionTimerHandle);
 	GetWorldTimerManager().ClearTimer(RestorationTimerHandle);
 }

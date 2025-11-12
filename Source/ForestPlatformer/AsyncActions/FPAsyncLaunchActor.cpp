@@ -67,6 +67,7 @@ void UFPAsyncLaunchActor::Cleanup()
 void UFPAsyncLaunchActor::ParabolicMovement()
 {
 	const float Alpha = FMath::Clamp(ElapsedTime / TotalDuration, 0.f, 1.f);
+	// Finds new location on a parabola
 	const FVector NewLocation = FMath::Lerp(
 		FMath::Lerp(StartLocation, ControlPoint, Alpha),
 		FMath::Lerp(ControlPoint, TargetLocation, Alpha),
@@ -78,6 +79,7 @@ void UFPAsyncLaunchActor::ParabolicMovement()
 		return;
 	}
 
+	// Finds velocity based on new and previous locations
 	CurrentVelocity = (NewLocation - LaunchingActor->GetActorLocation()) / GetWorld()->GetDeltaSeconds();
 	
 	if(bShouldOrientToMovement)
@@ -97,6 +99,7 @@ void UFPAsyncLaunchActor::ParabolicMovement()
 
 void UFPAsyncLaunchActor::FallingMovement()
 {
+	// Adds gravity force to the current velocity
 	CurrentVelocity.Z += GetWorld()->GetGravityZ() * GetWorld()->GetDeltaSeconds();
 	
 	FVector CurrentLocation = LaunchingActor->GetActorLocation();
@@ -108,6 +111,7 @@ void UFPAsyncLaunchActor::FallingMovement()
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(LaunchingActor.Get());
 
+	// Snaps the actor to the ground, if it's too close to the ground
 	if(GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_WorldStatic, CollisionParams))
 	{
 		LaunchingActor->SetActorLocation(HitResult.Location, true);

@@ -14,7 +14,8 @@ class UInteractorInterface : public UInterface
 };
 
 /**
- * 
+ * Interface for actors that can initiate interactions with other interactable actors.
+ * It provides a way to check whether the actor can interact at this point of time.
  */
 class FORESTPLATFORMER_API IInteractorInterface
 {

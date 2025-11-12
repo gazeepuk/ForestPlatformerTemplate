@@ -129,17 +129,20 @@ bool AProjectileBase::ProjectileInteract_Implementation(AActor* InInteractingAct
 		return false;
 	}
 
-	// Ignore any friendly pawn if bDamageOnlyHostilePawns is true
-	if(APawn* InteractingPawn = Cast<APawn>(InInteractingActor))
+	// Ignore any friendly pawn, if bDamageOnlyHostilePawns is true
+	if(bDamageOnlyHostilePawns)
 	{
-		const bool bOtherPawnHostile = UFPFunctionLibrary::IsPawnHostile(GetOwner<APawn>(), InteractingPawn);
-		if(bDamageOnlyHostilePawns && !bOtherPawnHostile)
+		if(APawn* InteractingPawn = Cast<APawn>(InInteractingActor))
 		{
-			return false;
+			const bool bOtherPawnHostile = UFPFunctionLibrary::IsPawnHostile(GetOwner<APawn>(), InteractingPawn);
+			if(!bOtherPawnHostile)
+			{
+				return false;
+			}
 		}
 	}
 
-	// Apply damage to the actor if it implements IDamageableInterface  
+	// Apply damage to the actor, if it implements IDamageableInterface  
 	if(InInteractingActor->Implements<UDamageableInterface>())
 	{
 		AController* OwningController = GetOwner<APawn>() ? GetOwner<APawn>()->GetController() : nullptr;
@@ -158,9 +161,11 @@ void AProjectileBase::OnProjectileHit_Implementation(UPrimitiveComponent* HitCom
 		return;
 	}
 	
-	ProjectileInteract(OtherActor);
+	if(ProjectileInteract(OtherActor))
+	{
+		OnProjectileImpact();
+	}
 
-	OnProjectileImpact();
 
 	// Return the projectile to its pool
 	SetPooledActorActive(false);
@@ -175,11 +180,12 @@ void AProjectileBase::OnProjectileBeginOverlap_Implementation(UPrimitiveComponen
 		return;
 	}
 
-	ProjectileInteract(OtherActor);
-
-	OnProjectileImpact();
-
-	// Return the projectile to its pool if it can't pierce actors 
+	if(ProjectileInteract(OtherActor))
+	{
+		OnProjectileImpact();
+	}
+	
+	// Return the projectile to its pool, if it can't pierce actors 
 	if(!bPierceActors)
 	{
 		SetPooledActorActive(false);

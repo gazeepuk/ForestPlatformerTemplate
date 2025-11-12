@@ -15,7 +15,10 @@ class FORESTPLATFORMER_API USavableActorInterface : public UInterface
 };
 
 /**
- * 
+ * Interface for actors that can be saved or loaded.
+ *
+ * Any actor implementing this interface participates in the save system.
+ * Implement this interface to define how the actor should be serialized into save data and restored later.
  */
 class FORESTPLATFORMER_API ISavableActorInterface
 {
