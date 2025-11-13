@@ -7,6 +7,8 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "SaveGameSubsystem.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogFpSaveSubsystem, Log, All);
+
 #define DEFAULT_SAVE_SLOT_NAME "SaveSlot"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSaveGameLoaded, const FString&, LoadedSlotName, const int32, LoadedUserIndex, USaveGame*, LoadedSaveData);
@@ -31,21 +33,25 @@ public:
 	/* Sets the name of the current save slot */
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentSlotName(const FString& NewSlotName);
+
+	/** Returns level registry level table */
+	UFUNCTION(BlueprintPure)
+	UDataTable* GetLevelRegistryTable();
 	
 	/* Returns the clean name of the current level */
 	UFUNCTION(BlueprintPure)
-	FString GetCleanLevelName() const;
+	FName GetLevelID(const UWorld* InLevel);
 
 	/* Returns the save data for the current level data from loaded save game */
-	FFPLevelData* GetCurrentLevelData() const;
+	FFPLevelData* GetCurrentLevelData();
 
 	/* Returns the ID of the last activated checkpoint in the current level */
 	UFUNCTION(BlueprintPure)
-	FName GetCurrentLastCheckpointID() const;
+	FName GetCurrentLastCheckpointID();
 
 	/* Returns the spawn point of the last activated checkpoint in the current level */
 	UFUNCTION(BlueprintPure)
-	FTransform GetCurrentLastCheckpointSpawnPoint() const;
+	FTransform GetCurrentLastCheckpointSpawnPoint();
 
 	/* Returns the currently loaded save game */
 	UFUNCTION(BlueprintPure)
@@ -79,7 +85,7 @@ public:
 
 	/* Loads saved data of the current level and applies it to all savable actors */
 	UFUNCTION(BlueprintCallable)
-	void LoadCurrentLevelFromSave() const;
+	void LoadCurrentLevelFromSave();
 
 	/* Delegate that broadcasts after a save game has been loaded asynchronously*/
 	UPROPERTY(BlueprintAssignable)
@@ -89,6 +95,10 @@ public:
 	FOnSaveGameSaved OnSaveGameSaved;
 
 protected:
+	/** Loads level registry DataTable */
+	UFUNCTION(BlueprintCallable)
+	void LoadLevelRegistryTable();
+	
 	/* Writes the current level's data to the save game */
 	void WriteSaveData();
 	
@@ -103,4 +113,10 @@ protected:
 	/** The name of the current active save slot */
 	UPROPERTY(BlueprintReadOnly)
 	FString CurrentSlotName;
+
+private:
+
+	/** Table with level object reference and its ID*/
+	UPROPERTY()
+	TObjectPtr<UDataTable> LevelRegistryTable;
 };

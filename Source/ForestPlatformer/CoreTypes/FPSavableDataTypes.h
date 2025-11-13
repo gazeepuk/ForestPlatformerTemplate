@@ -76,3 +76,23 @@ struct FFPLevelData
 	UPROPERTY()
 	bool bLevelCompleted;
 };
+
+/** Contains data for DataTable that stores level refs and their unique IDs. Used by save/load system */
+USTRUCT(BlueprintType)
+struct FLevelRegistryRow : public FTableRowBase
+{
+	GENERATED_BODY()
+	
+	FORCEINLINE bool IsValid() const
+	{
+		return !LevelID.IsNone() && !LevelAsset.IsNull();
+	}
+	
+	/** Unique name for a level */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName LevelID;
+
+	/** Reference to a level */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSoftObjectPtr<UWorld> LevelAsset;
+};

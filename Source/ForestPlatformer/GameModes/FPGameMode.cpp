@@ -143,7 +143,7 @@ void AFPGameMode::RegisterCheckpoint(AFPCheckpoint* InCheckpoint)
 
 void AFPGameMode::InitGameFromSave()
 {
-	if(const USaveGameSubsystem* SaveSubsystem = GetGameInstance()->GetSubsystem<USaveGameSubsystem>())
+	if(USaveGameSubsystem* SaveSubsystem = GetGameInstance()->GetSubsystem<USaveGameSubsystem>())
 	{
 		// Get and cache checkpoint data from save data
 		LastCheckpointID = SaveSubsystem->GetCurrentLastCheckpointID();

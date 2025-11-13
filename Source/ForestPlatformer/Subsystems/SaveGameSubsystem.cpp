@@ -4,11 +4,14 @@
 #include "SaveGameSubsystem.h"
 
 #include "ActorComponents/HealthComponent/HealthComponent.h"
+#include "Engine/StreamableManager.h"
 #include "GameModes/FPGameMode.h"
 #include "Interfaces/CoinsWalletInterface.h"
 #include "Interfaces/SavableActorInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "SaveGame/FPSaveGame.h"
+
+DEFINE_LOG_CATEGORY(LogFpSaveSubsystem);
 
 void USaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -26,28 +29,78 @@ void USaveGameSubsystem::SetCurrentSlotName(const FString& NewSlotName)
 	CurrentSlotName = NewSlotName.IsEmpty() ? DEFAULT_SAVE_SLOT_NAME : NewSlotName;
 }
 
-FString USaveGameSubsystem::GetCleanLevelName() const
+void USaveGameSubsystem::LoadLevelRegistryTable()
 {
-	if(GetWorld())
+	FSoftObjectPath LevelRegistryTablePath(TEXT("/Game/DataTables/DT_LevelRedistry.DT_LevelRedistry"));
+	LevelRegistryTable = Cast<UDataTable>(LevelRegistryTablePath.ResolveObject());
+	if(!LevelRegistryTable)
 	{
-		FString LevelName = GetWorld()->GetMapName();
-		LevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
-		return LevelName;
+		UE_LOG(LogFpSaveSubsystem, Error, TEXT("Failed loading Level Registry Table"));
 	}
-	return FString();
 }
 
-FFPLevelData* USaveGameSubsystem::GetCurrentLevelData() const
+UDataTable* USaveGameSubsystem::GetLevelRegistryTable()
+{
+	if(LevelRegistryTable)
+	{
+		return LevelRegistryTable;
+	}
+	LoadLevelRegistryTable();
+	return LevelRegistryTable;
+}
+
+FName USaveGameSubsystem::GetLevelID(const UWorld* InLevel)
+{
+	if(!InLevel)
+	{
+		UE_LOG(LogFpSaveSubsystem, Error, TEXT("Input Level World parameter is nullptr"));
+		return FName();
+	}
+	
+	UDataTable* LevelRegistry = GetLevelRegistryTable();
+	if(!LevelRegistryTable)
+	{
+		UE_LOG(LogFpSaveSubsystem, Error, TEXT("Level Registry Table is invalid. Can't get level ID for the current level"));
+		return FName();
+	}
+
+	FString LevelName = InLevel->GetName();
+	
+	FString ContextString("LevelRegistryLookup");
+	TArray<FName> LevelRegistryRowNames = LevelRegistry->GetRowNames();
+
+	for (const FName& RowName : LevelRegistryRowNames)
+	{
+		if(FLevelRegistryRow* Row = LevelRegistry->FindRow<FLevelRegistryRow>(RowName, ContextString))
+		{
+			if(!Row->IsValid())
+			{
+				continue;
+			}
+			
+			FString RowLevelName = Row->LevelAsset.ToSoftObjectPath().GetAssetName();
+			if(RowLevelName == LevelName)
+			{
+				return Row->LevelID;
+			}
+		}
+	}
+
+	UE_LOG(LogFpSaveSubsystem, Warning, TEXT("LevelId for %s was not found"), *LevelName);
+	return FName();
+}
+
+FFPLevelData* USaveGameSubsystem::GetCurrentLevelData()
 {
 	if(SaveGame)
 	{
-		const FString LevelName = GetCleanLevelName();
+		const FName LevelName = GetLevelID(GetWorld());
 		return SaveGame->LevelDataMap.Find(LevelName);
 	}
 	return nullptr;
 }
 
-FName USaveGameSubsystem::GetCurrentLastCheckpointID() const
+FName USaveGameSubsystem::GetCurrentLastCheckpointID()
 {
 	if(const FFPLevelData* CurrentLevelData = GetCurrentLevelData())
 	{
@@ -56,7 +109,7 @@ FName USaveGameSubsystem::GetCurrentLastCheckpointID() const
 	return FName();
 }
 
-FTransform USaveGameSubsystem::GetCurrentLastCheckpointSpawnPoint() const
+FTransform USaveGameSubsystem::GetCurrentLastCheckpointSpawnPoint()
 {
 	if(const FFPLevelData* CurrentLevelData = GetCurrentLevelData())
 	{
@@ -160,7 +213,7 @@ void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserI
 void USaveGameSubsystem::WriteSaveData()
 {
 	// Get current level's name 
-	FString LevelName = GetCleanLevelName();
+	FName LevelName = GetLevelID(GetWorld());
 
 	// Find or create a level data
 	FFPLevelData& CurrentLevelData = SaveGame->LevelDataMap.FindOrAdd(LevelName);
@@ -230,7 +283,7 @@ void USaveGameSubsystem::AddPendingSavableActor(const AActor* InSavableActor)
 	PendingSavableData.FindOrAdd(SaveID) = DataToSave;
 }
 
-void USaveGameSubsystem::LoadCurrentLevelFromSave() const
+void USaveGameSubsystem::LoadCurrentLevelFromSave()
 {
 	if(!SaveGame)
 	{
@@ -246,8 +299,6 @@ void USaveGameSubsystem::LoadCurrentLevelFromSave() const
 			ICoinsWalletInterface::Execute_SetCurrentCoins(PlayerController, SaveGame->PlayerProgressData.CoinsValue);
 		}
 	}
-	
-	FString LevelName = GetCleanLevelName();
 
 	if(FFPLevelData* LevelData = GetCurrentLevelData())
 	{
