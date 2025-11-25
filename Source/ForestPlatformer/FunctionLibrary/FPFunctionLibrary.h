@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "CoreTypes/FPEnumTypes.h"
+#include "CoreTypes/InventoryTypes/InventorySlot.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Engine/EngineTypes.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -66,4 +67,8 @@ public:
 	static bool DeserializeStruct(UPARAM(ref) FGenericStruct& Struct, const TArray<uint8>& InBytes);
 
 	DECLARE_FUNCTION(execDeserializeStruct);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory", meta = (ExpandEnumAsExecs = "OutSuccessType"))
+	static void GetItemInfoFromInventorySlotSync(const FInventorySlot& InInventorySlot, FInventoryItem& OutInventoryItemInfo, EFPSuccessType& OutSuccessType);
+
 };

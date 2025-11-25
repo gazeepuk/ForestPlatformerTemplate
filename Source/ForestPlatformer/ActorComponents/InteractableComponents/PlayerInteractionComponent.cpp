@@ -154,6 +154,11 @@ void UPlayerInteractionComponent::UpdateFocusedInteractableActor()
 
 void UPlayerInteractionComponent::PerformInteraction() const
 {
+	if(!FocusedInteractableActor.IsValid())
+	{
+		return;
+	}
+	
 	if (CanInteract())
 	{
 		IInteractableInterface::Execute_Interact(FocusedInteractableActor.Get(), GetOwner());

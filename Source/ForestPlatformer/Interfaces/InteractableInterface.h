@@ -34,4 +34,5 @@ public:
 	void OnFailedInteract(AActor* InInstigator);
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
 	FText GetInteractableText() const;
+	
 };

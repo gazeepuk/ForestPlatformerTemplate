@@ -3,9 +3,15 @@
 
 #include "FPPlayerController.h"
 
+#include "ActorComponents/InventoryComponent/InventoryComponent.h"
+#include "Interfaces/InventoryItemInterface.h"
+
 AFPPlayerController::AFPPlayerController()
 {
 	PlayerTeamID = FGenericTeamId(0);
+
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+	WalletComponent = CreateDefaultSubobject<UWalletComponent>(TEXT("WalletComponent"));
 }
 
 FGenericTeamId AFPPlayerController::GetGenericTeamId() const
@@ -30,34 +36,71 @@ ETeamAttitude::Type AFPPlayerController::GetTeamAttitudeTowards(const AActor& Ot
 	return ETeamAttitude::Friendly;
 }
 
+int32 AFPPlayerController::GetItemCount_Implementation(FName InItemName)
+{
+	if(InventoryComponent)
+	{
+		return InventoryComponent->GetItemCountByID(InItemName);
+	}
+
+	return 0;
+}
+
+void AFPPlayerController::AddItem_Implementation(UObject* InInventoryObject,
+	int32 InQuantity)
+{
+	if(!InInventoryObject || !InInventoryObject->Implements<UInventoryItemInterface>())
+	{
+		return;
+	}
+	
+	if(InventoryComponent)
+	{
+		IInventoryItemInterface::Execute_OnAddedToInventory(InInventoryObject);
+		return InventoryComponent->AddItem(IInventoryItemInterface::Execute_GetInventoryItemDataAsset(InInventoryObject), InQuantity);
+	}
+}
+
+void AFPPlayerController::RemoveItem_Implementation(UObject* InInventoryObject, int32 InQuantity)
+{
+	if(InventoryComponent)
+	{
+		return InventoryComponent->RemoveItem(IInventoryItemInterface::Execute_GetInventoryItemDataAsset(InInventoryObject), InQuantity);
+	}
+}
+
 void AFPPlayerController::AddCoins_Implementation(int32 InCoinsNum)
 {
-	SetCurrentCoins_Implementation(InCoinsNum + CurrentCoins);
+	if(WalletComponent)
+	{
+		WalletComponent->AddCoins(InCoinsNum);
+	}
 }
 
 bool AFPPlayerController::TrySpendCoins_Implementation(int32 InCoinsNum)
 {
-	if(HasEnoughCoins_Implementation(InCoinsNum))
+	if(WalletComponent)
 	{
-		SetCurrentCoins_Implementation(CurrentCoins - InCoinsNum);
-		return true;
+		WalletComponent->SpendCoins(InCoinsNum);
 	}
 	return false;
 }
 
 bool AFPPlayerController::HasEnoughCoins_Implementation(int32 InCoinsNumToSpend) const
 {
-	return InCoinsNumToSpend <= CurrentCoins;
+	return WalletComponent && WalletComponent->HasEnoughCoins(InCoinsNumToSpend);
 }
 
 void AFPPlayerController::SetCurrentCoins_Implementation(int32 InNewCurrentCoins)
 {
-	CurrentCoins = FMath::Clamp(InNewCurrentCoins, 0, MaxCoins);
-	OnCurrentCoinsChangedDelegate.Broadcast(CurrentCoins);;
+	if(WalletComponent)
+	{
+		WalletComponent->SetCurrentCoins(InNewCurrentCoins);
+	}
 }
 
 int32 AFPPlayerController::GetCurrentCoins_Implementation() const
 {
-	return CurrentCoins;
+	return WalletComponent ? WalletComponent->GetCurrentCoins() : 0;
 }
 

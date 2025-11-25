@@ -15,6 +15,8 @@
 #include "CoreTypes/FPCustomCollisions.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Controllers/PlayerControllers/FPPlayerController.h"
+#include "CoreTypes/FPGameplayTags.h"
+#include "FunctionLibrary/FPFunctionLibrary.h"
 
 AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer.SetDefaultSubobjectClass<UFPCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -80,6 +82,44 @@ int32 AFPPlayerCharacter::GetCurrentCoins_Implementation() const
 	return ICoinsWalletInterface::Execute_GetCurrentCoins(GetController());
 }
 
+
+#pragma endregion
+
+
+#pragma region IInventoryInterface
+int32 AFPPlayerCharacter::GetItemCount_Implementation(FName InItemName)
+{
+	if(AController* OwningController = GetController())
+	{
+		if(OwningController->Implements<UInventoryInterface>())
+		{
+			return IInventoryInterface::Execute_GetItemCount(Controller, InItemName);
+		}
+	}
+	return 0;
+}
+
+void AFPPlayerCharacter::AddItem_Implementation(UObject* InInventoryObject, int32 InQuantity)
+{
+	if(AController* OwningController = GetController())
+	{
+		if(OwningController->Implements<UInventoryInterface>())
+		{
+			IInventoryInterface::Execute_AddItem(Controller, InInventoryObject, InQuantity);
+		}
+	}
+}
+
+void AFPPlayerCharacter::RemoveItem_Implementation(UObject* InInventoryObject, int32 InQuantity)
+{
+	if(AController* OwningController = GetController())
+	{
+		if(OwningController->Implements<UInventoryInterface>())
+		{
+			IInventoryInterface::Execute_RemoveItem(Controller, InInventoryObject, InQuantity);
+		}
+	}
+}
 #pragma endregion
 
 void AFPPlayerCharacter::TakeDamage_Implementation(AActor* DamageCauser, float InDamage, AController* InstigatedBy)
@@ -92,7 +132,7 @@ void AFPPlayerCharacter::TakeDamage_Implementation(AActor* DamageCauser, float I
 
 bool AFPPlayerCharacter::CanInteract_Implementation() const
 {
-	return HealthComponent && HealthComponent->IsAlive();
+	return HealthComponent && HealthComponent->IsAlive() && !UFPFunctionLibrary::NativeDoesActorHaveTag(this, FPGameplayTags::Shared_Status_Attacking);
 }
 
 void AFPPlayerCharacter::BeginPlay()

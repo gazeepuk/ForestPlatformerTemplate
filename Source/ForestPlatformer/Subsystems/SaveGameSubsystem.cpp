@@ -4,7 +4,7 @@
 #include "SaveGameSubsystem.h"
 
 #include "ActorComponents/HealthComponent/HealthComponent.h"
-#include "Engine/StreamableManager.h"
+#include "ActorComponents/InventoryComponent/InventoryComponent.h"
 #include "GameModes/FPGameMode.h"
 #include "Interfaces/CoinsWalletInterface.h"
 #include "Interfaces/SavableActorInterface.h"
@@ -22,6 +22,7 @@ void USaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		CurrentSlotName = DEFAULT_SAVE_SLOT_NAME;
 	}
 	LoadGameSlot(CurrentSlotName, 0, false);
+	LoadLevelRegistryTable();
 }
 
 void USaveGameSubsystem::SetCurrentSlotName(const FString& NewSlotName)
@@ -31,8 +32,8 @@ void USaveGameSubsystem::SetCurrentSlotName(const FString& NewSlotName)
 
 void USaveGameSubsystem::LoadLevelRegistryTable()
 {
-	FSoftObjectPath LevelRegistryTablePath(TEXT("/Game/DataTables/DT_LevelRedistry.DT_LevelRedistry"));
-	LevelRegistryTable = Cast<UDataTable>(LevelRegistryTablePath.ResolveObject());
+	static const FString LevelRegistryTablePath = TEXT("/Game/Miscellaneous/LevelRegistry/DT_LevelRegistry.DT_LevelRegistry");
+	LevelRegistryTable = LoadObject<UDataTable>(nullptr, *LevelRegistryTablePath);
 	if(!LevelRegistryTable)
 	{
 		UE_LOG(LogFpSaveSubsystem, Error, TEXT("Failed loading Level Registry Table"));
@@ -58,7 +59,7 @@ FName USaveGameSubsystem::GetLevelID(const UWorld* InLevel)
 	}
 	
 	UDataTable* LevelRegistry = GetLevelRegistryTable();
-	if(!LevelRegistryTable)
+	if(!LevelRegistry)
 	{
 		UE_LOG(LogFpSaveSubsystem, Error, TEXT("Level Registry Table is invalid. Can't get level ID for the current level"));
 		return FName();
@@ -212,6 +213,12 @@ void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserI
 
 void USaveGameSubsystem::WriteSaveData()
 {
+	if(!GetWorld())
+	{
+		UE_LOG(LogFpSaveSubsystem, Error, TEXT("World is invalid. Can't save game"));
+		return;
+	}
+	
 	// Get current level's name 
 	FName LevelName = GetLevelID(GetWorld());
 
@@ -248,13 +255,15 @@ void USaveGameSubsystem::WriteSaveData()
 	PendingSavableData.Empty();
 
 	// Save Player Data
-	if(APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	if(APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
+		// Saves coins
 		if(PlayerController->Implements<UCoinsWalletInterface>())
 		{
 			SaveGame->PlayerProgressData.CoinsValue = ICoinsWalletInterface::Execute_GetCurrentCoins(PlayerController);
 		}
-		
+
+		// Saves health
 		if(const APawn* ControlledPawn = PlayerController ? PlayerController->GetPawn() : nullptr)
 		{
 			if(const UHealthComponent* HealthComponent = ControlledPawn->GetComponentByClass<UHealthComponent>())
@@ -262,6 +271,12 @@ void USaveGameSubsystem::WriteSaveData()
 				SaveGame->PlayerProgressData.MaxHealth = HealthComponent->GetMaxHealth();
 				CurrentLevelData.PlayersCurrentHealth = HealthComponent->GetCurrentHealth();
 			}
+		}
+
+		// Saves inventory
+		if(const UInventoryComponent* InventoryComponent = PlayerController->GetComponentByClass<UInventoryComponent>())
+		{
+			SaveGame->PlayerProgressData.PlayerInventory = InventoryComponent->GetInventoryCopy();
 		}
 	}
 }
@@ -287,13 +302,30 @@ void USaveGameSubsystem::LoadCurrentLevelFromSave()
 {
 	if(!SaveGame)
 	{
-		return;
+		// Tries to load the game slot
+		LoadGameSlot(CurrentSlotName);
+		if(!SaveGame)
+		{
+			UE_LOG(LogFpSaveSubsystem, Warning, TEXT("Save Game is invalid. Can't load saved data from %s slot"), *CurrentSlotName);
+			return;
+		}
 	}
 
-	// Load coins value for player controller
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if(!GetWorld())
+	{
+		UE_LOG(LogFpSaveSubsystem, Error, TEXT("World is invalid. Can't load saved data"))
+		return;
+	}
+	
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if(PlayerController)
 	{
+		// Load player's inventory
+		if(UInventoryComponent* PlayerInventoryComponent = PlayerController->GetComponentByClass<UInventoryComponent>())
+		{
+			PlayerInventoryComponent->LoadInventory(SaveGame->PlayerProgressData.PlayerInventory);
+		}
+		// Load player's coins
 		if(PlayerController->Implements<UCoinsWalletInterface>())
 		{
 			ICoinsWalletInterface::Execute_SetCurrentCoins(PlayerController, SaveGame->PlayerProgressData.CoinsValue);

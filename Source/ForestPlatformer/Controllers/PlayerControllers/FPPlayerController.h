@@ -6,15 +6,17 @@
 #include "GenericTeamAgentInterface.h"
 #include "GameFramework/PlayerController.h"
 #include "Interfaces/CoinsWalletInterface.h"
+#include "Interfaces/InventoryInterface.h"
 #include "FPPlayerController.generated.h"
 
+class UWalletComponent;
+class UInventoryComponent;
 class UHealthComponent;
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentCoinsChanged, int32, CurrentCoins);
 /**
  * 
  */
 UCLASS()
-class FORESTPLATFORMER_API AFPPlayerController : public APlayerController, public ICoinsWalletInterface, public IGenericTeamAgentInterface
+class FORESTPLATFORMER_API AFPPlayerController : public APlayerController, public ICoinsWalletInterface, public IGenericTeamAgentInterface, public IInventoryInterface
 {
 	GENERATED_BODY()
 public:
@@ -26,6 +28,18 @@ public:
 	/** Determines the team attitudes towards another actor */
 	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
 	//~End IGenericTeamAgentInterface
+
+	//~Begin IInventoryInterface
+	/**
+	 * Returns the amount of the item in the inventory
+	 * @param InItemName The unique name of the inventory item
+	 */
+	virtual int32 GetItemCount_Implementation(FName InItemName) override;
+	/** Adds an item to the inventory */
+	virtual void AddItem_Implementation(UObject* InInventoryObject, int32 InQuantity) override;
+	/** Removes an item from the inventory */
+	virtual void RemoveItem_Implementation(UObject* InInventoryObject, int32 InQuantity) override;
+	//~End IInventoryInterface
 	
 	//~Begin ICoinsWalletInterface
 	/** Adds the specified number of coins to the player's wallet */
@@ -49,14 +63,19 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void InitHealthBar(UHealthComponent* InHealthComponent);
 
-	/** Delegate hat broadcasts whenever the player's current coin count changes */
-	UPROPERTY(BlueprintAssignable)
-	FOnCurrentCoinsChanged OnCurrentCoinsChangedDelegate;
+protected:
+	/** Inventory component. Stores and manages player's inventory */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UInventoryComponent> InventoryComponent;
+
+	/** Wallet component. Stores and manages player's money */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UWalletComponent> WalletComponent;
 	
 private:
 	/** Team identifier for this player controller */
 	FGenericTeamId PlayerTeamID;
-
+	
 	/** Current number of coins the player possesses */
 	int32 CurrentCoins;
 

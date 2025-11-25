@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "Interfaces/CoinsWalletInterface.h"
 #include "Interfaces/InteractorInterface.h"
+#include "Interfaces/InventoryInterface.h"
 #include "FPPlayerCharacter.generated.h"
 
 class USphereComponent;
@@ -20,7 +21,7 @@ class UInputAction;
 class UInputMappingContext;
 
 UCLASS()
-class FORESTPLATFORMER_API AFPPlayerCharacter : public AFPCharacterBase, public ICoinsWalletInterface, public IDamageableInterface, public IInteractorInterface
+class FORESTPLATFORMER_API AFPPlayerCharacter : public AFPCharacterBase, public ICoinsWalletInterface, public IDamageableInterface, public IInteractorInterface, public IInventoryInterface
 {
 	GENERATED_BODY()
 
@@ -41,6 +42,20 @@ public:
 	virtual int32 GetCurrentCoins_Implementation() const override;
 	//~End ICoinsWalletInterface
 
+	
+	//~Begin IInventoryInterface
+	/**
+	 * Returns the amount of the item in the inventory
+	 * @param InItemName The unique name of the inventory item
+	 */
+	virtual int32 GetItemCount_Implementation(FName InItemName) override;
+	/** Adds an item to the inventory */
+	virtual void AddItem_Implementation(UObject* InInventoryObject, int32 InQuantity) override;
+	/** Removes an item from the inventory */
+	virtual void RemoveItem_Implementation(UObject* InInventoryObject, int32 InQuantity) override;
+	//~End IInventoryInterface
+	
+		
 	//~Begin IDamageableInterface
 	/**
 	 * Applies damage to the player character

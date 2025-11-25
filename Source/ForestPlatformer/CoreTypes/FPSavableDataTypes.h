@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Engine/EngineTypes.h"
+#include "InventoryTypes/InventorySlot.h"
 #include "FPSavableDataTypes.generated.h"
 
 /** Contains save data for savable actors */
@@ -39,6 +40,10 @@ struct FFPPlayerProgressData
 	/** The total number of coins collected by the player */
 	UPROPERTY()
 	int32 CoinsValue;
+
+	/** Stores player's inventory */
+	UPROPERTY()
+	TArray<FInventorySlot> PlayerInventory;
 };
 
 /** Contains all save data for specific game level */

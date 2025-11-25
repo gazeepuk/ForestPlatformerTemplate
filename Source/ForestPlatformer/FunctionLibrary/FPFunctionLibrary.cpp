@@ -6,6 +6,9 @@
 #include "GenericTeamAgentInterface.h"
 #include "ActorComponents/EffectComponent/FPEffectComponent.h"
 #include "CoreTypes/Effects/FPEffectBase.h"
+#include "CoreTypes/InventoryTypes/InventoryItemDataAsset.h"
+#include "Engine/AssetManager.h"
+#include "Engine/StreamableManager.h"
 #include "Interfaces/GameplayTagModifierInterface.h"
 #include "Interfaces/SavableActorInterface.h"
 
@@ -253,3 +256,31 @@ DEFINE_FUNCTION(UFPFunctionLibrary::execDeserializeStruct)
 
 	P_FINISH;
 }
+
+void UFPFunctionLibrary::GetItemInfoFromInventorySlotSync(const FInventorySlot& InInventorySlot, FInventoryItem& OutInventoryItemInfo, EFPSuccessType& OutSuccessType)
+{
+	if(InInventorySlot.InventoryItemDataAsset.IsNull())
+	{
+		UE_LOG(LogFpFunctionLibrary, Error, TEXT("Can't make an inventory item struct. The inventory item data asset is null"));
+		
+		OutSuccessType = EFPSuccessType::Failed;
+
+		return;
+	}
+
+	if(const UInventoryItemDataAsset* ItemDataAsset = InInventorySlot.InventoryItemDataAsset.LoadSynchronous())
+	{
+		OutInventoryItemInfo.ItemName = ItemDataAsset->GetItemDisplayName();
+		OutInventoryItemInfo.ItemDescription = ItemDataAsset->GetItemDescription();
+		OutInventoryItemInfo.ItemIcon = ItemDataAsset->GetItemTexture();
+		OutInventoryItemInfo.ItemQuantity = InInventorySlot.Quantity;
+
+		OutSuccessType = EFPSuccessType::Successful;
+		
+		return;
+	}
+
+	UE_LOG(LogFpFunctionLibrary, Error, TEXT("Can't make an inventory item struct. Sync loading has failed."));
+	OutSuccessType = EFPSuccessType::Failed;
+}
+

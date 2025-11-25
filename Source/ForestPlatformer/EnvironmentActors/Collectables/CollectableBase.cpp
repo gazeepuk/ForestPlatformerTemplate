@@ -6,6 +6,7 @@
 #include "Components/BoxComponent.h"
 #include "CoreTypes/FPCustomCollisions.h"
 #include "FunctionLibrary/FPFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Subsystems/SaveGameSubsystem.h"
 
 
@@ -54,6 +55,14 @@ void ACollectableBase::OnLoadedFromSaveData_Implementation()
 			SetActorHiddenInGame(true);
 			SetActorEnableCollision(false);
 		}
+	}
+}
+
+void ACollectableBase::NativeOnCollected(AActor* InInstigator)
+{
+	if(CollectionSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, CollectionSound, GetActorLocation(), GetActorRotation(), CollectionSoundVolume);
 	}
 }
 

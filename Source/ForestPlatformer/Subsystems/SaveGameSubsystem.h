@@ -117,6 +117,6 @@ protected:
 private:
 
 	/** Table with level object reference and its ID*/
-	UPROPERTY()
+	UPROPERTY() 
 	TObjectPtr<UDataTable> LevelRegistryTable;
 };

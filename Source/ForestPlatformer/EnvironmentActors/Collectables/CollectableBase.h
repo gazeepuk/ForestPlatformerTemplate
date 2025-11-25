@@ -36,15 +36,19 @@ public:
 	//~End ISavableActorInterface
 	
 protected:
-	
-	/** Collectable collision */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UBoxComponent> BoxCollision;
 
-	virtual void NativeOnCollected(AActor* InInstigator) {}
+	virtual void NativeOnCollected(AActor* InInstigator);
 	
 	UFUNCTION(BlueprintImplementableEvent, DisplayName = "On Collected")
 	void BP_OnCollected(AActor* InInstigator);
+	
+	/** Determines if the specified actor can collect this collectable */
+	UFUNCTION(BlueprintNativeEvent, Category = "Collectable")
+	bool CanCollect(AActor* InInstigator);
+
+	/** Collectable collision */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UBoxComponent> BoxCollision;
 	
 	/** If true, the collectable will be destroyed when collected */
 	UPROPERTY(EditAnywhere, Category = "Collectable")
@@ -53,18 +57,21 @@ protected:
 	/** If true and bDestroyOnCollect is false, the collectable will re-enable after a delay */
 	UPROPERTY(EditAnywhere, meta = (EditCondition = "!bDestroyOnCollect"), Category = "Collectable")
 	bool bEnableCollectableInTime = true;
+	
 	/** Time in seconds before the collectable re-enables */
 	UPROPERTY(EditAnywhere, meta = (EditCondition = "!bDestroyOnCollect && bEnableCollectableInTime"), Category = "Collectable")
 	float CollectableRespawnTime = 30.f;
 
-	/** Determines if the specified actor can collect this collectable */
-	UFUNCTION(BlueprintNativeEvent, Category = "Collectable")
-	bool CanCollect(AActor* InInstigator);
-
 	/** Indicates where this collectable is currently active */
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, Category  = "Collectable")
 	bool bActive;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category  = "Collectable")
+	TObjectPtr<USoundBase> CollectionSound;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category  = "Collectable")
+	float CollectionSoundVolume = 1.f;
+	
 	/** Unique identifier for saving and loading this collectable's state */
 	UPROPERTY(EditAnywhere, Category = "SavableObject")
 	FName SaveID;
