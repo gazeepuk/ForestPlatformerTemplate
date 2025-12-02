@@ -18,17 +18,17 @@ public:
 
 	/** Adds the specified amount of coins to the current amount */
 	UFUNCTION(BlueprintCallable, Category = "Coins")
-	void AddCoins(int32 InCoins);
+	void AddCoins(int32 InAmount);
 
 	/** Spends the current coins, if it has enough coins */
 	UFUNCTION(BlueprintCallable, Category = "Coins")
-	void SpendCoins(int32 InCoins);
+	void SpendCoins(int32 InAmount);
 	
 	UFUNCTION(BlueprintCallable, Category = "Coins")
 	void SetCurrentCoins(int32 InCoins);
 
 	UFUNCTION(BlueprintCallable, Category = "Coins")
-	void SetMaxCoins(int32 InCoins);
+	void SetMaxCoins(int32 InMaxCoins);
 	
 	/** Returns true, if the current coins amount is greater or equals to the specified value */
 	UFUNCTION(BlueprintPure, Category = "Coins")

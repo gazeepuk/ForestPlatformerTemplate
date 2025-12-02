@@ -17,6 +17,11 @@ FTransform AFPGameMode::GetLastCheckpointSpawnPoint() const
 	return LastCheckpoint ? LastCheckpoint->GetSpawnPointTransform() : FTransform::Identity;
 }
 
+void AFPGameMode::HandlePlayerDeath_Implementation(APlayerController* InPlayerController, APawn* InPlayerPawn)
+{
+	UGameplayStatics::OpenLevelBySoftObjectPtr(this, GetWorld());
+}
+
 void AFPGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -119,7 +124,6 @@ void AFPGameMode::RespawnPlayer(APlayerController* InPlayerController)
 	{
 		InPlayerController->Possess(SpawnedPawn);
 	}
-	
 }
 
 void AFPGameMode::RegisterCheckpoint(AFPCheckpoint* InCheckpoint)
@@ -153,6 +157,8 @@ void AFPGameMode::InitGameFromSave()
 		SaveSubsystem->LoadCurrentLevelFromSave();
 
 		RespawnPlayer(GetWorld()->GetFirstPlayerController());
+
+		SaveSubsystem->LoadPlayerCharacterLevelDataFromSave();
 	}
 }
 

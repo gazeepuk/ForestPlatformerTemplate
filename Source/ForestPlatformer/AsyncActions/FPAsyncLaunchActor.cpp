@@ -93,8 +93,11 @@ void UFPAsyncLaunchActor::ParabolicMovement()
 	
 	LaunchingActor->SetActorLocation(NewLocation, true);
 
-	GetWorld()->GetTimerManager().ClearTimer(LaunchTimerHandle);
-	LaunchTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UFPAsyncLaunchActor::TickMovement);
+	if(GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(LaunchTimerHandle);
+		LaunchTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UFPAsyncLaunchActor::TickMovement);
+	}
 }
 
 void UFPAsyncLaunchActor::FallingMovement()
@@ -125,14 +128,20 @@ void UFPAsyncLaunchActor::FallingMovement()
 	{
 		LaunchingActor->SetActorRotation(CurrentVelocity.Rotation());
 	}
-
-	LaunchTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UFPAsyncLaunchActor::TickMovement);
+ 
+	if(GetWorld())
+	{
+		LaunchTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UFPAsyncLaunchActor::TickMovement);
+	}
 }
 
 void UFPAsyncLaunchActor::SwitchToFalling()
 {
 	bFalling = true;
 	CurrentVelocity.Z = -FMath::Abs(CurrentVelocity.Z) * 0.75f;
-	
-	LaunchTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UFPAsyncLaunchActor::TickMovement);
+
+	if(GetWorld())
+	{
+		LaunchTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UFPAsyncLaunchActor::TickMovement);
+	}
 }

@@ -4,14 +4,44 @@
 #include "WalletComponent.h"
 
 
-void UWalletComponent::AddCoins(int32 InCoins)
+void UWalletComponent::AddCoins(int32 InAmount)
 {
-	SetCurrentCoins(CurrentCoins + InCoins);
+	if(InAmount < 0)
+	{
+		SpendCoins(InAmount);
+	}
+	else
+	{
+		// Overflow check
+		if(CurrentCoins > INT32_MAX - InAmount)
+		{
+			SetCurrentCoins(INT32_MAX);
+		}
+		else
+		{
+			SetCurrentCoins(CurrentCoins + InAmount);
+		}
+	}
 }
 
-void UWalletComponent::SpendCoins(int32 InCoins)
+void UWalletComponent::SpendCoins(int32 InAmount)
 {
-	SetCurrentCoins(CurrentCoins - InCoins);
+	if(InAmount > 0)
+	{
+		AddCoins(InAmount);
+	}
+	else
+	{
+		// Overflow check
+		if(CurrentCoins < INT32_MIN + InAmount)
+		{
+			SetCurrentCoins(INT32_MIN);
+		}
+		else
+		{
+			SetCurrentCoins(CurrentCoins - InAmount);
+		}
+	}
 }
 
 void UWalletComponent::SetCurrentCoins(int32 InCoins)
@@ -37,9 +67,9 @@ void UWalletComponent::SetCurrentCoins(int32 InCoins)
 	}
 }
 
-void UWalletComponent::SetMaxCoins(int32 InCoins)
+void UWalletComponent::SetMaxCoins(int32 InMaxCoins)
 {
-	MaxCoins = InCoins;
+	MaxCoins = InMaxCoins;
 	
 	// Set the same current coins amount to clamp it
 	SetCurrentCoins(CurrentCoins);

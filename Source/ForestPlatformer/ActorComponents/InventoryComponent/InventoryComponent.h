@@ -26,7 +26,7 @@ public:
 	FORCEINLINE TArray<FInventorySlot> GetInventoryCopy() const { return InventorySlots; }
 	
 	UFUNCTION(BlueprintCallable)
-	void AddItem(TSoftObjectPtr<UInventoryItemDataAsset> InInventoryItemData, int32 InQuantity);
+	bool AddItem(TSoftObjectPtr<UInventoryItemDataAsset> InInventoryItemData, int32 InQuantity);
 
 	UFUNCTION(BlueprintCallable)
 	void RemoveItem(TSoftObjectPtr<UInventoryItemDataAsset> InInventoryItemData, int32 InQuantity);

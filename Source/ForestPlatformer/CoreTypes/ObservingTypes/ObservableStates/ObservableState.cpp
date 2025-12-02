@@ -46,7 +46,6 @@ void UBoolObservableState::SetStateBoolValue(bool bNewValue)
 
 #pragma endregion
 
-
 #pragma region ToggleObservableState
 
 void UToggleObservableState::SetStateValue_Implementation(const FInstancedStruct& NewValue)
@@ -62,7 +61,6 @@ void UToggleObservableState::ToggleState()
 }
 
 #pragma endregion
-
 
 #pragma region TriggerObservableState
 
@@ -92,5 +90,91 @@ void UTriggerObservableState::TriggerState()
 {
 	SetStateValue(FInstancedStruct::Make(FTriggerObservableData(true)));
 }
+#pragma endregion
 
+#pragma region FloatObservableState
+void UFloatObservableState::SetStateFloatValue(float InNewValue)
+{
+	SetStateValue(FInstancedStruct::Make(FFloatObservableData(InNewValue)));
+}
+
+float UFloatObservableState::GetStateFloatValue() const
+{
+	return Value;
+}
+
+FInstancedStruct UFloatObservableState::GetStateValue_Implementation()
+{
+	return FInstancedStruct::Make(FFloatObservableData(Value));
+}
+
+void UFloatObservableState::SetStateValue_Implementation(const FInstancedStruct& NewValue)
+{
+	if(const FFloatObservableData* FloatData = NewValue.GetPtr<FFloatObservableData>())
+	{
+		if(Value != FloatData->FloatValue)
+		{
+			Value = FloatData->FloatValue;
+			OnStateChanged.Broadcast();
+		}
+	}
+}
+#pragma endregion
+
+#pragma region Int32ObservableState
+void UInt32ObservableState::SetStateInt32Value(int32 InNewValue)
+{
+	SetStateValue(FInstancedStruct::Make(FInt32ObservableData(InNewValue)));
+}
+
+int32 UInt32ObservableState::GetStateInt32Value() const
+{
+	return Value;
+}
+
+FInstancedStruct UInt32ObservableState::GetStateValue_Implementation()
+{
+	return FInstancedStruct::Make(FInt32ObservableData(Value));
+}
+
+void UInt32ObservableState::SetStateValue_Implementation(const FInstancedStruct& NewValue)
+{
+	if(const FInt32ObservableData* IntData = NewValue.GetPtr<FInt32ObservableData>())
+	{
+		if(Value != IntData->IntValue)
+		{
+			Value = IntData->IntValue;
+			OnStateChanged.Broadcast();
+		}
+	}
+}
+#pragma endregion
+
+#pragma region VectorObservableState
+void UVectorObservableState::SetStateVectorValue(FVector InNewValue)
+{
+	SetStateValue(FInstancedStruct::Make(FVectorObservableData(InNewValue)));
+}
+
+FVector UVectorObservableState::GetStateVectorValue() const
+{
+	return Value;
+}
+
+FInstancedStruct UVectorObservableState::GetStateValue_Implementation()
+{
+	return FInstancedStruct::Make(FVectorObservableData(Value));
+}
+
+void UVectorObservableState::SetStateValue_Implementation(const FInstancedStruct& NewValue)
+{
+	if(const FVectorObservableData* VectorData = NewValue.GetPtr<FVectorObservableData>())
+	{
+		if(Value != VectorData->VectorValue)
+		{
+			Value = VectorData->VectorValue;
+			OnStateChanged.Broadcast();
+		}
+	}
+}
 #pragma endregion

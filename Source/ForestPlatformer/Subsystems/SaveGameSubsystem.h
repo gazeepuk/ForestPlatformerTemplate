@@ -87,6 +87,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LoadCurrentLevelFromSave();
 
+	UFUNCTION(BlueprintCallable)
+	void LoadPlayerCharacterLevelDataFromSave();
+	
 	/* Delegate that broadcasts after a save game has been loaded asynchronously*/
 	UPROPERTY(BlueprintAssignable)
 	FOnSaveGameLoaded OnSaveGameLoaded;

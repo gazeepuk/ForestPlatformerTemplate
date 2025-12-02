@@ -39,6 +39,9 @@ public:
 	/* Return last activated checkpoint's spawn point transform*/
 	UFUNCTION(BlueprintPure)
 	FTransform GetLastCheckpointSpawnPoint() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void HandlePlayerDeath(APlayerController* InPlayerController, APawn* InPlayerPawn);
 	
 protected:
 	virtual void BeginPlay() override;

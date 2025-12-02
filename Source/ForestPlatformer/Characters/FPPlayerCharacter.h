@@ -50,7 +50,7 @@ public:
 	 */
 	virtual int32 GetItemCount_Implementation(FName InItemName) override;
 	/** Adds an item to the inventory */
-	virtual void AddItem_Implementation(UObject* InInventoryObject, int32 InQuantity) override;
+	virtual bool AddItem_Implementation(UObject* InInventoryObject, int32 InQuantity) override;
 	/** Removes an item from the inventory */
 	virtual void RemoveItem_Implementation(UObject* InInventoryObject, int32 InQuantity) override;
 	//~End IInventoryInterface

@@ -26,10 +26,10 @@ public:
 	
 	/** Adds the specified number of coins to the wallet */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void AddCoins(int32 InCoinsNum);
+	void AddCoins(int32 InAmount);
 	/** Attempts to spend the specified number of coins from the wallet */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	bool TrySpendCoins(int32 InCoinsNum);
+	bool TrySpendCoins(int32 InAmount);
 	/** Check if there is the specified number of coins in the wallet */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	bool HasEnoughCoins(int32 InCoinsNumToSpend) const;

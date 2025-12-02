@@ -112,3 +112,90 @@ protected:
 private:
 	bool bHasTriggered = false;
 };
+
+/**
+ * Float observable state.
+ * - Stores a float value.
+ * - You can use SetStateFloatValue and GetStateFloatValue for convenience
+ */
+UCLASS(BlueprintType, EditInlineNew)
+class UFloatObservableState : public UObservableState
+{
+	GENERATED_BODY()
+
+public:
+	/**
+	 * Sets value of this state. A convenient way to change value, if you have a cast state of this type
+	 */
+	UFUNCTION(BlueprintCallable)
+	void SetStateFloatValue(float InNewValue);
+	
+	UFUNCTION(BlueprintPure)
+	float GetStateFloatValue() const;
+
+	virtual FInstancedStruct GetStateValue_Implementation() override;
+
+	virtual void SetStateValue_Implementation(const FInstancedStruct& NewValue) override;
+
+protected:
+	UPROPERTY(EditAnywhere)
+	float Value;
+};
+
+/**
+ * Int32 observable state.
+ * - Stores a int32 value.
+ * - You can use SetStateInt32Value and GetStateInt32Value for convenience
+ */
+UCLASS(BlueprintType, EditInlineNew)
+class UInt32ObservableState : public UObservableState
+{
+	GENERATED_BODY()
+
+public:
+	/**
+	 * Sets value of this state. A convenient way to change value, if you have a cast state of this type
+	 */
+	UFUNCTION(BlueprintCallable)
+	void SetStateInt32Value(int32 InNewValue);
+	
+	UFUNCTION(BlueprintPure)
+	int32 GetStateInt32Value() const;
+
+	virtual FInstancedStruct GetStateValue_Implementation() override;
+
+	virtual void SetStateValue_Implementation(const FInstancedStruct& NewValue) override;
+
+protected:
+	UPROPERTY(EditAnywhere)
+	int32 Value;
+};
+
+/**
+ * Vector observable state.
+ * - Stores a FVector value.
+ * - You can use SetStateVectorValue and GetStateVectorValue for convenience
+ */
+UCLASS(BlueprintType, EditInlineNew)
+class UVectorObservableState : public UObservableState
+{
+	GENERATED_BODY()
+
+public:
+	/**
+	 * Sets value of this state. A convenient way to change value, if you have a cast state of this type
+	 */
+	UFUNCTION(BlueprintCallable)
+	void SetStateVectorValue(FVector InNewValue);
+	
+	UFUNCTION(BlueprintPure)
+	FVector GetStateVectorValue() const;
+
+	virtual FInstancedStruct GetStateValue_Implementation() override;
+
+	virtual void SetStateValue_Implementation(const FInstancedStruct& NewValue) override;
+
+protected:
+	UPROPERTY(EditAnywhere)
+	FVector Value;
+};

@@ -128,6 +128,54 @@ Source/
 |  |- Subsystems/                           # Subsystems used in this project
 ```
 
+Source/
+ |- AI/
+ |  |- Tasks/
+ |- ActorComponents/
+ |  |- AIComponents/
+ |  |- CharacterMovementComponents/
+ |  |- CollisionComponents/
+ |  |   |- StompCollisions/
+ |  |- CombatComponents/
+ |  |- EffectComponent/
+ |  |- HealthComponent/
+ |  |- InteractableComponents/
+ |  |- InventoryComponent/
+ |  |- ObserverComponents/
+ |  |- SpringArmComponents/
+ |  |- WalletComponent/
+ |- Animations/
+ |  |- AnimInstances/
+ |- AsyncActions/
+ |- Characters/
+ |- Controllers/
+ |  |- AIControllers/
+ |  |- PlayerControllers/
+ |- CoreTypes/
+ |  |- AttackTypes/
+ |  |- Effects/
+ |  |- InventoryTypes/
+ |  |- ObservingTypes/
+ |  |   |- ObservableDataTypes/
+ |  |   |- ObservableStates/
+ |  |   |- ObserverConditions/
+ |  |- PatrolTypes/
+ |- EnvironmentActors/
+ |  |- Checkpoints/
+ |  |- Collectables/
+ |  |- DecalVolume/
+ |  |- InteractableActors/
+ |  |- Platforms/
+ |- FunctionLibrary/
+ |- GameModes/
+ |- Interfaces/
+ |- ObjectPool/
+ |- Projectiles/
+ |- SaveGame/
+ |- Subsystems/
+
+
+
 ## Getting Started
 1. Extract this folder into your Unreal Projects directory.  
 2. Open the project with Unreal Engine 5.3+  

@@ -218,6 +218,12 @@ void USaveGameSubsystem::WriteSaveData()
 		UE_LOG(LogFpSaveSubsystem, Error, TEXT("World is invalid. Can't save game"));
 		return;
 	}
+
+	if(!SaveGame)
+	{
+		UE_LOG(LogFpSaveSubsystem, Error, TEXT("Save game is invalid during writing save data"));
+		return;
+	}
 	
 	// Get current level's name 
 	FName LevelName = GetLevelID(GetWorld());
@@ -263,6 +269,12 @@ void USaveGameSubsystem::WriteSaveData()
 			SaveGame->PlayerProgressData.CoinsValue = ICoinsWalletInterface::Execute_GetCurrentCoins(PlayerController);
 		}
 
+		// Saves inventory
+		if(const UInventoryComponent* InventoryComponent = PlayerController->GetComponentByClass<UInventoryComponent>())
+		{
+			SaveGame->PlayerProgressData.PlayerInventory = InventoryComponent->GetInventoryCopy();
+		}
+		
 		// Saves health
 		if(const APawn* ControlledPawn = PlayerController ? PlayerController->GetPawn() : nullptr)
 		{
@@ -271,12 +283,6 @@ void USaveGameSubsystem::WriteSaveData()
 				SaveGame->PlayerProgressData.MaxHealth = HealthComponent->GetMaxHealth();
 				CurrentLevelData.PlayersCurrentHealth = HealthComponent->GetCurrentHealth();
 			}
-		}
-
-		// Saves inventory
-		if(const UInventoryComponent* InventoryComponent = PlayerController->GetComponentByClass<UInventoryComponent>())
-		{
-			SaveGame->PlayerProgressData.PlayerInventory = InventoryComponent->GetInventoryCopy();
 		}
 	}
 }
@@ -316,9 +322,8 @@ void USaveGameSubsystem::LoadCurrentLevelFromSave()
 		UE_LOG(LogFpSaveSubsystem, Error, TEXT("World is invalid. Can't load saved data"))
 		return;
 	}
-	
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if(PlayerController)
+
+	if(APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
 		// Load player's inventory
 		if(UInventoryComponent* PlayerInventoryComponent = PlayerController->GetComponentByClass<UInventoryComponent>())
@@ -346,16 +351,53 @@ void USaveGameSubsystem::LoadCurrentLevelFromSave()
 				ISavableActorInterface::Execute_LoadFromSaveData(SavableActor, LevelData->SavedObjects[SaveID]);
 			}
 		}
+	}
+}
 
-		// Load player's health
-		if(const APawn* ControlledPawn = PlayerController ? PlayerController->GetPawn() : nullptr)
+void USaveGameSubsystem::LoadPlayerCharacterLevelDataFromSave()
+{
+	if(!SaveGame)
+	{
+		// Tries to load the game slot
+		LoadGameSlot(CurrentSlotName);
+		if(!SaveGame)
 		{
-			if(UHealthComponent* HealthComponent = ControlledPawn->GetComponentByClass<UHealthComponent>())
-			{
-				const float PlayerMaxHealth = SaveGame->PlayerProgressData.MaxHealth;
-				const float PlayerCurrentHealth = LevelData->PlayersCurrentHealth > 0 ? LevelData->PlayersCurrentHealth : PlayerMaxHealth;
-				HealthComponent->LoadHealth(PlayerCurrentHealth, PlayerMaxHealth);
-			}
+			UE_LOG(LogFpSaveSubsystem, Warning, TEXT("Save Game is invalid. Can't load saved data from %s slot"), *CurrentSlotName);
+			return;
 		}
+	}
+
+	if(!GetWorld())
+	{
+		UE_LOG(LogFpSaveSubsystem, Error, TEXT("World is invalid. Can't load character data"))
+		return;
+	}
+	
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if(!PlayerController)
+	{
+		UE_LOG(LogFpSaveSubsystem, Error, TEXT("Player Controller is invalid. Can't load character data"))
+		return;
+	}
+	
+	const APawn* ControlledPawn = PlayerController ? PlayerController->GetPawn() : nullptr;
+	if(!ControlledPawn)
+	{
+		UE_LOG(LogFpSaveSubsystem, Error, TEXT("Player Character is invalid. Can't load character data"))
+	}
+	
+	// Loads player's health
+	if(UHealthComponent* HealthComponent = ControlledPawn->GetComponentByClass<UHealthComponent>())
+	{
+		const float PlayerMaxHealth = SaveGame->PlayerProgressData.MaxHealth;
+
+		FFPLevelData* LevelData = GetCurrentLevelData();
+		if(!LevelData)
+		{
+			UE_LOG(LogFpSaveSubsystem, Error, TEXT("Current level save data is invalid. The current level's save data can't be used."))
+		}
+		
+		const float PlayerCurrentHealth = LevelData && LevelData->PlayersCurrentHealth > 0 ? LevelData->PlayersCurrentHealth : PlayerMaxHealth;
+		HealthComponent->LoadHealth(PlayerCurrentHealth, PlayerMaxHealth);
 	}
 }

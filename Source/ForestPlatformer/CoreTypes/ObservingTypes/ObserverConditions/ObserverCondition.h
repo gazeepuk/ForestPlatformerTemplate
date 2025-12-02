@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CoreTypes/FPEnumTypes.h"
 #include "UObject/Object.h"
 #include "ObserverCondition.generated.h"
 
@@ -14,7 +15,6 @@ class UObservableState;
  * Conditions are used for checking observable states.
  * They check the state values with the expected values and return the checking result.
  */
-
 
 /**
  * Base condition class
@@ -45,7 +45,7 @@ public:
 };
 
 /**
- * 
+ * Trigger Condition. It's used for checking UTriggerObservableState value 
  */
 UCLASS(Blueprintable, EditInlineNew)
 class UTriggerObserverCondition : public UObserverCondition
@@ -53,5 +53,47 @@ class UTriggerObserverCondition : public UObserverCondition
 	GENERATED_BODY()
 
 public:
+	virtual bool IsConditionMet_Implementation(UObservableState* InObservableState) const override;
+};
+
+UCLASS(Blueprintable, EditInlineNew)
+class UFloatObserverCondition : public UObserverCondition
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere)
+	float ExpectedValue = 0.f;
+
+	UPROPERTY(EditAnywhere)
+	EFPComparisonType ComparisonType = EFPComparisonType::EqualsTo;
+	
+	virtual bool IsConditionMet_Implementation(UObservableState* InObservableState) const override;
+};
+
+UCLASS(Blueprintable, EditInlineNew)
+class UInt32ObserverCondition : public UObserverCondition
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere)
+	int32 ExpectedValue = 0;
+
+	UPROPERTY(EditAnywhere)
+	EFPComparisonType ComparisonType = EFPComparisonType::EqualsTo;
+	
+	virtual bool IsConditionMet_Implementation(UObservableState* InObservableState) const override;
+};
+
+UCLASS(Blueprintable, EditInlineNew)
+class UVectorObserverCondition : public UObserverCondition
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere)
+	FVector ExpectedValue;
+	
 	virtual bool IsConditionMet_Implementation(UObservableState* InObservableState) const override;
 };

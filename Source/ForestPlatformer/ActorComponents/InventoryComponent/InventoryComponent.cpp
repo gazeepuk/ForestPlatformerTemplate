@@ -11,11 +11,11 @@ UInventoryComponent::UInventoryComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UInventoryComponent::AddItem(TSoftObjectPtr<UInventoryItemDataAsset> InInventoryItemData, int32 InQuantity)
+bool UInventoryComponent::AddItem(TSoftObjectPtr<UInventoryItemDataAsset> InInventoryItemData, int32 InQuantity)
 {
 	if(InInventoryItemData.IsNull() || InQuantity <= 0)
 	{
-		return;
+		return false;
 	}
 
 	for (FInventorySlot& Slot : InventorySlots)
@@ -24,7 +24,7 @@ void UInventoryComponent::AddItem(TSoftObjectPtr<UInventoryItemDataAsset> InInve
 		{
 			Slot.Quantity += InQuantity;
 			OnInventoryUpdated.Broadcast(InventorySlots);
-			return;
+			return true;
 		}
 	}
 
@@ -36,6 +36,8 @@ void UInventoryComponent::AddItem(TSoftObjectPtr<UInventoryItemDataAsset> InInve
 	InventorySlots.Add(NewSlot);
 
 	OnInventoryUpdated.Broadcast(InventorySlots);
+
+	return true;
 }
 
 void UInventoryComponent::RemoveItem(TSoftObjectPtr<UInventoryItemDataAsset> InInventoryItemData, int32 InQuantity)
@@ -103,4 +105,6 @@ int32 UInventoryComponent::GetItemCountByDataAsset(TSoftObjectPtr<UInventoryItem
 void UInventoryComponent::LoadInventory(TArray<FInventorySlot> InInventory)
 {
 	InventorySlots = InInventory;
+
+	OnInventoryUpdated.Broadcast(InventorySlots);
 }

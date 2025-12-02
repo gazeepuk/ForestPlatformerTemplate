@@ -17,3 +17,12 @@ enum class EFPSuccessType : uint8
 	Successful,
 	Failed
 };
+
+UENUM()
+enum class EFPComparisonType : uint8
+{
+	LessThan,
+	EqualsTo,
+	GreaterThan,
+	NotEqual
+};

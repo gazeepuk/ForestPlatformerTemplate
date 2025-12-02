@@ -33,7 +33,7 @@ public:
 
 	/** Adds an item to the inventory */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void AddItem(UObject* InInventoryObject, int32 InQuantity);
+	bool AddItem(UObject* InInventoryObject, int32 InQuantity);
 	/** Returns an item from the inventory */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void RemoveItem(UObject* InInventoryObject, int32 InQuantity);

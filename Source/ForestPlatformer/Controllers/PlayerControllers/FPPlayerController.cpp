@@ -4,6 +4,7 @@
 #include "FPPlayerController.h"
 
 #include "ActorComponents/InventoryComponent/InventoryComponent.h"
+#include "ActorComponents/WalletComponent/WalletComponent.h"
 #include "Interfaces/InventoryItemInterface.h"
 
 AFPPlayerController::AFPPlayerController()
@@ -46,26 +47,31 @@ int32 AFPPlayerController::GetItemCount_Implementation(FName InItemName)
 	return 0;
 }
 
-void AFPPlayerController::AddItem_Implementation(UObject* InInventoryObject,
-	int32 InQuantity)
+bool AFPPlayerController::AddItem_Implementation(UObject* InInventoryObject, int32 InQuantity)
 {
 	if(!InInventoryObject || !InInventoryObject->Implements<UInventoryItemInterface>())
 	{
-		return;
+		return false;
 	}
-	
-	if(InventoryComponent)
+
+	TSoftObjectPtr<UInventoryItemDataAsset> InventoryItemDataAsset = IInventoryItemInterface::Execute_GetInventoryItemDataAsset(InInventoryObject);
+	if(InventoryComponent && !InventoryItemDataAsset.IsNull())
 	{
-		IInventoryItemInterface::Execute_OnAddedToInventory(InInventoryObject);
-		return InventoryComponent->AddItem(IInventoryItemInterface::Execute_GetInventoryItemDataAsset(InInventoryObject), InQuantity);
+		if(InventoryComponent->AddItem(InventoryItemDataAsset, InQuantity))
+		{
+			IInventoryItemInterface::Execute_OnAddedToInventory(InInventoryObject);
+			return true;
+		}
 	}
+
+	return false;
 }
 
 void AFPPlayerController::RemoveItem_Implementation(UObject* InInventoryObject, int32 InQuantity)
 {
 	if(InventoryComponent)
 	{
-		return InventoryComponent->RemoveItem(IInventoryItemInterface::Execute_GetInventoryItemDataAsset(InInventoryObject), InQuantity);
+		InventoryComponent->RemoveItem(IInventoryItemInterface::Execute_GetInventoryItemDataAsset(InInventoryObject), InQuantity);
 	}
 }
 
@@ -79,9 +85,10 @@ void AFPPlayerController::AddCoins_Implementation(int32 InCoinsNum)
 
 bool AFPPlayerController::TrySpendCoins_Implementation(int32 InCoinsNum)
 {
-	if(WalletComponent)
+	if(WalletComponent && WalletComponent->HasEnoughCoins(InCoinsNum))
 	{
 		WalletComponent->SpendCoins(InCoinsNum);
+		return true;
 	}
 	return false;
 }

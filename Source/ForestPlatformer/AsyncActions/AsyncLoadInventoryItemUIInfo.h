@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CoreTypes/InventoryTypes/InventorySlot.h"
+#include "Engine/StreamableManager.h"
 #include "Kismet/BlueprintAsyncActionBase.h"
 #include "AsyncLoadInventoryItemUIInfo.generated.h"
 
@@ -17,6 +18,8 @@ class FORESTPLATFORMER_API UAsyncLoadInventoryItemUIInfo : public UBlueprintAsyn
 	GENERATED_BODY()
 
 public:
+	virtual void BeginDestroy() override;
+	
 	UPROPERTY(BlueprintAssignable)
 	FOnItemInfoLoaded OnSuccess;
 
@@ -30,4 +33,6 @@ public:
 
 private:
 	FInventorySlot InventorySlot;
+
+	TSharedPtr<FStreamableHandle> StreamableHandle;
 };

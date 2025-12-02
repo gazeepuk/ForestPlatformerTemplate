@@ -99,15 +99,17 @@ int32 AFPPlayerCharacter::GetItemCount_Implementation(FName InItemName)
 	return 0;
 }
 
-void AFPPlayerCharacter::AddItem_Implementation(UObject* InInventoryObject, int32 InQuantity)
+bool AFPPlayerCharacter::AddItem_Implementation(UObject* InInventoryObject, int32 InQuantity)
 {
 	if(AController* OwningController = GetController())
 	{
 		if(OwningController->Implements<UInventoryInterface>())
 		{
-			IInventoryInterface::Execute_AddItem(Controller, InInventoryObject, InQuantity);
+			return IInventoryInterface::Execute_AddItem(Controller, InInventoryObject, InQuantity);
 		}
 	}
+
+	return false;
 }
 
 void AFPPlayerCharacter::RemoveItem_Implementation(UObject* InInventoryObject, int32 InQuantity)

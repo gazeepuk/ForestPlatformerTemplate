@@ -51,31 +51,31 @@ struct FVectorObservableData
 {
 	GENERATED_BODY()
 	
-	FVectorObservableData() : VectorVal(FVector::ZeroVector)
+	FVectorObservableData() : VectorValue(FVector::ZeroVector)
 	{
      
 	}
 
 	FVectorObservableData(const FVector& InVectorValue)
 	{
-		VectorVal= InVectorValue;
+		VectorValue= InVectorValue;
 	}
   
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector VectorVal;
+	FVector VectorValue;
 };
 
 USTRUCT(BlueprintType)
-struct FIntObservableData
+struct FInt32ObservableData
 {
 	GENERATED_BODY()
 	
-	FIntObservableData() : IntValue(0)
+	FInt32ObservableData() : IntValue(0)
 	{
      
 	}
 
-	FIntObservableData(const int32 InIntValue)
+	FInt32ObservableData(const int32 InIntValue)
 	{
 		IntValue= InIntValue;
 	}

@@ -4,17 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Interfaces/InventoryItemInterface.h"
 #include "InventoryItemDataAsset.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class FORESTPLATFORMER_API UInventoryItemDataAsset : public UDataAsset
+class FORESTPLATFORMER_API UInventoryItemDataAsset : public UDataAsset, public IInventoryItemInterface
 {
 	GENERATED_BODY()
 
 public:
+	virtual TSoftObjectPtr<UInventoryItemDataAsset> GetInventoryItemDataAsset_Implementation() const override;
+	virtual void OnAddedToInventory_Implementation() override;
+	
 	UFUNCTION(BlueprintPure, Category = "Item")
 	FORCENOINLINE FName GetItemID() const { return ItemID; }
 
