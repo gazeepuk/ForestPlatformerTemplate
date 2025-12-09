@@ -34,17 +34,28 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentSlotName(const FString& NewSlotName);
 
+	/* Returns the name of the current active save slot */
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE int32 GetCurrentUserIndex() const { return CurrentUserIndex; }
+
+	/* Sets the name of the current save slot */
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentUserIndex(int32 NewUserIndex);
+	
 	/** Returns level registry level table */
 	UFUNCTION(BlueprintPure)
 	UDataTable* GetLevelRegistryTable();
 	
 	/* Returns the clean name of the current level */
 	UFUNCTION(BlueprintPure)
-	FName GetLevelID(const UWorld* InLevel);
-
+	FName GetLevelID(const FString& InLevelName);
+	
 	/* Returns the save data for the current level data from loaded save game */
 	FFPLevelData* GetCurrentLevelData();
 
+	/** Returns the save data for the specified level */
+	FFPLevelData* GetLevelData(const FString& InLevelName);
+	
 	/* Returns the ID of the last activated checkpoint in the current level */
 	UFUNCTION(BlueprintPure)
 	FName GetCurrentLastCheckpointID();
@@ -76,6 +87,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SaveGameSlot(const FString& SlotName = "SaveSlot", const int32 UserIndex = 0, const bool bAsyncSave = false);
 
+	UFUNCTION(BlueprintCallable)
+	/* Writes the current level's data to the save game */
+	void WriteCurrentLevelSaveData();
+	
 	/*
 	 * Adds a savable actor to be processed during the next save.
 	 * Useful for actors that may be destroyed before the save occurs saving
@@ -89,21 +104,25 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void LoadPlayerCharacterLevelDataFromSave();
+
+	UFUNCTION(BlueprintCallable)
+	void RestartLevel(FString InLevelName, bool bHardReset = false);
+
+	UFUNCTION(BlueprintCallable)
+	void CompleteLevel(FString InLevelName);
 	
 	/* Delegate that broadcasts after a save game has been loaded asynchronously*/
 	UPROPERTY(BlueprintAssignable)
-	FOnSaveGameLoaded OnSaveGameLoaded;
+	FOnSaveGameLoaded OnGameLoaded;
 	/* Delegate that broadcasts after a save game has been saved asynchronously*/
 	UPROPERTY(BlueprintAssignable)
-	FOnSaveGameSaved OnSaveGameSaved;
+	FOnSaveGameSaved OnGameSaved;
 
 protected:
 	/** Loads level registry DataTable */
 	UFUNCTION(BlueprintCallable)
 	void LoadLevelRegistryTable();
 	
-	/* Writes the current level's data to the save game */
-	void WriteSaveData();
 	
 	/** the current loaded game save */
 	UPROPERTY()
@@ -116,6 +135,9 @@ protected:
 	/** The name of the current active save slot */
 	UPROPERTY(BlueprintReadOnly)
 	FString CurrentSlotName;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 CurrentUserIndex = 0;
 
 private:
 

@@ -6,9 +6,12 @@
 #include "GameFramework/GameModeBase.h"
 #include "FPGameMode.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLevelCompleted);
+
 class ISavableActorInterface;
 class AFPCheckpoint;
 class UFPSaveGame;
+
 /**
  * 
  */
@@ -42,7 +45,22 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void HandlePlayerDeath(APlayerController* InPlayerController, APawn* InPlayerPawn);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void CompleteLevel();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void TransitToNextLevel();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintPure)
+	TSoftObjectPtr<UWorld> GetNextLevel();
 	
+	UPROPERTY(BlueprintAssignable)
+	FOnLevelCompleted OnLevelCompleted;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bDisableInputOnLevelComplete = true;
+
 protected:
 	virtual void BeginPlay() override;
 	// Find a checkpoint by ID
@@ -59,4 +77,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	FTransform LastCheckpointSpawnPoint;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UDataTable> LevelSequence;
 };

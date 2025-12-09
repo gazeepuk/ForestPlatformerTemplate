@@ -21,7 +21,7 @@ void USaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	{
 		CurrentSlotName = DEFAULT_SAVE_SLOT_NAME;
 	}
-	LoadGameSlot(CurrentSlotName, 0, false);
+	LoadGameSlot(CurrentSlotName, CurrentUserIndex, false);
 	LoadLevelRegistryTable();
 }
 
@@ -40,6 +40,11 @@ void USaveGameSubsystem::LoadLevelRegistryTable()
 	}
 }
 
+void USaveGameSubsystem::SetCurrentUserIndex(int32 NewUserIndex)
+{
+	CurrentUserIndex = NewUserIndex;
+}
+
 UDataTable* USaveGameSubsystem::GetLevelRegistryTable()
 {
 	if(LevelRegistryTable)
@@ -50,22 +55,14 @@ UDataTable* USaveGameSubsystem::GetLevelRegistryTable()
 	return LevelRegistryTable;
 }
 
-FName USaveGameSubsystem::GetLevelID(const UWorld* InLevel)
+FName USaveGameSubsystem::GetLevelID(const FString& InLevelName)
 {
-	if(!InLevel)
-	{
-		UE_LOG(LogFpSaveSubsystem, Error, TEXT("Input Level World parameter is nullptr"));
-		return FName();
-	}
-	
 	UDataTable* LevelRegistry = GetLevelRegistryTable();
 	if(!LevelRegistry)
 	{
 		UE_LOG(LogFpSaveSubsystem, Error, TEXT("Level Registry Table is invalid. Can't get level ID for the current level"));
 		return FName();
 	}
-
-	FString LevelName = InLevel->GetName();
 	
 	FString ContextString("LevelRegistryLookup");
 	TArray<FName> LevelRegistryRowNames = LevelRegistry->GetRowNames();
@@ -79,15 +76,15 @@ FName USaveGameSubsystem::GetLevelID(const UWorld* InLevel)
 				continue;
 			}
 			
-			FString RowLevelName = Row->LevelAsset.ToSoftObjectPath().GetAssetName();
-			if(RowLevelName == LevelName)
+			FString RowLevelName = Row->LevelAsset.GetAssetName();
+			if(RowLevelName == InLevelName)
 			{
 				return Row->LevelID;
 			}
 		}
 	}
 
-	UE_LOG(LogFpSaveSubsystem, Warning, TEXT("LevelId for %s was not found"), *LevelName);
+	UE_LOG(LogFpSaveSubsystem, Warning, TEXT("LevelId for %s was not found"), *InLevelName);
 	return FName();
 }
 
@@ -95,10 +92,21 @@ FFPLevelData* USaveGameSubsystem::GetCurrentLevelData()
 {
 	if(SaveGame)
 	{
-		const FName LevelName = GetLevelID(GetWorld());
+		const FName LevelName = GetLevelID(GetWorld()->GetName());
 		return SaveGame->LevelDataMap.Find(LevelName);
 	}
 	return nullptr;
+}
+
+FFPLevelData* USaveGameSubsystem::GetLevelData(const FString& InLevelName)
+{
+	const FName LevelName = GetLevelID(InLevelName);
+	if(LevelName.IsNone())
+	{
+		return nullptr;
+	}
+	
+	return &SaveGame->LevelDataMap.FindOrAdd(LevelName);
 }
 
 FName USaveGameSubsystem::GetCurrentLastCheckpointID()
@@ -128,13 +136,15 @@ void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserI
 		// Async loading SaveData
 		if(bAsync)
 		{
+			TWeakObjectPtr<USaveGameSubsystem> WeakThis = MakeWeakObjectPtr(this);
+			
 			UGameplayStatics::AsyncLoadGameFromSlot(SlotName, UserIndex,
-			FAsyncLoadGameFromSlotDelegate::CreateLambda([&](const FString& LoadedSlotName, const int32 LoadedUserIndex, USaveGame* LoadedSaveData)
+			FAsyncLoadGameFromSlotDelegate::CreateLambda([&WeakThis](const FString& LoadedSlotName, const int32 LoadedUserIndex, USaveGame* LoadedSaveData)
 			{
-				if(IsValid(this))
+				if(WeakThis.IsValid())
 				{
-					SaveGame = Cast<UFPSaveGame>(LoadedSaveData);
-					OnSaveGameLoaded.Broadcast(LoadedSlotName, LoadedUserIndex, SaveGame);
+					WeakThis->SaveGame = Cast<UFPSaveGame>(LoadedSaveData);
+					WeakThis->OnGameLoaded.Broadcast(LoadedSlotName, LoadedUserIndex, WeakThis->SaveGame);
 				}
 			}));
 		}
@@ -142,7 +152,7 @@ void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserI
 		else
 		{
 			SaveGame = Cast<UFPSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, UserIndex));
-			OnSaveGameLoaded.Broadcast(SlotName, UserIndex, SaveGame);
+			OnGameLoaded.Broadcast(SlotName, UserIndex, SaveGame);
 		}
 
 		if(!SaveGame)
@@ -155,7 +165,7 @@ void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserI
 	if(!SaveGame)
 	{
 		SaveGame = Cast<UFPSaveGame>(UGameplayStatics::CreateSaveGameObject(UFPSaveGame::StaticClass()));
-		OnSaveGameLoaded.Broadcast(SlotName, UserIndex, SaveGame);
+		OnGameLoaded.Broadcast(SlotName, UserIndex, SaveGame);
 
 		if(!SaveGame)
 		{
@@ -177,22 +187,20 @@ void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserI
 			return;
 		}
 	}
-
-	// Write save data of current level
-	WriteSaveData();
-
+	
 	// Save written data either asynchronously or synchronously
-
 	// Async saving
 	if(bAsyncSave)
 	{
+		TWeakObjectPtr<USaveGameSubsystem> WeakThis = MakeWeakObjectPtr(this);
+		
 		UGameplayStatics::AsyncSaveGameToSlot(SaveGame, SlotName, UserIndex,
-		FAsyncSaveGameToSlotDelegate::CreateLambda([&](const FString& SavedSlotName, const int32 SavedUserIndex, bool bSavedSuccessfully)
+		FAsyncSaveGameToSlotDelegate::CreateLambda([&WeakThis](const FString& SavedSlotName, const int32 SavedUserIndex, bool bSavedSuccessfully)
 		{
-			if(IsValid(this) && bSavedSuccessfully)
+			if(WeakThis.IsValid() && bSavedSuccessfully)
 			{
 				UE_LOG(LogTemp, Display, TEXT("Successfly saved game"));
-				OnSaveGameSaved.Broadcast(SavedSlotName, SavedUserIndex, bSavedSuccessfully);
+				WeakThis->OnGameSaved.Broadcast(SavedSlotName, SavedUserIndex, bSavedSuccessfully);
 			}
 		}));
 	}
@@ -200,7 +208,7 @@ void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserI
 	else
 	{
 		bool bSavedSuccessfully = UGameplayStatics::SaveGameToSlot(SaveGame, SlotName, UserIndex);
-		OnSaveGameSaved.Broadcast(SlotName, UserIndex, bSavedSuccessfully);
+		OnGameSaved.Broadcast(SlotName, UserIndex, bSavedSuccessfully);
 		
 		if(bSavedSuccessfully)
 		{
@@ -211,7 +219,7 @@ void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserI
 }
 
 
-void USaveGameSubsystem::WriteSaveData()
+void USaveGameSubsystem::WriteCurrentLevelSaveData()
 {
 	if(!GetWorld())
 	{
@@ -226,7 +234,7 @@ void USaveGameSubsystem::WriteSaveData()
 	}
 	
 	// Get current level's name 
-	FName LevelName = GetLevelID(GetWorld());
+	FName LevelName = GetLevelID(GetWorld()->GetName());
 
 	// Find or create a level data
 	FFPLevelData& CurrentLevelData = SaveGame->LevelDataMap.FindOrAdd(LevelName);
@@ -399,5 +407,43 @@ void USaveGameSubsystem::LoadPlayerCharacterLevelDataFromSave()
 		
 		const float PlayerCurrentHealth = LevelData && LevelData->PlayersCurrentHealth > 0 ? LevelData->PlayersCurrentHealth : PlayerMaxHealth;
 		HealthComponent->LoadHealth(PlayerCurrentHealth, PlayerMaxHealth);
+	}
+}
+
+void USaveGameSubsystem::RestartLevel(FString InLevelName, bool bHardReset)
+{
+	if(FFPLevelData* LevelData = GetLevelData(InLevelName))
+	{
+		// Resets the level completion status 
+		LevelData->bLevelCompleted &= !bHardReset;
+
+		// Clears all saved objects
+		LevelData->SavedObjects.Empty();
+
+		// Resets player's health
+		LevelData->PlayersCurrentHealth = 0;
+
+		// Resets checkpoint data
+		LevelData->LastActiveCheckpointID = NAME_None;
+		LevelData->LastCheckpointSpawnPoint = FTransform::Identity;
+
+		// Saves the changes
+		SaveGameSlot(CurrentSlotName, CurrentUserIndex, false);
+
+		UE_LOG(LogFpSaveSubsystem, Display, TEXT("Restarted %s level."), *InLevelName);
+	}
+	else
+	{
+		UE_LOG(LogFpSaveSubsystem, Warning, TEXT("Can't restarted %s level. Level data is invalid"), *InLevelName);
+	}
+}
+
+void USaveGameSubsystem::CompleteLevel(FString InLevelName)
+{
+	if(FFPLevelData* LevelData = GetLevelData(InLevelName))
+	{
+		LevelData->bLevelCompleted = true;
+
+		SaveGameSlot(CurrentSlotName, CurrentUserIndex, false);
 	}
 }

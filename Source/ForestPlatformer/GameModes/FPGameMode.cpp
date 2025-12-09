@@ -4,9 +4,11 @@
 #include "FPGameMode.h"
 
 #include "EngineUtils.h"
+#include "CoreTypes/FPLevelSequenceStruct.h"
 #include "EnvironmentActors/Checkpoints/FPCheckpoint.h"
 #include "GameFramework/PlayerStart.h"
 #include "Interfaces/SavableActorInterface.h"
+#include "Interfaces/ShowUIInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Subsystems/SaveGameSubsystem.h"
 
@@ -17,9 +19,85 @@ FTransform AFPGameMode::GetLastCheckpointSpawnPoint() const
 	return LastCheckpoint ? LastCheckpoint->GetSpawnPointTransform() : FTransform::Identity;
 }
 
+void AFPGameMode::TransitToNextLevel_Implementation()
+{
+	TSoftObjectPtr<UWorld> NextLevel = GetNextLevel();
+	if(!NextLevel.IsNull())
+	{
+		UGameplayStatics::OpenLevelBySoftObjectPtr(this, NextLevel);
+	}
+}
+
+TSoftObjectPtr<UWorld> AFPGameMode::GetNextLevel_Implementation()
+{
+	UWorld* World = GetWorld();
+	if(!World)
+	{
+		return nullptr;
+	}
+	
+	if(LevelSequence)
+	{
+		FString ContextString("LevelSequenceLookup");
+		TArray<FName> LevelRegistryRowNames = LevelSequence->GetRowNames();
+
+		for (const FName& RowName : LevelRegistryRowNames)
+		{
+			if(FFPLevelSequence* Row = LevelSequence->FindRow<FFPLevelSequence>(RowName, ContextString))
+			{
+				if(!Row->IsValid())
+				{
+					continue;
+				}
+			
+				FString RowLevelName = Row->CurrentLevel.GetAssetName();
+				if(RowLevelName == World->GetName())
+				{
+					return Row->NextLevel;
+				}
+			}
+		}
+	}
+
+	return nullptr;
+}
+
 void AFPGameMode::HandlePlayerDeath_Implementation(APlayerController* InPlayerController, APawn* InPlayerPawn)
 {
 	UGameplayStatics::OpenLevelBySoftObjectPtr(this, GetWorld());
+}
+
+void AFPGameMode::CompleteLevel_Implementation()
+{
+	if(!GetWorld())
+	{
+		return;
+	}
+
+	if(APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		if(bDisableInputOnLevelComplete)
+		{
+			PC->DisableInput(PC);
+		}
+
+		if(PC->Implements<UShowUIInterface>())
+		{
+			IShowUIInterface::Execute_ShowLevelCompletionUI(PC);
+		}
+	}
+
+	if(UGameInstance* GameInstance = GetWorld()->GetGameInstance())
+	{
+		if(USaveGameSubsystem* SaveGameSubsystem = GameInstance->GetSubsystem<USaveGameSubsystem>())
+		{
+			SaveGameSubsystem->CompleteLevel(GetWorld()->GetName());
+		}
+	}
+	
+	TransitToNextLevel();
+	
+	OnLevelCompleted.Broadcast();
 }
 
 void AFPGameMode::BeginPlay()
@@ -140,7 +218,8 @@ void AFPGameMode::RegisterCheckpoint(AFPCheckpoint* InCheckpoint)
 		// Save current process
 		if(USaveGameSubsystem* SaveGameSubsystem = GetGameInstance()->GetSubsystem<USaveGameSubsystem>())
 		{
-			SaveGameSubsystem->SaveGameSlot(SaveGameSubsystem->GetCurrentSlotName());
+			SaveGameSubsystem->WriteCurrentLevelSaveData();
+			SaveGameSubsystem->SaveGameSlot(SaveGameSubsystem->GetCurrentSlotName(), SaveGameSubsystem->GetCurrentUserIndex());
 		}
 	}
 }
