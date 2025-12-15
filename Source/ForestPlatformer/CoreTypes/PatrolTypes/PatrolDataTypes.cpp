@@ -35,13 +35,13 @@ bool UPatrolInBoundsData::GetNextPatrolLocation_Implementation(APawn* Patrolling
 
 bool UPatrolSequence::GetNextPatrolLocation_Implementation(APawn* PatrollingPawn, FVector& OutNextLocation) const
 {
-	if(!PatrollingPawn)
+ 	if(!PatrollingPawn)
 	{
 		return false;
 	}
 
 	UPatrolComponent* PatrolComponent = PatrollingPawn->GetComponentByClass<UPatrolComponent>();
-	if(!PatrollingPawn)
+	if(!PatrolComponent)
 	{
 		return false;
 	}

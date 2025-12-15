@@ -20,5 +20,7 @@ namespace FPGameplayTags
 	//	- Fly Enemy
 	UE_DEFINE_GAMEPLAY_TAG(Attack_Enemy_Fly_Melee, "Attack.Enemy.Fly.Melee")
 	UE_DEFINE_GAMEPLAY_TAG(Attack_Enemy_Fly_Range, "Attack.Enemy.Fly.Range")
+	//	- Wasp Enemy
+	UE_DEFINE_GAMEPLAY_TAG(Attack_Enemy_Wasp_Melee, "Attack.Enemy.Wasp.Melee")
 	
 }
