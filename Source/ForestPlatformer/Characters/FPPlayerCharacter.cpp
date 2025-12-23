@@ -112,15 +112,17 @@ bool AFPPlayerCharacter::AddItem_Implementation(UObject* InInventoryObject, int3
 	return false;
 }
 
-void AFPPlayerCharacter::RemoveItem_Implementation(UObject* InInventoryObject, int32 InQuantity)
+bool AFPPlayerCharacter::RemoveItem_Implementation(UObject* InInventoryObject, int32 InQuantity)
 {
 	if(AController* OwningController = GetController())
 	{
 		if(OwningController->Implements<UInventoryInterface>())
 		{
-			IInventoryInterface::Execute_RemoveItem(Controller, InInventoryObject, InQuantity);
+			return IInventoryInterface::Execute_RemoveItem(Controller, InInventoryObject, InQuantity);
 		}
 	}
+
+	return false;
 }
 #pragma endregion
 
@@ -257,14 +259,20 @@ void AFPPlayerCharacter::JumpAction_Started(const FInputActionValue& InputAction
 
 void AFPPlayerCharacter::JumpAction_Triggered(const FInputActionValue& InputActionValue)
 {
-	GetCharacterMovement<UFPCharacterMovementComponent>()->HandleFloating();
+	if(UFPCharacterMovementComponent* FPMovement = GetCharacterMovement<UFPCharacterMovementComponent>())
+	{
+		FPMovement->HandleFloating();
+	}
 }
 
 void AFPPlayerCharacter::JumpAction_Completed(const FInputActionValue& InputActionValue)
 {
 	StopJumping();
-	
-	GetCharacterMovement<UFPCharacterMovementComponent>()->StopFloating();
+
+	if(UFPCharacterMovementComponent* FPMovement = GetCharacterMovement<UFPCharacterMovementComponent>())
+	{
+		FPMovement->StopFloating();
+	}
 }
 
 void AFPPlayerCharacter::ZoomCameraMouseAction_Started(const FInputActionValue& InputActionValue)

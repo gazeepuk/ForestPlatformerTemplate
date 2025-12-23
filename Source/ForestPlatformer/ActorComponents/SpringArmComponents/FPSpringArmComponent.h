@@ -57,10 +57,7 @@ public:
 	/** Maximum allowed arm length when clamping is enabled */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpringArm|Zooming", meta = (ClampMin = "0"))
 	float MaxTargetArmLength = 600.f;
-
-	/**	Duration for arm length interpolation when using smooth zooming */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpringArm|Zooming", meta = (ClampMin = "0"))
-	float TargetArmLengthLerpDuration = 1.5f;
+	
 
 	/**	Speed factor for movement-based camera alignment */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpringArm|MovementAlignment", meta = (ClampMin = "0"))

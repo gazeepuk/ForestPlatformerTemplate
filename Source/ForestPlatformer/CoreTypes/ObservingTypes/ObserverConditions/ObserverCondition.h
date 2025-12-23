@@ -32,7 +32,7 @@ public:
 /**
  * Bool condition. It's used for checking UBoolObservableState value 
  */
-UCLASS(Blueprintable, EditInlineNew)
+UCLASS(BlueprintType, EditInlineNew)
 class UBoolObserverCondition : public UObserverCondition
 {
 	GENERATED_BODY()
@@ -47,7 +47,7 @@ public:
 /**
  * Trigger Condition. It's used for checking UTriggerObservableState value 
  */
-UCLASS(Blueprintable, EditInlineNew)
+UCLASS(BlueprintType, EditInlineNew)
 class UTriggerObserverCondition : public UObserverCondition
 {
 	GENERATED_BODY()
@@ -56,7 +56,7 @@ public:
 	virtual bool IsConditionMet_Implementation(UObservableState* InObservableState) const override;
 };
 
-UCLASS(Blueprintable, EditInlineNew)
+UCLASS(BlueprintType, EditInlineNew)
 class UFloatObserverCondition : public UObserverCondition
 {
 	GENERATED_BODY()
@@ -71,7 +71,7 @@ public:
 	virtual bool IsConditionMet_Implementation(UObservableState* InObservableState) const override;
 };
 
-UCLASS(Blueprintable, EditInlineNew)
+UCLASS(BlueprintType, EditInlineNew)
 class UInt32ObserverCondition : public UObserverCondition
 {
 	GENERATED_BODY()
@@ -86,7 +86,7 @@ public:
 	virtual bool IsConditionMet_Implementation(UObservableState* InObservableState) const override;
 };
 
-UCLASS(Blueprintable, EditInlineNew)
+UCLASS(BlueprintType, EditInlineNew)
 class UVectorObserverCondition : public UObserverCondition
 {
 	GENERATED_BODY()

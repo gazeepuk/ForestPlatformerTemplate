@@ -34,7 +34,7 @@ public:
  * Chooses a random location within defined bounds. Patrolling pawn must have UPatrolComponent
  */
 UCLASS(BlueprintType, EditInlineNew)
-class UPatrolInBoundsData : public UPatrolDataBase
+class UPatrolInBounds : public UPatrolDataBase
 {
 	GENERATED_BODY()
 

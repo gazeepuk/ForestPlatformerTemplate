@@ -7,8 +7,6 @@
 #include "ActorComponents/EffectComponent/FPEffectComponent.h"
 #include "CoreTypes/Effects/FPEffectBase.h"
 #include "CoreTypes/InventoryTypes/InventoryItemDataAsset.h"
-#include "Engine/AssetManager.h"
-#include "Engine/StreamableManager.h"
 #include "Interfaces/GameplayTagModifierInterface.h"
 #include "Interfaces/SavableActorInterface.h"
 

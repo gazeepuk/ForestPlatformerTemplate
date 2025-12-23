@@ -98,7 +98,7 @@ Source/
 ## Using the Framework
 - Replace placeholder assets with your own.
 - Setup CommonUI controller data and project setting for your platforms, if you have the SDKs
-- Refer to **Manual.pdf** for in-depth explanations and system flowcharts.  
+- Refer to **Manual.pdf** for in-depth explanations.  
 
 ## License
 This product is distributed under the **Epic Games Fab Marketplace EULA**.  

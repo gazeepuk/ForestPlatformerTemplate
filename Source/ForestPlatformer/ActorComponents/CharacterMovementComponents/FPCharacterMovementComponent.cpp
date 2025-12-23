@@ -7,9 +7,8 @@ void UFPCharacterMovementComponent::StartFloating_Implementation()
 {
 	if(!bFloating)
 	{
-		CachedGravity = GravityScale;
-		GravityScale = GravityScale * FloatingGravityMultiplier;
 		bFloating = true;
+		AddMovementModifier(EMovementModifier::GravityScale, FloatingGravityMultiplier);
 	}
 }
 
@@ -17,7 +16,7 @@ void UFPCharacterMovementComponent::StopFloating_Implementation()
 {
 	if(bFloating)
 	{
-		GravityScale = CachedGravity;
+		RemoveMovementModifier(EMovementModifier::GravityScale, FloatingGravityMultiplier);
 		bFloating = false;
 	}
 }
@@ -44,17 +43,45 @@ void UFPCharacterMovementComponent::BeginPlay()
 
 float UFPCharacterMovementComponent::GetMaxSpeed() const
 {
-	return Super::GetMaxSpeed() * GetSpeedMultiplier();
+	return Super::GetMaxSpeed() * GetMovementModifiers(EMovementModifier::MaxWalkSpeed);
 }
 
-void UFPCharacterMovementComponent::SetSpeedMultiplier(float InSpeedMultiplier)
+float UFPCharacterMovementComponent::GetGravityZ() const
 {
-	SpeedMultiplier = FMath::Max(0.f, InSpeedMultiplier);
+	return Super::GetGravityZ() * GetMovementModifiers(EMovementModifier::GravityScale);
 }
 
-float UFPCharacterMovementComponent::GetSpeedMultiplier() const
+void UFPCharacterMovementComponent::AddMovementModifier(EMovementModifier InMovementModifier, float InMultiplier)
 {
-	return SpeedMultiplier;
+	TArray<float>& Modifiers = MovementModifiers.FindOrAdd(InMovementModifier);
+	Modifiers.Add(InMultiplier);
+}
+
+void UFPCharacterMovementComponent::RemoveMovementModifier(EMovementModifier InMovementModifier, float InMultiplier)
+{
+	if(TArray<float>* Modifiers = MovementModifiers.Find(InMovementModifier))
+	{
+		Modifiers->RemoveSingle(InMultiplier);
+	}
+}
+
+float UFPCharacterMovementComponent::GetMovementModifiers(EMovementModifier InMovementModifier) const
+{
+	float FinalModifier = 1.f;
+	if(const TArray<float>* Modifiers = MovementModifiers.Find(InMovementModifier))
+	{
+		if (Modifiers->IsEmpty())
+		{
+			return FinalModifier;
+		}
+
+		for (const float Modifier : *Modifiers)
+		{
+			FinalModifier *= Modifier;
+		} 
+	}
+
+	return FinalModifier;
 }
 
 void UFPCharacterMovementComponent::SetCurrentMovementState(EFPMovementState InMovementState)

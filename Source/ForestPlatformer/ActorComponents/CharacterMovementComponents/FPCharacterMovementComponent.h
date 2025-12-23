@@ -10,8 +10,15 @@
 UENUM(BlueprintType)
 enum class EFPMovementState : uint8
 {
-	Normal	UMETA(DisplayName = "Normal"),
-	Strafe	UMETA(DisplayName = "Strafe")
+	Normal			UMETA(DisplayName = "Normal"),
+	Strafe			UMETA(DisplayName = "Strafe")
+};
+
+UENUM(BlueprintType)
+enum class EMovementModifier : uint8
+{
+	MaxWalkSpeed	UMETA(DisplayName = "Max Walk Speed"),
+	GravityScale	UMETA(DisplayName = "Gravity Scale")
 };
 /**
  * Enhanced character movement component with custom speed modification
@@ -25,14 +32,20 @@ class FORESTPLATFORMER_API UFPCharacterMovementComponent : public UCharacterMove
 public:
 	virtual void BeginPlay() override;
 	virtual float GetMaxSpeed() const override;
-
-	/** Sets speed multiplier for the character's movement speed */
-	UFUNCTION(BlueprintCallable)
-	void SetSpeedMultiplier(float InSpeedMultiplier);
+	virtual float GetGravityZ() const override;
+	
 	/** Returns current speed multiplier */
 	UFUNCTION(BlueprintPure)
 	float GetSpeedMultiplier() const;
 
+	UFUNCTION(BlueprintCallable)
+	void AddMovementModifier(EMovementModifier InMovementModifier, float InMultiplier);
+	UFUNCTION(BlueprintCallable)
+	void RemoveMovementModifier(EMovementModifier InMovementModifier, float InMultiplier);
+
+	UFUNCTION(BlueprintPure)
+	float GetMovementModifiers(EMovementModifier InMovementModifier) const;
+	
 	/** Activates floating */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Character Movement|Floating")
 	void StartFloating();
@@ -57,7 +70,7 @@ public:
 protected:
 	/** Gravity multiplier applied specifically during floating movement */
 	UPROPERTY(EditDefaultsOnly, Category = "Character Movement: Floating")
-	float FloatingGravityMultiplier = 1.f;
+	float FloatingGravityMultiplier = 0.2f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: MovementState")
 	float NormalSpeed = 600.f;
@@ -67,15 +80,16 @@ protected:
 	/** Handles movement state changes. Sets new speed, orienting rotation */
 	UFUNCTION(BlueprintNativeEvent)
 	void HandleMovementState();
+	
 private:
 	EFPMovementState CurrentMovementState = EFPMovementState::Normal;
 	
-	/** Speed multiplier affecting all movement speed */
-	float SpeedMultiplier = 1.f;
-
 	/** Indicates whether the character is currently in floating movement mode */
 	bool bFloating;
 
 	/** Cached gravity value before floating start. Used for restoring the original gravity after ending floating */
 	float CachedGravity;
+
+	TMap<EMovementModifier, TArray<float>> MovementModifiers;
 };
+

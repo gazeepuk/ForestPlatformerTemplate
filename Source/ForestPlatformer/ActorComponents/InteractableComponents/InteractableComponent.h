@@ -46,12 +46,7 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UWidgetComponent> InteractionWidgetComponent;
 
-	/** Text of this interactable */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FText InteractableText;
-
 private:
-	
 	/** Indicates whether this interactable is currently focused by the player */
 	bool bFocused;
 };

@@ -85,12 +85,6 @@ public:
 	void PerformAttack();
 	
 	/**
-	 * Contain the main attack logic
-	 */
-	UFUNCTION(BlueprintNativeEvent)
-	void PerformAttackInner();
-
-	/**
 	 * Determines if the attack can be performed by the owner
 	 * @return True if the attack can be performed, false otherwise
 	 */
@@ -115,6 +109,12 @@ public:
 	FOnAttackEnded OnAttackEnded;
 	
 protected:
+	/**
+	 * Contain the main attack logic
+	 */
+	UFUNCTION(BlueprintNativeEvent)
+	void PerformAttackInner();
+	
 	/**
 	 * Contains cleanup logic (clears timers, stops montages). Override to properly clean up the attack
 	 */

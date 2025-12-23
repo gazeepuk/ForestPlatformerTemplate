@@ -67,12 +67,14 @@ bool AFPPlayerController::AddItem_Implementation(UObject* InInventoryObject, int
 	return false;
 }
 
-void AFPPlayerController::RemoveItem_Implementation(UObject* InInventoryObject, int32 InQuantity)
+bool AFPPlayerController::RemoveItem_Implementation(UObject* InInventoryObject, int32 InQuantity)
 {
 	if(InventoryComponent)
 	{
-		InventoryComponent->RemoveItem(IInventoryItemInterface::Execute_GetInventoryItemDataAsset(InInventoryObject), InQuantity);
+		return InventoryComponent->RemoveItem(IInventoryItemInterface::Execute_GetInventoryItemDataAsset(InInventoryObject), InQuantity);
 	}
+
+	return false;
 }
 
 void AFPPlayerController::AddCoins_Implementation(int32 InCoinsNum)

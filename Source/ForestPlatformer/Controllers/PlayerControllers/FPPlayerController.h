@@ -38,7 +38,7 @@ public:
 	/** Adds an item to the inventory */
 	virtual bool AddItem_Implementation(UObject* InInventoryObject, int32 InQuantity) override;
 	/** Removes an item from the inventory */
-	virtual void RemoveItem_Implementation(UObject* InInventoryObject, int32 InQuantity) override;
+	virtual bool RemoveItem_Implementation(UObject* InInventoryObject, int32 InQuantity) override;
 	//~End IInventoryInterface
 	
 	//~Begin ICoinsWalletInterface

@@ -17,6 +17,10 @@ void USaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
+	if(LevelRegistryTablePath.IsEmpty())
+	{
+		LevelRegistryTablePath = DEFAULT_LEVEL_REGISTRY_TABLE_PATH;
+	}
 	if(CurrentSlotName.IsEmpty())
 	{
 		CurrentSlotName = DEFAULT_SAVE_SLOT_NAME;
@@ -30,9 +34,13 @@ void USaveGameSubsystem::SetCurrentSlotName(const FString& NewSlotName)
 	CurrentSlotName = NewSlotName.IsEmpty() ? DEFAULT_SAVE_SLOT_NAME : NewSlotName;
 }
 
+void USaveGameSubsystem::SetLevelRegistryTablePath(const FString& NewPath)
+{
+	LevelRegistryTablePath = NewPath.IsEmpty() ? DEFAULT_LEVEL_REGISTRY_TABLE_PATH : NewPath;
+}
+
 void USaveGameSubsystem::LoadLevelRegistryTable()
 {
-	static const FString LevelRegistryTablePath = TEXT("/Game/Miscellaneous/LevelRegistry/DT_LevelRegistry.DT_LevelRegistry");
 	LevelRegistryTable = LoadObject<UDataTable>(nullptr, *LevelRegistryTablePath);
 	if(!LevelRegistryTable)
 	{
@@ -136,28 +144,17 @@ void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserI
 		// Async loading SaveData
 		if(bAsync)
 		{
-			TWeakObjectPtr<USaveGameSubsystem> WeakThis = MakeWeakObjectPtr(this);
-			
-			UGameplayStatics::AsyncLoadGameFromSlot(SlotName, UserIndex,
-			FAsyncLoadGameFromSlotDelegate::CreateLambda([&WeakThis](const FString& LoadedSlotName, const int32 LoadedUserIndex, USaveGame* LoadedSaveData)
-			{
-				if(WeakThis.IsValid())
-				{
-					WeakThis->SaveGame = Cast<UFPSaveGame>(LoadedSaveData);
-					WeakThis->OnGameLoaded.Broadcast(LoadedSlotName, LoadedUserIndex, WeakThis->SaveGame);
-				}
-			}));
+			UGameplayStatics::AsyncLoadGameFromSlot(SlotName, UserIndex, FAsyncLoadGameFromSlotDelegate::CreateUObject(this, &ThisClass::HandleAsyncLoadGame));
 		}
 		//Sync loading SaveData
 		else
 		{
 			SaveGame = Cast<UFPSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, UserIndex));
 			OnGameLoaded.Broadcast(SlotName, UserIndex, SaveGame);
-		}
-
-		if(!SaveGame)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed to load existing save. Creating a new save"));
+			if(!SaveGame)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Failed to load existing save. Creating a new save"));
+			}
 		}
 	}
 
@@ -174,7 +171,15 @@ void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserI
 	}
 }
 
+void USaveGameSubsystem::HandleAsyncLoadGame(const FString& LoadedSlotName, const int32 LoadedUserIndex,
+	USaveGame* LoadedSaveGame)
+{
+	SaveGame = Cast<UFPSaveGame>(LoadedSaveGame);
+	OnGameLoaded.Broadcast(LoadedSlotName, LoadedUserIndex, LoadedSaveGame);
+}
+
 void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserIndex, const bool bAsyncSave)
+
 {
 	if(!SaveGame)
 	{
@@ -192,17 +197,7 @@ void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserI
 	// Async saving
 	if(bAsyncSave)
 	{
-		TWeakObjectPtr<USaveGameSubsystem> WeakThis = MakeWeakObjectPtr(this);
-		
-		UGameplayStatics::AsyncSaveGameToSlot(SaveGame, SlotName, UserIndex,
-		FAsyncSaveGameToSlotDelegate::CreateLambda([&WeakThis](const FString& SavedSlotName, const int32 SavedUserIndex, bool bSavedSuccessfully)
-		{
-			if(WeakThis.IsValid() && bSavedSuccessfully)
-			{
-				UE_LOG(LogTemp, Display, TEXT("Successfly saved game"));
-				WeakThis->OnGameSaved.Broadcast(SavedSlotName, SavedUserIndex, bSavedSuccessfully);
-			}
-		}));
+		UGameplayStatics::AsyncSaveGameToSlot(SaveGame, SlotName, UserIndex, FAsyncSaveGameToSlotDelegate::CreateUObject(this, &ThisClass::HandleAsyncSaveGame));
 	}
 	// Sync saving 
 	else
@@ -214,10 +209,28 @@ void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserI
 		{
 			UE_LOG(LogTemp, Display, TEXT("Successfly saved game"));
 		}
+		else
+		{
+			UE_LOG(LogTemp, Display, TEXT("Failed to save game"));
+		}
 	}
-
 }
 
+
+void USaveGameSubsystem::HandleAsyncSaveGame(const FString& SavedSlotName, const int32 SavedUserIndex,
+                                             bool bSavedSuccessfully)
+{
+	if(bSavedSuccessfully)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Successfly saved game"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Display, TEXT("Failed to save game"));
+	}
+	
+	OnGameSaved.Broadcast(SavedSlotName, SavedUserIndex, bSavedSuccessfully);
+}
 
 void USaveGameSubsystem::WriteCurrentLevelSaveData()
 {
@@ -392,6 +405,7 @@ void USaveGameSubsystem::LoadPlayerCharacterLevelDataFromSave()
 	if(!ControlledPawn)
 	{
 		UE_LOG(LogFpSaveSubsystem, Error, TEXT("Player Character is invalid. Can't load character data"))
+		return;
 	}
 	
 	// Loads player's health
@@ -410,7 +424,7 @@ void USaveGameSubsystem::LoadPlayerCharacterLevelDataFromSave()
 	}
 }
 
-void USaveGameSubsystem::RestartLevel(FString InLevelName, bool bHardReset)
+void USaveGameSubsystem::ResetLevelData(FString InLevelName, bool bHardReset)
 {
 	if(FFPLevelData* LevelData = GetLevelData(InLevelName))
 	{

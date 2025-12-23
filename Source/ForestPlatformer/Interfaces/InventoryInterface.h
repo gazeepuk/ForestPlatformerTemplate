@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CoreTypes/InventoryTypes/InventoryItemDataAsset.h"
 #include "UObject/Interface.h"
 #include "InventoryInterface.generated.h"
 
@@ -36,5 +35,5 @@ public:
 	bool AddItem(UObject* InInventoryObject, int32 InQuantity);
 	/** Returns an item from the inventory */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void RemoveItem(UObject* InInventoryObject, int32 InQuantity);
+	bool RemoveItem(UObject* InInventoryObject, int32 InQuantity);
 };

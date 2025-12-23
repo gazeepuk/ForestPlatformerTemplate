@@ -23,7 +23,10 @@ bool UInventoryComponent::AddItem(TSoftObjectPtr<UInventoryItemDataAsset> InInve
 		if(Slot.InventoryItemDataAsset == InInventoryItemData)
 		{
 			Slot.Quantity += InQuantity;
+
 			OnInventoryUpdated.Broadcast(InventorySlots);
+			OnInventoryItemAdded.Broadcast(Slot, InQuantity);
+			
 			return true;
 		}
 	}
@@ -36,31 +39,35 @@ bool UInventoryComponent::AddItem(TSoftObjectPtr<UInventoryItemDataAsset> InInve
 	InventorySlots.Add(NewSlot);
 
 	OnInventoryUpdated.Broadcast(InventorySlots);
+	OnInventoryItemAdded.Broadcast(NewSlot, InQuantity);
 
 	return true;
 }
 
-void UInventoryComponent::RemoveItem(TSoftObjectPtr<UInventoryItemDataAsset> InInventoryItemData, int32 InQuantity)
+bool UInventoryComponent::RemoveItem(TSoftObjectPtr<UInventoryItemDataAsset> InInventoryItemData, int32 InQuantity)
 {
 	if(InInventoryItemData.IsNull() || InQuantity <= 0)
 	{
-		return;
+		return false;
 	}
 	
 	for (int i = 0; i < InventorySlots.Num(); ++i)
 	{
-		if(InventorySlots[i].InventoryItemDataAsset == InInventoryItemData)
+		FInventorySlot InventorySlot = InventorySlots[i];
+		if(InventorySlot.InventoryItemDataAsset == InInventoryItemData)
 		{
-			InventorySlots[i].Quantity = FMath::Max(0, InventorySlots[i].Quantity - InQuantity);
-			if(InventorySlots[i].Quantity == 0)
+			InventorySlot.Quantity = FMath::Max(0, InventorySlot.Quantity - InQuantity);
+			if(InventorySlot.Quantity == 0)
 			{
 				InventorySlots.RemoveAt(i);
-				break;
 			}
+			OnInventoryItemRemoved.Broadcast(InventorySlot, InQuantity);
+			OnInventoryUpdated.Broadcast(InventorySlots);
+			return true;
 		}
 	}
-	
-	OnInventoryUpdated.Broadcast(InventorySlots);
+
+	return false;
 }
 
 int32 UInventoryComponent::GetItemCountByID(FName InItemID) const

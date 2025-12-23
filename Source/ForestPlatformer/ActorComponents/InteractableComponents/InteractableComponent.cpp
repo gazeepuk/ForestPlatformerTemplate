@@ -49,7 +49,6 @@ void UInteractableComponent::SetInteractionWidgetComponent(UWidgetComponent* InW
 	InteractionWidgetComponent = InWidgetComponent;
 	if(InteractionWidgetComponent)
 	{
-		InteractionWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 		InteractionWidgetComponent->SetVisibility(bFocused);
 	}
 }

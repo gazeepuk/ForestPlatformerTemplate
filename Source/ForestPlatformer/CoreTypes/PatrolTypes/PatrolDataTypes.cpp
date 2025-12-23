@@ -11,7 +11,7 @@ bool UPatrolDataBase::GetNextPatrolLocation_Implementation(APawn* PatrollingPawn
 	return false;
 }
 
-bool UPatrolInBoundsData::GetNextPatrolLocation_Implementation(APawn* PatrollingPawn, FVector& OutNextLocation) const
+bool UPatrolInBounds::GetNextPatrolLocation_Implementation(APawn* PatrollingPawn, FVector& OutNextLocation) const
 {
 	if(!PatrollingPawn)
 	{
