@@ -23,7 +23,15 @@ void APooledActorBase::SetPooledActorActive(bool InActive)
 	}
 }
 
-void APooledActorBase::ActivateActor_Implementation()
+void APooledActorBase::OnActorActivated_Implementation()
+{
+}
+
+void APooledActorBase::OnActorDeactivated_Implementation()
+{
+}
+
+void APooledActorBase::ActivateActor()
 {
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
@@ -32,13 +40,17 @@ void APooledActorBase::ActivateActor_Implementation()
 	PrimaryActorTick.SetTickFunctionEnable(true);
 	
 	GetWorldTimerManager().SetTimer(DeactivateActorTimerHandle, this, &ThisClass::DeactivateActor, ActiveLifeTime);
+
+	OnActorActivated();
 }
 
-void APooledActorBase::DeactivateActor_Implementation()
+void APooledActorBase::DeactivateActor()
 {
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
 	bActive = false;
 	
 	PrimaryActorTick.SetTickFunctionEnable(false);
+
+	OnActorDeactivated();
 }

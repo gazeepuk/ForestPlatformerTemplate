@@ -99,7 +99,7 @@ void UFPSpringArmComponent::UpdateMovementAlignment(float InDeltaTime)
 	
 	const float DeltaYaw = FMath::FindDeltaAngleDegrees(CurrentControlRotation.Yaw, TargetControlRotation.Yaw);
 	const float AbsDeltaYaw = FMath::Abs(DeltaYaw);
-
+	
 	// Aligns controller rotation only the yaw difference between angle thresholds
 	if(AbsDeltaYaw > MovementAlignmentFrontAngleThreshold && AbsDeltaYaw < MovementAlignmentBackAngleThreshold)
 	{

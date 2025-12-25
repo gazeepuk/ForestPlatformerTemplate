@@ -54,7 +54,7 @@ public:
 
 	/* Generates a unique identifier based on actor's location*/
 	UFUNCTION(BlueprintCallable)
-	static FName GenerateSaveIDByActorLocation(const AActor* InActor);
+	static FName GenerateSaveID(const AActor* InActor);
 
 	/* Serializes a structure into a byte array. */
 	UFUNCTION(BlueprintCallable, CustomThunk, Category="Serialization", meta=(CustomStructureParam = "Struct"))

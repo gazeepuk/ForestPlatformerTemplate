@@ -25,10 +25,10 @@ public:
 	
 protected:
 	UFUNCTION(BlueprintNativeEvent)
-	void ActivateActor();
-	
+	void OnActorActivated();
+
 	UFUNCTION(BlueprintNativeEvent)
-	void DeactivateActor();
+	void OnActorDeactivated();
 
 private:
 	/* Lifetime after activation */
@@ -38,4 +38,7 @@ private:
 	bool bActive = true;
 
 	FTimerHandle DeactivateActorTimerHandle;
+
+	void ActivateActor();
+	void DeactivateActor();
 };

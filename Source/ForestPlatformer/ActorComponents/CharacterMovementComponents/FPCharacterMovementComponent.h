@@ -34,10 +34,6 @@ public:
 	virtual float GetMaxSpeed() const override;
 	virtual float GetGravityZ() const override;
 	
-	/** Returns current speed multiplier */
-	UFUNCTION(BlueprintPure)
-	float GetSpeedMultiplier() const;
-
 	UFUNCTION(BlueprintCallable)
 	void AddMovementModifier(EMovementModifier InMovementModifier, float InMultiplier);
 	UFUNCTION(BlueprintCallable)

@@ -124,21 +124,17 @@ bool UFPFunctionLibrary::IsPawnHostile(const APawn* InInstigator, const APawn* I
 	return InstigatorTeamAgentInterface->GetTeamAttitudeTowards(*InTarget) == ETeamAttitude::Hostile;
 }
 
-FName UFPFunctionLibrary::GenerateSaveIDByActorLocation(const AActor* InActor)
+FName UFPFunctionLibrary::GenerateSaveID(const AActor* InActor)
 {
-	FName AutoSaveID;
-	// Makes a SaveId based on actor's name and location (ActorClassName_X_Y_Z). For example: "FPCheckpoint_102.231_56.43_0.000"
+
 	if(InActor)
 	{
-		const FVector Location = InActor->GetActorLocation();
-		AutoSaveID = FName(FString::Printf(
-			TEXT("%s_%.3f_%.3f_%.3f"),
-			*InActor->GetClass()->GetName(),
-			Location.X,
-			Location.Y,
-			Location.Z));
+		const FGuid ActorGUID = FGuid::NewGuid();
+		const FString SaveID = FString::Printf(TEXT("%s_%s"), *InActor->GetClass()->GetName(), *ActorGUID.ToString(EGuidFormats::Short));
+		return FName(SaveID);
 	}
-	return AutoSaveID;
+	
+	return FName();
 }
 
 bool UFPFunctionLibrary::SerializeStruct(const FGenericStruct& Struct, TArray<uint8>& OutBytes)

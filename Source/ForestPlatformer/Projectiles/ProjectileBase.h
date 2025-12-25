@@ -39,15 +39,15 @@ protected:
 	 */
 	virtual void BeginPlay() override;
 	/**
-	 * Activates ProjectileMovementComponent and plays a flight sound.
-	 * @note Must call Super::ActivateActor_Implementation for proper pooling logic
+	 * Handles projectile activation.
+	 * @note Must call parent function for proper activation logic
 	 */
-	virtual void ActivateActor_Implementation() override;
+	virtual void OnActorActivated_Implementation() override;
 	/**
-	 * Deactivates ProjectileMovementComponent, resets its movement properties, and stops the flight sound.
-	 * @note Must call Super::DeactivateActor_Implementation for proper pooling logic. Use OnDeactivateProjectile instead for deactivating the projectile.
+	 * Handles projectiles deactivation.
+	 * @note Must call parent function for proper deactivation logic
 	 */
-	virtual void DeactivateActor_Implementation() override;
+	virtual void OnActorDeactivated_Implementation() override;
 	/**
 	 * Called when the projectile overlaps other actor.
 	 */

@@ -16,7 +16,7 @@ void ISavableActorInterface::InitializeSaveID()
 
 	if(const AActor* Actor = Cast<AActor>(this))
 	{
-		const FName AutoSaveID = UFPFunctionLibrary::GenerateSaveIDByActorLocation(Actor);
+		const FName AutoSaveID = UFPFunctionLibrary::GenerateSaveID(Actor);
 
 		SetSaveID_Implementation(AutoSaveID);
 	}

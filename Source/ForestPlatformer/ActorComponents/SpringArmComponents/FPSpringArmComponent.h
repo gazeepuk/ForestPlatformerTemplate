@@ -63,11 +63,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpringArm|MovementAlignment", meta = (ClampMin = "0"))
 	float MovementAlignmentSpeed = 1.5;
 	/** Angle threshold (in degrees) for forward movement alignment */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SprintArm|MovementAlignment", meta = (ClampMin = "0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpringArm|MovementAlignment", meta = (ClampMin = "0", ClampMax = "180"))
 	float MovementAlignmentFrontAngleThreshold = 30.f;
 	/** Angle threshold (in degrees) for backward movement alignment */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpringArm|MovementAlignment", meta = (ClampMin = "0"))
-	float MovementAlignmentBackAngleThreshold = 80.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpringArm|MovementAlignment", meta = (ClampMin = "0", ClampMax = "180"))
+	float MovementAlignmentBackAngleThreshold = 100.f;
 	/** Minimum velocity required for movement alignment */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpringArm|MovementAlignment", meta = (ClampMin = "0"))
 	float VelocityAlignmentThreshold = 10.f;

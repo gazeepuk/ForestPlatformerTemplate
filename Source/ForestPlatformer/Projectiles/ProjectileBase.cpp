@@ -59,16 +59,16 @@ void AProjectileBase::BeginPlay()
 	}
 }
 
-void AProjectileBase::ActivateActor_Implementation()
+void AProjectileBase::OnActorActivated_Implementation()
 {
-	Super::ActivateActor_Implementation();
+	Super::OnActorActivated_Implementation();
 
 	OnProjectileActivated();
 	
 	ProjectileMovementComponent->SetActive(true);
 }
 
-void AProjectileBase::DeactivateActor_Implementation()
+void AProjectileBase::OnActorDeactivated_Implementation()
 {
 	OnProjectileDeactivated();
 
@@ -80,7 +80,7 @@ void AProjectileBase::DeactivateActor_Implementation()
 	
 	ProjectileMovementComponent->SetActive(false);
 
-	Super::DeactivateActor_Implementation();
+	Super::OnActorDeactivated_Implementation();
 }
 
 void AProjectileBase::OnProjectileActivated_Implementation()
