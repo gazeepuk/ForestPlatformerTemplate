@@ -3,7 +3,7 @@
 
 #include "HealthComponent.h"
 
-#include "CoreTypes/FPGameplayTags.h"
+#include "CoreTypes/GameplayTags/FPGameplayTags.h"
 #include "FunctionLibrary/FPFunctionLibrary.h"
 
 

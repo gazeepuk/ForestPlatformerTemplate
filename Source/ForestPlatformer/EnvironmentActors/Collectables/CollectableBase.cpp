@@ -4,8 +4,7 @@
 #include "CollectableBase.h"
 
 #include "Components/BoxComponent.h"
-#include "CoreTypes/FPCustomCollisions.h"
-#include "FunctionLibrary/FPFunctionLibrary.h"
+#include "CoreTypes/CustomCollisions/FPCustomCollisions.h"
 #include "Kismet/GameplayStatics.h"
 #include "Subsystems/SaveGameSubsystem.h"
 

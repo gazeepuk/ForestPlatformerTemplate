@@ -4,7 +4,7 @@
 #include "FPAIController.h"
 
 #include "BehaviorTree/BlackboardComponent.h"
-#include "CoreTypes/FPGameplayTags.h"
+#include "CoreTypes/GameplayTags/FPGameplayTags.h"
 #include "FunctionLibrary/FPFunctionLibrary.h"
 #include "Navigation/CrowdFollowingComponent.h"
 #include "Perception/AIPerceptionComponent.h"

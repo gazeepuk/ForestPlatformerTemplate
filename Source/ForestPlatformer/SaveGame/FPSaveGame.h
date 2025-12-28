@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CoreTypes/FPSavableDataTypes.h"
+#include "CoreTypes/SavableData/FPSavableDataTypes.h"
 #include "GameFramework/SaveGame.h"
 #include "FPSaveGame.generated.h"
 

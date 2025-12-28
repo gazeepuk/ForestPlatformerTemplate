@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-#include "CoreTypes/FPEnumTypes.h"
+#include "CoreTypes/EnumTypes/FPEnumTypes.h"
 #include "CoreTypes/InventoryTypes/InventorySlot.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Engine/EngineTypes.h"
@@ -70,5 +70,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory", meta = (ExpandEnumAsExecs = "OutSuccessType"))
 	static void GetItemInfoFromInventorySlotSync(const FInventorySlot& InInventorySlot, FInventoryItem& OutInventoryItemInfo, EFPSuccessType& OutSuccessType);
-
+	
+	UFUNCTION(BlueprintPure)
+	static int32 LoopArrayIndex(int32 InIndex, int32 InArrayNum);
 };

@@ -3,9 +3,8 @@
 
 #include "FPCharacterBase.h"
 
-#include "ActorComponents/HealthComponent/HealthComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "CoreTypes/FPCustomCollisions.h"
+#include "CoreTypes/CustomCollisions/FPCustomCollisions.h"
 
 AFPCharacterBase::AFPCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {

@@ -80,4 +80,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UDataTable> LevelSequence;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool bAsyncCheckpointSave = true;
 };

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CoreTypes/FPEnumTypes.h"
+#include "CoreTypes/EnumTypes/FPEnumTypes.h"
 #include "UObject/Object.h"
 #include "ObserverCondition.generated.h"
 

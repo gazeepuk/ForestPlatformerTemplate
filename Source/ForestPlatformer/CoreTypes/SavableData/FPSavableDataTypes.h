@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "Engine/EngineTypes.h"
-#include "InventoryTypes/InventorySlot.h"
+#include "CoreTypes/InventoryTypes/InventorySlot.h"
 #include "FPSavableDataTypes.generated.h"
 
 /** Contains save data for savable actors */

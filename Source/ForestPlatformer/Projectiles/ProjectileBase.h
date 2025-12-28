@@ -88,7 +88,7 @@ protected:
 	void PlayFlightSound() const;
 	/** Plays ProjectileFlightSound at projectile's location. */
 	void PlayImpactSound();
-
+	
 	/** Projectile's collision. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Projectile|Collision")
 	TObjectPtr<USphereComponent> ProjectileCollision;
@@ -123,9 +123,6 @@ protected:
 	/** Attached to the projectile for playing ProjectileFlightSound. */
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Sound")
 	TObjectPtr<UAudioComponent> FlightAudioComponent;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Projectile|VFX")
-	TObjectPtr<UNiagaraSystem> ImpactNiagaraSystem;
 private:
 
 	/** Projectile's default max speed. Used for setting ProjectileMovementComponent's MaxSpeed*/

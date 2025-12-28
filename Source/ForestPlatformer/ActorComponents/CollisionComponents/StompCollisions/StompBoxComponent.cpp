@@ -3,8 +3,7 @@
 
 #include "StompBoxComponent.h"
 
-#include "Components/ArrowComponent.h"
-#include "CoreTypes/FPCustomCollisions.h"
+#include "CoreTypes/CustomCollisions/FPCustomCollisions.h"
 
 
 UStompBoxComponent::UStompBoxComponent()

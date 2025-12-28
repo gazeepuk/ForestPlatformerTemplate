@@ -12,6 +12,8 @@ DECLARE_LOG_CATEGORY_EXTERN(LogFpSaveSubsystem, Log, All);
 #define DEFAULT_SAVE_SLOT_NAME TEXT("SaveSlot")
 #define DEFAULT_LEVEL_REGISTRY_TABLE_PATH TEXT("/Game/Miscellaneous/LevelRegistry/DT_LevelRegistry.DT_LevelRegistry")
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSaveGameStartSaving);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSaveGameStartLoading);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSaveGameLoaded, const FString&, LoadedSlotName, const int32, LoadedUserIndex, USaveGame*, LoadedSaveData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnSaveGameSaved, const FString&, SavedSlotName, const int32, SavedUserIndex, bool, bSavedSuccessfully);
 
@@ -118,7 +120,13 @@ public:
 	/** Marks level completed and save the data */
 	UFUNCTION(BlueprintCallable)
 	void CompleteLevel(FString InLevelName);
-	
+
+	/** Delegate that broadcasts after a save game starts saving */
+	UPROPERTY(BlueprintAssignable)
+	FOnSaveGameStartSaving OnGameStartSaving;
+	/** Delegate that broadcasts after a save game starts loading */
+	UPROPERTY(BlueprintAssignable)
+	FOnSaveGameStartLoading OnGameStartLoading;
 	/** Delegate that broadcasts after a save game has been loaded asynchronously */
 	UPROPERTY(BlueprintAssignable)
 	FOnSaveGameLoaded OnGameLoaded;

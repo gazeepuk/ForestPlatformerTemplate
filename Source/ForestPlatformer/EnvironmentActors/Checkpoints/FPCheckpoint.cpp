@@ -5,7 +5,7 @@
 
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
-#include "CoreTypes/FPCustomCollisions.h"
+#include "CoreTypes/CustomCollisions/FPCustomCollisions.h"
 #include "GameModes/FPGameMode.h"
 
 

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CoreTypes/FPSavableDataTypes.h"
+#include "CoreTypes/SavableData/FPSavableDataTypes.h"
 #include "UObject/Interface.h"
 #include "SavableActorInterface.generated.h"
 

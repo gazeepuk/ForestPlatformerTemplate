@@ -5,12 +5,11 @@
 
 #include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
-#include "CoreTypes/FPCustomCollisions.h"
+#include "CoreTypes/CustomCollisions/FPCustomCollisions.h"
 #include "FunctionLibrary/FPFunctionLibrary.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Interfaces/DamageableInterface.h"
 #include "Kismet/GameplayStatics.h"
-#include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 
 
@@ -85,6 +84,7 @@ void AProjectileBase::OnActorDeactivated_Implementation()
 
 void AProjectileBase::OnProjectileActivated_Implementation()
 {
+	
 	PlayFlightSound();
 }
 
@@ -156,6 +156,11 @@ bool AProjectileBase::ProjectileInteract_Implementation(AActor* InInteractingAct
 void AProjectileBase::OnProjectileHit_Implementation(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if(!IsActive())
+	{
+		return;
+	}
+	
 	if(bIgnoreOwner && OtherActor && OtherActor == GetOwner())
 	{
 		return;
@@ -175,6 +180,11 @@ void AProjectileBase::OnProjectileBeginOverlap_Implementation(UPrimitiveComponen
                                                               AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                                               const FHitResult& SweepResult)
 {
+	if(!IsActive())
+	{
+		return;
+	}
+	
 	if(bIgnoreOwner && OtherActor && OtherActor == GetOwner())
 	{
 		return;
@@ -196,14 +206,4 @@ void AProjectileBase::OnProjectileBeginOverlap_Implementation(UPrimitiveComponen
 void AProjectileBase::OnProjectileImpact_Implementation()
 {
 	PlayImpactSound();
-
-	if(ImpactNiagaraSystem)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			this,
-			ImpactNiagaraSystem,
-			GetActorLocation(),
-			GetActorRotation()
-			);
-	}
 }

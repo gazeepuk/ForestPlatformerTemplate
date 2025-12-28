@@ -18,7 +18,6 @@ class FORESTPLATFORMER_API UAsyncLoadInventoryItemUIInfo : public UBlueprintAsyn
 	GENERATED_BODY()
 
 public:
-	virtual void BeginDestroy() override;
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnItemInfoLoaded OnSuccess;
@@ -34,5 +33,6 @@ public:
 private:
 	FInventorySlot InventorySlot;
 
-	TSharedPtr<FStreamableHandle> StreamableHandle;
+	UFUNCTION()
+	void OnInventoryInfoLoaded();
 };

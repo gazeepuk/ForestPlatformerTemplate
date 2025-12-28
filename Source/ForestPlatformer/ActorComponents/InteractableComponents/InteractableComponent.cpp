@@ -5,7 +5,7 @@
 
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
-#include "CoreTypes/FPCustomCollisions.h"
+#include "CoreTypes/CustomCollisions/FPCustomCollisions.h"
 #include "Interfaces/InteractableInterface.h"
 
 

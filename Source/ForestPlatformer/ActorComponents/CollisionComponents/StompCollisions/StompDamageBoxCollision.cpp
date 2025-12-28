@@ -4,7 +4,7 @@
 #include "StompDamageBoxCollision.h"
 
 #include "Characters/FPPlayerCharacter.h"
-#include "CoreTypes/FPCustomCollisions.h"
+#include "CoreTypes/CustomCollisions/FPCustomCollisions.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 

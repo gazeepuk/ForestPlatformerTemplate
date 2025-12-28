@@ -4,7 +4,7 @@
 #include "CombatComponentBase.h"
 
 #include "CoreTypes/AttackTypes/FPAttackType.h"
-#include "CoreTypes/FPGameplayTags.h"
+#include "CoreTypes/GameplayTags/FPGameplayTags.h"
 #include "FunctionLibrary/FPFunctionLibrary.h"
 
 DEFINE_LOG_CATEGORY(LogFpCombat);

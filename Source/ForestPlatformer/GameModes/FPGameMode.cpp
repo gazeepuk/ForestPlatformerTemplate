@@ -4,7 +4,7 @@
 #include "FPGameMode.h"
 
 #include "EngineUtils.h"
-#include "CoreTypes/FPLevelSequenceStruct.h"
+#include "CoreTypes/LevelSequenceStruct/FPLevelSequenceStruct.h"
 #include "EnvironmentActors/Checkpoints/FPCheckpoint.h"
 #include "GameFramework/PlayerStart.h"
 #include "Interfaces/SavableActorInterface.h"
@@ -219,7 +219,7 @@ void AFPGameMode::RegisterCheckpoint(AFPCheckpoint* InCheckpoint)
 		if(USaveGameSubsystem* SaveGameSubsystem = GetGameInstance()->GetSubsystem<USaveGameSubsystem>())
 		{
 			SaveGameSubsystem->WriteCurrentLevelSaveData();
-			SaveGameSubsystem->SaveGameSlot(SaveGameSubsystem->GetCurrentSlotName(), SaveGameSubsystem->GetCurrentUserIndex());
+			SaveGameSubsystem->SaveGameSlot(SaveGameSubsystem->GetCurrentSlotName(), SaveGameSubsystem->GetCurrentUserIndex(), bAsyncCheckpointSave);
 		}
 	}
 }

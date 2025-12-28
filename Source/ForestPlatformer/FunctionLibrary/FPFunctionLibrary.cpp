@@ -278,3 +278,8 @@ void UFPFunctionLibrary::GetItemInfoFromInventorySlotSync(const FInventorySlot& 
 	OutSuccessType = EFPSuccessType::Failed;
 }
 
+int32 UFPFunctionLibrary::LoopArrayIndex(int32 InIndex, int32 InArrayNum)
+{
+	return ((InIndex % InArrayNum) + InArrayNum) % InArrayNum;
+}
+

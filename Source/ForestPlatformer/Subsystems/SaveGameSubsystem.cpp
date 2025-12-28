@@ -141,6 +141,7 @@ void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserI
 	// Load SaveGame if it exists
 	if(UGameplayStatics::DoesSaveGameExist(SlotName, UserIndex))
 	{
+		OnGameStartLoading.Broadcast();
 		// Async loading SaveData
 		if(bAsync)
 		{
@@ -161,6 +162,7 @@ void USaveGameSubsystem::LoadGameSlot(const FString& SlotName, const int32 UserI
 	// Create a new SaveGame if the loading failed
 	if(!SaveGame)
 	{
+		OnGameStartLoading.Broadcast();
 		SaveGame = Cast<UFPSaveGame>(UGameplayStatics::CreateSaveGameObject(UFPSaveGame::StaticClass()));
 		OnGameLoaded.Broadcast(SlotName, UserIndex, SaveGame);
 
@@ -197,11 +199,13 @@ void USaveGameSubsystem::SaveGameSlot(const FString& SlotName, const int32 UserI
 	// Async saving
 	if(bAsyncSave)
 	{
+		OnGameStartSaving.Broadcast();
 		UGameplayStatics::AsyncSaveGameToSlot(SaveGame, SlotName, UserIndex, FAsyncSaveGameToSlotDelegate::CreateUObject(this, &ThisClass::HandleAsyncSaveGame));
 	}
 	// Sync saving 
 	else
 	{
+		OnGameStartSaving.Broadcast();
 		bool bSavedSuccessfully = UGameplayStatics::SaveGameToSlot(SaveGame, SlotName, UserIndex);
 		OnGameSaved.Broadcast(SlotName, UserIndex, bSavedSuccessfully);
 		

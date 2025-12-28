@@ -12,10 +12,10 @@
 #include "ActorComponents/SpringArmComponents/FPSpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SphereComponent.h"
-#include "CoreTypes/FPCustomCollisions.h"
+#include "CoreTypes/CustomCollisions/FPCustomCollisions.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Controllers/PlayerControllers/FPPlayerController.h"
-#include "CoreTypes/FPGameplayTags.h"
+#include "CoreTypes/GameplayTags/FPGameplayTags.h"
 #include "FunctionLibrary/FPFunctionLibrary.h"
 
 AFPPlayerCharacter::AFPPlayerCharacter(const FObjectInitializer& ObjectInitializer) :

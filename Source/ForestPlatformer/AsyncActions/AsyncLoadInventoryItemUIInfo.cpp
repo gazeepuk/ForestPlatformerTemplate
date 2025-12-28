@@ -7,17 +7,6 @@
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
 
-void UAsyncLoadInventoryItemUIInfo::BeginDestroy()
-{
-	if(StreamableHandle.IsValid())
-	{
-		StreamableHandle->CancelHandle();
-		StreamableHandle.Reset();
-	}
-
-	Super::BeginDestroy();
-}
-
 UAsyncLoadInventoryItemUIInfo* UAsyncLoadInventoryItemUIInfo::AsyncLoadInventoryItemUIInfo(
 	const FInventorySlot& InInventorySlot)
 {
@@ -38,32 +27,28 @@ void UAsyncLoadInventoryItemUIInfo::Activate()
 	FSoftObjectPath ItemPath = InventorySlot.InventoryItemDataAsset.ToSoftObjectPath();
 
 	TWeakObjectPtr<UAsyncLoadInventoryItemUIInfo> WeakThis(this);
-	
-	
-	StreamableHandle = StreamableManager.RequestAsyncLoad(ItemPath, FStreamableDelegate::CreateLambda(
-		[ItemPath, WeakThis]()
-		{
-			if(!WeakThis.IsValid())
-			{
-				return;
-			}
-			UAsyncLoadInventoryItemUIInfo* This = WeakThis.Get();
-			
-			if(UInventoryItemDataAsset* ItemDataAsset = Cast<UInventoryItemDataAsset>(ItemPath.ResolveObject()))
-			{
-				FInventoryItem InventoryItem;
-				InventoryItem.ItemName = ItemDataAsset->GetItemDisplayName();
-				InventoryItem.ItemDescription = ItemDataAsset->GetItemDescription();
-				InventoryItem.ItemIcon = ItemDataAsset->GetItemTexture();
-				InventoryItem.ItemQuantity = This->InventorySlot.Quantity;
-				
-				This->OnSuccess.Broadcast(InventoryItem);
-			}
-			else
-			{
-				This->OnFailed.Broadcast(FInventoryItem());
-			}
+	StreamableManager.RequestAsyncLoad(ItemPath, FStreamableDelegate::CreateUObject(this, &UAsyncLoadInventoryItemUIInfo::OnInventoryInfoLoaded));
+}
 
-			This->StreamableHandle.Reset();
-		}));
+void UAsyncLoadInventoryItemUIInfo::OnInventoryInfoLoaded()
+{
+	if(InventorySlot.InventoryItemDataAsset.IsNull())
+	{
+		return;
+	}
+	
+	if(UInventoryItemDataAsset* ItemDataAsset = Cast<UInventoryItemDataAsset>(InventorySlot.InventoryItemDataAsset.ToSoftObjectPath().ResolveObject()))
+	{
+		FInventoryItem InventoryItem;
+		InventoryItem.ItemName = ItemDataAsset->GetItemDisplayName();
+		InventoryItem.ItemDescription = ItemDataAsset->GetItemDescription();
+		InventoryItem.ItemIcon = ItemDataAsset->GetItemTexture();
+		InventoryItem.ItemQuantity = InventorySlot.Quantity;
+				
+		OnSuccess.Broadcast(InventoryItem);
+	}
+	else
+	{
+		OnFailed.Broadcast(FInventoryItem());
+	}
 }
