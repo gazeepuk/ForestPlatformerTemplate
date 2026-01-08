@@ -55,6 +55,14 @@ void UHealthComponent::LoadHealth(float InNewCurrentHealth, float InMaxHealth)
 {
 	// Loads health. Prevents broadcasting TakeDamage delegate, if the loaded health is less than current health
 	bLoadingHealth = true;
+	if(InMaxHealth <= 0)
+	{
+		InMaxHealth = MaxHealth;
+	}
+	if(InNewCurrentHealth <= 0.f)
+	{
+		InNewCurrentHealth = InMaxHealth;
+	}
 	SetMaxHealth(InMaxHealth);
 	SetCurrentHealth(InNewCurrentHealth);
 	bLoadingHealth = false;
@@ -84,6 +92,6 @@ void UHealthComponent::PostInitProperties()
 {
 	Super::PostInitProperties();
 
-	CurrentHealth = MaxHealth;
+	SetCurrentHealth(MaxHealth);
 }
 

@@ -31,7 +31,7 @@ struct FFPPlayerProgressData
 {
 	GENERATED_BODY()
 
-	FFPPlayerProgressData() : MaxHealth(3.f), CoinsValue(0) {}
+	FFPPlayerProgressData() : MaxHealth(0.f), CoinsValue(0) {}
 
 	/** The player's max health value */
 	UPROPERTY()
