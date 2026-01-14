@@ -36,6 +36,7 @@ FFPSavableData ACollectableBase::GetSaveData_Implementation() const
 
 void ACollectableBase::LoadFromSaveData_Implementation(const FFPSavableData& SaveData)
 {
+	// TODO !!
 	bActive = SaveData.bActive;
 
 	Execute_OnLoadedFromSaveData(this);
