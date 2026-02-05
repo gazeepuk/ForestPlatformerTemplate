@@ -11,6 +11,7 @@
 #include "Interfaces/DamageableInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
+#include "ActorComponents/LaunchingComponent/LaunchingComponent.h"
 
 
 AProjectileBase::AProjectileBase()
@@ -150,6 +151,12 @@ bool AProjectileBase::ProjectileInteract_Implementation(AActor* InInteractingAct
 		IDamageableInterface::Execute_TakeDamage(InInteractingActor, this, DamageValue, OwningController);
 	}
 
+	// Launches the target
+	if(ULaunchingComponent* LaunchingComponent = InInteractingActor->GetComponentByClass<ULaunchingComponent>())
+	{
+		FVector LaunchingDirection = InInteractingActor->GetActorLocation() - GetActorLocation();
+		LaunchingComponent->LaunchInDirection(LaunchingDirection, TargetLaunchingForce);
+	}
 	return true;
 }
 

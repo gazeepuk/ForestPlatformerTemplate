@@ -8,6 +8,7 @@
 
 void ACoinCollectableBase::NativeOnCollected(AActor* InInstigator)
 {
+	Super::NativeOnCollected(InInstigator);
 	if(InInstigator && InInstigator->Implements<UCoinsWalletInterface>())
 	{
 		ICoinsWalletInterface::Execute_AddCoins(InInstigator, CoinsValue);

@@ -14,10 +14,10 @@ class FORESTPLATFORMER_API ULaunchingComponent : public UActorComponent
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void LaunchInDirection(FVector InDirection);
+	void LaunchInDirection(FVector InDirection, float InLaunchingForce = -1.f);
 
 	UFUNCTION(BlueprintCallable)
-	void LaunchFromImpactPoint(FVector InImpactPoint);
+	void LaunchFromImpactPoint(FVector InImpactPoint, float InLaunchingForce = -1.f);
 
 	UFUNCTION(BlueprintCallable)
 	void LaunchWithParams(FVector InDirectionVector, float InLaunchStrength, bool bResolveDirection = true);
@@ -30,7 +30,7 @@ protected:
 	bool IsOwnerGrounded() const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Launching")
-	float LaunchStrength = 800.f;
+	float DefaultLaunchForce = 800.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Launching")
 	bool bUsePawnEyes = false;

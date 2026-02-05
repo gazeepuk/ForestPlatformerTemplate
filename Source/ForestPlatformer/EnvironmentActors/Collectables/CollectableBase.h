@@ -66,7 +66,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, Category  = "Collectable")
 	bool bActive;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category  = "Collectable")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category  = "Collectable")
 	TObjectPtr<USoundBase> CollectionSound;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category  = "Collectable")

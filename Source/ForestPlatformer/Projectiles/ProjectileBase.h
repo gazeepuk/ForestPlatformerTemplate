@@ -112,6 +112,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Collision")
 	bool bPierceActors = false;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Launching")
+	float TargetLaunchingForce = 500.f;
+	
 	/** Projectile's impact sound. Plays with PlayImpactSound function. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Sound")
 	TObjectPtr<USoundBase> ProjectileImpactSound;

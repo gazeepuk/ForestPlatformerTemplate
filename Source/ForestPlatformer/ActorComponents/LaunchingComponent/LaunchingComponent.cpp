@@ -7,12 +7,13 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-void ULaunchingComponent::LaunchInDirection(FVector InDirection)
+void ULaunchingComponent::LaunchInDirection(FVector InDirection, float InLaunchingForce)
 {
-	LaunchWithParams(InDirection, LaunchStrength, bResolveLaunchingDirection);
+	float FinalLaunchingForce = InLaunchingForce < 0.f ? DefaultLaunchForce : InLaunchingForce;
+	LaunchWithParams(InDirection, FinalLaunchingForce, bResolveLaunchingDirection);
 }
 
-void ULaunchingComponent::LaunchFromImpactPoint(FVector InImpactPoint)
+void ULaunchingComponent::LaunchFromImpactPoint(FVector InImpactPoint, float InLaunchingForce)
 {
 	FVector RawDirection = GetOwner()->GetActorLocation() - InImpactPoint;
 
@@ -24,7 +25,8 @@ void ULaunchingComponent::LaunchFromImpactPoint(FVector InImpactPoint)
 		}
 	}
 
-	LaunchWithParams(RawDirection, LaunchStrength, bResolveLaunchingDirection);
+	float FinalLaunchingForce = InLaunchingForce < 0.f ? DefaultLaunchForce : InLaunchingForce;
+	LaunchWithParams(RawDirection, FinalLaunchingForce, bResolveLaunchingDirection);
 }
 
 void ULaunchingComponent::LaunchWithParams(FVector InDirectionVector, float InLaunchStrength,
