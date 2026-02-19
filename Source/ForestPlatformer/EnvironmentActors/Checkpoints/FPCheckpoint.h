@@ -67,7 +67,7 @@ protected:
 	UFUNCTION()
 	void OnPlayerOverlappedBoundaries(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
-	/** Blueprint event called when this checkpoint is becomes activated */
+	/** Blueprint event called when this checkpoint becomes activated */
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnCheckpointActivated();
 };
