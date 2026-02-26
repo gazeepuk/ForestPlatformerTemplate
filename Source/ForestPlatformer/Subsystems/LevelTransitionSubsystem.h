@@ -8,7 +8,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogFpLevelTransition, Log, All)
 
-#define DEFAULT_LEVEL_SEQUENCES_TABLE_PATH TEXT("/Game/Miscellaneous/LevelSequences/DT_LevelSequences.DT_LevelSequences")
+#define DEFAULT_LEVEL_SEQUENCES_TABLE_PATH TEXT("/Game/ForestPlatformer/Miscellaneous/LevelSequences/DT_LevelSequences.DT_LevelSequences")
 
 /**
  * 

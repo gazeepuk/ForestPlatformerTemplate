@@ -10,7 +10,7 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogFpSaveSubsystem, Log, All);
 
 #define DEFAULT_SAVE_SLOT_NAME TEXT("SaveSlot")
-#define DEFAULT_LEVEL_REGISTRY_TABLE_PATH TEXT("/Game/Miscellaneous/LevelRegistry/DT_LevelRegistry.DT_LevelRegistry")
+#define DEFAULT_LEVEL_REGISTRY_TABLE_PATH TEXT("/Game/ForestPlatformer/Miscellaneous/LevelRegistry/DT_LevelRegistry.DT_LevelRegistry")
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSaveGameStartSaving);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSaveGameStartLoading);
