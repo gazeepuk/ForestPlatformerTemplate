@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Developed by Ivan Piankouski. All Rights Reserved
 
 #pragma once
 
@@ -48,18 +48,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void CompleteLevel();
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void TransitToNextLevel();
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintPure)
-	TSoftObjectPtr<UWorld> GetNextLevel();
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnLevelCompleted OnLevelCompleted;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bDisableInputOnLevelComplete = true;
 
 protected:
 	virtual void BeginPlay() override;

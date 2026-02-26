@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Developed by Ivan Piankouski. All Rights Reserved
 
 
 #include "FPEnemyAnimInstance.h"

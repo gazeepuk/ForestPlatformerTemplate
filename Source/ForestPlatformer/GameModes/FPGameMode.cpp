@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Developed by Ivan Piankouski. All Rights Reserved
 
 
 #include "FPGameMode.h"
@@ -19,48 +19,6 @@ FTransform AFPGameMode::GetLastCheckpointSpawnPoint() const
 	return LastCheckpoint ? LastCheckpoint->GetSpawnPointTransform() : FTransform::Identity;
 }
 
-void AFPGameMode::TransitToNextLevel_Implementation()
-{
-	TSoftObjectPtr<UWorld> NextLevel = GetNextLevel();
-	if(!NextLevel.IsNull())
-	{
-		UGameplayStatics::OpenLevelBySoftObjectPtr(this, NextLevel);
-	}
-}
-
-TSoftObjectPtr<UWorld> AFPGameMode::GetNextLevel_Implementation()
-{
-	UWorld* World = GetWorld();
-	if(!World)
-	{
-		return nullptr;
-	}
-	
-	if(LevelSequence)
-	{
-		FString ContextString("LevelSequenceLookup");
-		TArray<FName> LevelRegistryRowNames = LevelSequence->GetRowNames();
-
-		for (const FName& RowName : LevelRegistryRowNames)
-		{
-			if(FFPLevelSequence* Row = LevelSequence->FindRow<FFPLevelSequence>(RowName, ContextString))
-			{
-				if(!Row->IsValid())
-				{
-					continue;
-				}
-			
-				FString RowLevelName = Row->CurrentLevel.GetAssetName();
-				if(RowLevelName == World->GetName())
-				{
-					return Row->NextLevel;
-				}
-			}
-		}
-	}
-
-	return nullptr;
-}
 
 void AFPGameMode::HandlePlayerDeath_Implementation(APlayerController* InPlayerController, APawn* InPlayerPawn)
 {
@@ -76,11 +34,6 @@ void AFPGameMode::CompleteLevel_Implementation()
 
 	if(APlayerController* PC = GetWorld()->GetFirstPlayerController())
 	{
-		if(bDisableInputOnLevelComplete)
-		{
-			PC->DisableInput(PC);
-		}
-
 		if(PC->Implements<UShowUIInterface>())
 		{
 			IShowUIInterface::Execute_ShowLevelCompletionUI(PC);
@@ -94,8 +47,6 @@ void AFPGameMode::CompleteLevel_Implementation()
 			SaveGameSubsystem->CompleteLevel(GetWorld()->GetName());
 		}
 	}
-	
-	TransitToNextLevel();
 	
 	OnLevelCompleted.Broadcast();
 }

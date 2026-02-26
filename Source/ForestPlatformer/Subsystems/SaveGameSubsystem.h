@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Developed by Ivan Piankouski. All Rights Reserved
 
 #pragma once
 
@@ -154,7 +154,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	int32 CurrentUserIndex = 0;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
 	FString LevelRegistryTablePath;
 	
 private:

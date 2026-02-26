@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Developed by Ivan Piankouski. All Rights Reserved
 
 
 #include "SaveGameSubsystem.h"
@@ -462,6 +462,7 @@ void USaveGameSubsystem::CompleteLevel(FString InLevelName)
 	{
 		LevelData->bLevelCompleted = true;
 
-		SaveGameSlot(CurrentSlotName, CurrentUserIndex, false);
+		WriteCurrentLevelSaveData();
+		SaveGameSlot(CurrentSlotName, CurrentUserIndex, true);
 	}
 }
