@@ -43,8 +43,6 @@ Content/
 ### C++ Source folder structer
 ```
 Source/
- |- AI/                                    
- |  |- Tasks/                               # Custom tasks for behavior tree
  |- ActorComponents/
  |  |- AIComponents/                        # Components only used by AI controlled pawns
  |  |- CharacterMovementComponents/         # Custom character movement component with movement states and floating function
@@ -94,16 +92,3 @@ Source/
 2. Open the project with Unreal Engine 5.3+  
 3. Load the map `DemoMap` to start exploring the systems.  
 4. Use **Play in Editor (PIE)** to test mechanics.  
-
-## Using the Framework
-- Replace placeholder assets with your own.
-- Setup CommonUI controller data and project setting for your platforms, if you have the SDKs
-- Refer to **Manual.pdf** for in-depth explanations.  
-
-## License
-This product is distributed under the **Epic Games Fab Marketplace EULA**.  
-© [Year] [Your Name or Studio]. All rights reserved.  
-
-## Support
-For feedback or questions, contact:  
-[Your Email or Website]
